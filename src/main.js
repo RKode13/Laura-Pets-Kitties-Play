@@ -1,0 +1,717 @@
+// Laura Pets Kitties — main game: rooms, screens, camera, update loop.
+window.LPK = window.LPK || {};
+
+LPK.game = (() => {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const buffer = document.createElement("canvas");
+  const bctx = buffer.getContext("2d");
+  const input = LPK.input;
+  input.bind(canvas);
+  const D = () => LPK.dialogue;
+
+  const G = {
+    screen: "title", prevScreen: "title",
+    worlds: {}, room: "livingRoom", world: null,
+    laura: null, cats: [], clock: null,
+    petting: null, progression: null,
+    floaters: [], celebration: null, prompt: null,
+    bowls: {}, holding: null, foodMenu: null, clues: [], flags: {}, trashOpen: false,
+    cam: { x: 0, y: 0 }, S: 4, dpr: 1, viewW: 0, viewH: 0, fade: 0,
+    time: 0, notices: {},
+    ui: { buttons: [], sel: 0, page: 0, profile: "laura", confirmReset: false },
+  };
+
+  // --------------------------------------------------------- setup
+  function buildWorld() {
+    G.worlds = {};
+    for (const [id, r] of Object.entries(LPK.rooms)) if (r.available) G.worlds[id] = new LPK.World(id);
+    G.room = "livingRoom"; G.world = G.worlds.livingRoom;
+    const st = G.world.def.lauraStart, T = G.world.T;
+    G.laura = new LPK.Laura(G.world, st.x * T, st.y * T);
+    G.bowls = { herBowl: { owner: "marshmallow", food: null, eater: null }, boysBowls: { owner: "boys", food: null, eater: null } };
+    G.holding = null; G.foodMenu = null; G.clues = []; G.flags = {}; G.trashOpen = false;
+    G.cats = [new LPK.Marshmallow(G), new LPK.CC(G), new LPK.Popsicle(G)];
+    G.toys = [];
+    for (const [room, r] of Object.entries(LPK.rooms)) if (r.available) (r.toys || []).forEach(t => G.toys.push({ ...t, room, x: t.x * 16 + 8, y: t.y * 16 + 8, bounce: 0 }));
+    G.holdingToy = null; G.springTosses = 0; G.bellyGame = null;
+    G.olympics = null; G.freePlay = false; G.hangoutDone = false; G.dailyFull = null; G.clown = null; G.clownCool = 0;
+    G.garageOpen = 0; G.garageTarget = 0;
+    G.desk = { screen: "idle", coffee: "full", session: null }; G.choiceMenu = null;
+    G.robert = new LPK.Robert(G);
+    G.robert.sync();
+    G.petting = new LPK.Petting(G);
+    G.floaters = []; G.celebration = null; G.notices = {};
+    G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
+  }
+  G.progression = new LPK.Progression(G);
+  G.notify = (title, text) => { G.progression.toasts.push({ title, text, t: 4.5 }); };
+  // Robert's Food Guard ends happily when Marshmallow finishes in peace
+  LPK.events.on("ateInPeace", () => { if (G.robert && G.robert.mode === "dinner") G.robert.endGuard(true); });
+  // Level 4: calm the household — pet all three cats
+  LPK.events.on("petProgress", (p) => {
+    if (!G.calmSet || p.gained < 10) return;
+    G.calmSet.add(p.cat);
+    if (G.calmSet.size >= 3) { G.calmSet = null; LPK.events.emit("calmAll", {}); }
+  });
+  G.cat = (id) => G.cats.find(c => c.id === id);
+
+  function startMissionBanner() {
+    const m = G.progression.currentMission();
+    G.banner = m ? { title: `Level ${m.level}: ${m.name}`, text: m.intro, t: 4.5 } : null;
+  }
+  G.newGame = () => {
+    LPK.save.newGame();
+    G.clock = new LPK.Clock(LPK.config.startDay, LPK.Clock.parse(LPK.config.startTime));
+    buildWorld();
+    G.screen = "play";
+    G.laura.sayRandom(D().lauraStart, 3.2);
+    G.progression.setupCurrent();
+    startMissionBanner();
+  };
+  G.continueGame = () => {
+    const s = LPK.save.data;
+    G.clock = s.clock ? new LPK.Clock(s.clock.day, s.clock.minutes) : new LPK.Clock(LPK.config.startDay, LPK.Clock.parse(LPK.config.startTime));
+    buildWorld();
+    G.screen = "play";
+    G.progression.setupCurrent();
+    startMissionBanner();
+  };
+  G.startFreePlay = () => {
+    G.continueGame();
+    G.freePlay = true; G.banner = { title: "Free Play", text: "No missions — just you and the kitties. Daily goal: fill all three Purr Meters!", t: 4 };
+    G.laura.sayRandom(D().lauraFreePlay, 2.5);
+  };
+  G.saveNow = () => {
+    if (!G.clock) return;
+    const s = LPK.save.data;
+    s.hasGame = true;
+    s.clock = { day: G.clock.day, minutes: G.clock.minutes };
+    G.cats.forEach(c => s.cats[c.id] = c.toSave());
+    LPK.save.write();
+  };
+
+  // --------------------------------------------------------- level scripts
+  // Named scripted moments used by missions.js
+  const scripts = {
+    hideMarshmallow() {
+      const m = G.cat("marshmallow"), spots = m.def.hidingSpots;
+      const key = spots[Math.floor(Math.random() * spots.length)];
+      m.hideAt(key);
+      const s = LPK.getSpot(key), T = LPK.config.tile;
+      G.clues = [{ room: s.room, x: s.approach[0] * T + 10, y: s.approach[1] * T + 12 }];
+      // a trail of fur leading out of the room she's NOT in
+      const other = s.room === "kitchen" ? "livingRoom" : "kitchen";
+      const ex = G.worlds[other].exitTo(s.room);
+      if (ex) { const p = G.worlds[other].entryPoint(ex.id); G.clues.push({ room: other, x: p.x + 6, y: p.y + 14 }); }
+      const ex2 = G.worlds[s.room].exitTo(other);
+      if (ex2) { const p = G.worlds[s.room].entryPoint(ex2.id); G.clues.push({ room: s.room, x: p.x - 8, y: p.y + (p.y > 100 ? -18 : 18) }); }
+    },
+    marshmallowToKitchen() {
+      const m = G.cat("marshmallow");
+      m.concealed = false; m.placeAt("kitchen.kitchenMat"); m.setState("sleep", 60);
+    },
+    popsicleToTrash() { const p = G.cat("popsicle"); p.forcedTrash = true; p.stopEating(); p.goRaidTrash(9999); },
+    emptyHerBowl() { G.bowls.herBowl.food = null; },
+    boysWantHerFood() { G.flags.boysGreedy = true; },
+    midnightZoomies() {
+      G.skipTo(23 * 60 + 50, false);
+      G.flags.zoomies = true;
+      const m = G.cat("marshmallow"); m.concealed = false; m.placeAt("livingRoom.rugByLamp"); m.setState("sleep", 999);
+    },
+    endZoomies() {
+      G.flags.zoomies = false;
+      const cc = G.cat("cc"), fav = G.toys.find(t => t.favorite);
+      cc.stopMoving();
+      cc.goTo({ room: fav.room, tx: Math.floor(fav.x / 16), ty: Math.floor(fav.y / 16) }, "sprint", () => { cc.x = fav.x; cc.y = fav.y + 2; cc.setState("springGuard", 9999); });
+    },
+    boysBotherMarshmallow() {
+      const m = G.cat("marshmallow"); m.cool = {}; G.flags.forceStare = true;
+      if (m.state !== "sleep" && m.state !== "sit") m.setState("sleep", 999);
+      for (const b of G.cats.filter(c => c.id !== "marshmallow")) {
+        b.stopMoving(); b.setState("sit", 0);
+        b.goTo({ room: m.room, tx: m.spot.approach[0] + (b.id === "cc" ? 1 : -1), ty: m.spot.approach[1] }, "run", () => b.setState("sit", 8));
+      }
+    },
+    startCalmAll() { G.flags.forceStare = false; G.calmSet = new Set(); },
+  };
+  G.runScript = (name) => { if (scripts[name]) scripts[name](); else if (LPK.scripts && LPK.scripts[name]) LPK.scripts[name](G); };
+
+  G.addHeart = (cat) => {
+    const h = cat.headPos();
+    G.floaters.push({ room: cat.room, x: h.x + (Math.random() * 10 - 5), y: h.y - 4, t: 0, kind: "heart" });
+    G.progression.addPoints(LPK.config.pointsPerHeart);
+    LPK.audio.sfx.heart();
+  };
+
+  G.celebrate = (mission) => {
+    G.petting.stop("celebrate");
+    G.laura.state = "celebrate";
+    G.laura.sayRandom(D().lauraCelebrate, 4);
+    G.celebration = { mission, t: 0, finale: !!mission.finale, medals: Object.assign({}, LPK.save.data.medals || {}) };
+    if (mission.finale) { LPK.save.data.freePlay = true; LPK.save.write(); }
+    G.flags = {};
+    LPK.audio.sfx.celebrate();
+    G.saveNow();
+  };
+  G.endCelebration = () => {
+    G.celebration = null; G.laura.state = "idle";
+    G.progression.setupCurrent();
+    startMissionBanner();
+  };
+
+  // --------------------------------------------------------- rooms
+  // Safety net: if Laura ever ends up overlapping furniture (so no move is
+  // allowed), slide her to the nearest open spot.
+  function unstickLaura() {
+    const L = G.laura, w = G.world;
+    if (w.boxFree(L.x - 4, L.y - 3, 8, 4)) return;
+    for (let r = 2; r <= 40; r += 2)
+      for (let a = 0; a < 16; a++) {
+        const x = L.x + Math.round(Math.cos(a * Math.PI / 8) * r), y = L.y + Math.round(Math.sin(a * Math.PI / 8) * r);
+        if (w.boxFree(x - 4, y - 3, 8, 4)) { L.x = x; L.y = y; return; }
+      }
+  }
+  G.unstickLaura = unstickLaura;
+
+  G.switchRoom = (to, toExit) => {
+    const w = G.worlds[to]; if (!w) return;
+    const visited = LPK.save.data.visited = LPK.save.data.visited || {};
+    if (to === "basement" && !visited.basement) setTimeout(() => G.laura.sayRandom(D().lauraBasement, 2.4), 400);
+    visited[to] = true;
+    if (visited.garage && visited.basement) LPK.events.emit("exploredAll", {});
+    G.room = to; G.world = w; G.laura.world = w;
+    const p = w.entryPoint(toExit);
+    G.laura.x = p.x; G.laura.y = p.y;
+    unstickLaura();
+    G.fade = 0.35;
+    G.cam.x = p.x - G.viewW / 2; G.cam.y = p.y - G.viewH / 2;
+    LPK.audio.sfx.door();
+  };
+
+  // --------------------------------------------------------- interactions
+  // Everything Laura can press Pet/Use on, nearest first.
+  function findTarget() {
+    const L = G.laura, ip = L.interactPoint(), T = G.world.T;
+    if (L.state === "rest") return { kind: "getUp", label: "Get up", ok: true };
+    const cc = G.cat("cc");
+    if (cc.room === G.room && cc.state === "bellyUp" && cc.distTo(L) < 36) return { kind: "belly", cat: cc, label: "Royal Belly Rub!", ok: true };
+    const toy = G.toys.find(t => t.room === G.room && !t.held && Math.hypot(t.x - L.x, t.y - L.y) < 24);
+    if (toy && !G.holdingToy) return { kind: "spring", toy, label: "Pick up the spring toy", ok: true };
+    if (G.holdingToy) return { kind: "toss", label: "Toss the spring!", ok: true };
+    // While Marshmallow is hiding, searching beats petting when Laura is right at a hiding spot
+    if (G.cat("marshmallow").concealed) {
+      for (const [id, sp] of Object.entries(G.world.def.restingSpots)) {
+        if (!sp.hidden) continue;
+        const px = sp.approach[0] * T + 8, py = sp.approach[1] * T + 10;
+        if (Math.hypot(L.x - px, L.y - py) < 18) return { kind: "hide", obj: { key: `${G.room}.${id}`, label: `Search ${sp.label}` }, label: `Search ${sp.label}`, ok: true };
+      }
+    }
+    const cats = G.cats.filter(c => c.room === G.room && !c.concealed && c.state !== "transit" &&
+      (Math.hypot(ip.x - c.x, ip.y - c.y) < 32 || Math.hypot(L.x - c.x, L.y - c.y) < 34))
+      .sort((a, b) => Math.hypot(L.x - a.x, L.y - a.y) - Math.hypot(L.x - b.x, L.y - b.y));
+    if (cats.length) {
+      const c = cats[0];
+      // shooing a boy away from Marshmallow's bowl takes priority
+      const atHerBowl = c.id !== "marshmallow" && ((c.eatingBowl === "herBowl") || (c.moving && c.tasks.some(t => t.spot && t.spot.id === "atHerBowl")));
+      if (atHerBowl) return { kind: "shoo", cat: c, label: `Shoo ${c.def.nicknames[0]} away from her bowl!`, ok: true };
+      if (c.state === "trash") return { kind: "trashCat", cat: c, label: "Get Popsicle out of the trash!", ok: true };
+      if (G.holding) return { kind: "feed", cat: c, label: `Give ${LPK.foods[G.holding].name} to ${c.def.nicknames && c.def.nicknames[0] || c.def.name}`, ok: c.state !== "transit" };
+      return { kind: "pet", cat: c, label: `Pet ${c.def.nicknames && c.def.nicknames[0] || c.def.name}`, ok: c.available };
+    }
+    const objs = (G.world.def.interactables || []).map(o => ({ ...o, px: o.x * T, py: o.y * T }));
+    // hiding spots are searchable
+    for (const [id, s] of Object.entries(G.world.def.restingSpots)) if (s.hidden) objs.push({ kind: "hide", key: `${G.room}.${id}`, label: `Search ${s.label}`, px: s.approach[0] * T + 8, py: s.approach[1] * T + 10 });
+    const near = objs.map(o => ({ o, d: Math.min(Math.hypot(ip.x - o.px, ip.y - o.py), Math.hypot(L.x - o.px, L.y - o.py)) }))
+      .filter(x => x.d < 26).sort((a, b) => a.d - b.d)[0];
+    if (!near) return null;
+    const o = near.o;
+    if (o.kind === "pantry") return { kind: "pantry", obj: o, label: "Open the treat cabinet", ok: true };
+    if (o.kind === "desk") return { kind: "desk", obj: o, label: "Sit at Laura's desk", ok: true };
+    if (o.kind === "clownSwitch") return { kind: "clownSwitch", obj: o, label: G.clown ? "(the clown is busy...)" : "Flip the clown's switch", ok: !G.clown };
+    if (o.kind === "garageDoor") return { kind: "garageDoor", obj: o, label: G.garageTarget ? "Close the garage door" : "Open the garage door", ok: true };
+    if (o.kind === "rest") return { kind: "rest", obj: o, label: G.clock.phase === "night" ? "Rest on the couch (time flies)" : "Rest on the couch", ok: true };
+    if (o.kind === "bowl") return { kind: "bowl", obj: o, label: G.holding ? `Fill ${o.label} with ${LPK.foods[G.holding].name}` : `${o.label} (empty-handed)`, ok: true };
+    if (o.kind === "trash") return { kind: "trash", obj: o, label: "Check the trash can", ok: true };
+    return { kind: "hide", obj: o, label: o.label, ok: true };
+  }
+
+  function useTarget(tg) {
+    const L = G.laura;
+    switch (tg.kind) {
+      case "pet": tg.cat.available ? G.petting.start(tg.cat) : G.petting.start(tg.cat); break;
+      case "feed": {
+        const c = tg.cat;
+        if (!["sit", "sleep", "beg", "confused", "box", "inspect", "meow", "grumble"].includes(c.state)) { L.say("Hold still, kitty!", 1.5); break; }
+        LPK.audio.sfx.crunch();
+        if (c.offerFood(G.holding)) { c.say(c.id === "popsicle" ? "*GOBBLE*" : c.id === "marshmallow" ? D().marshmallowCrunchies[0] : "*nom*", 1.6); }
+        break;
+      }
+      case "shoo": {
+        const c = tg.cat;
+        L.sayRandom(D().lauraShoo, 1.8);
+        c.stopEating(); c.stopMoving();
+        c.setCooldown("shooed", 8);
+        c.say("!", 1);
+        const dest = G.bowls.boysBowls.food && !G.bowls.boysBowls.eater ? "kitchen.byBoysBowls" : c.def.restingSpots[0];
+        c.goTo(dest, "run", () => dest === "kitchen.byBoysBowls" ? LPK.arriveAtBowl(c, "boysBowls") : c.setState("sit", 4));
+        LPK.events.emit("boyShooed", { cat: c.id });
+        break;
+      }
+      case "trashCat": L.sayRandom(D().lauraTrash, 2); tg.cat.redirectFromTrash(); break;
+      case "trash": {
+        const pop = G.cat("popsicle");
+        if (pop.state === "trash") { L.sayRandom(D().lauraTrash, 2); pop.redirectFromTrash(); }
+        else L.sayRandom(D().lauraTrashIdle, 2);
+        break;
+      }
+      case "pantry": G.foodMenu = { sel: 0 }; LPK.audio.sfx.click(); break;
+      case "clownSwitch": G.activateClown(); break;
+      case "desk": {
+        const opts = [
+          { label: "Check emails", fn: () => startDesk("email") },
+          { label: "Take a quick call", fn: () => startDesk("call") },
+        ];
+        if (G.desk.coffee !== "full") opts.push({ label: "Get a fresh cup of coffee", fn: () => { G.desk.coffee = "full"; G.laura.sayRandom(D().lauraCoffeeRefill, 2); } });
+        opts.push({ label: "Never mind", fn: () => {} });
+        G.choiceMenu = { title: "Laura's Desk", sub: "Working from home (with supervision)", options: opts, sel: 0 };
+        break;
+      }
+      case "garageDoor":
+        G.garageTarget = G.garageTarget ? 0 : 1;
+        L.sayRandom(G.garageTarget ? D().lauraGarageOpen : D().lauraGarageClose, 1.8);
+        LPK.audio.sfx.door();
+        break;
+      case "rest": {
+        L.restFrom = { x: L.x, y: L.y };
+        L.x = tg.obj.seat.x * G.world.T; L.y = tg.obj.seat.y * G.world.T; L.state = "rest";
+        L.sayRandom(D().lauraRest, 2); G.holding = null; G.holdingToy = null;
+        break;
+      }
+      case "getUp": L.x = L.restFrom.x; L.y = L.restFrom.y; L.state = "idle"; L.sayRandom(D().lauraUp, 1.6); break;
+      case "spring": {
+        const cc = G.cat("cc");
+        if (cc.state === "springGuard" && cc.distTo(tg.toy) < 24) {
+          if (L.recentRun > 0) { cc.say(cc.pick(D().ccSpringUpset), 1.6); L.sayRandom(D().lauraRejectedCC, 2); break; }
+          cc.say(D().ccSpringOk[0], 2); cc.setState("sit", 6);
+        }
+        G.holding = null; G.holdingToy = tg.toy; tg.toy.held = true;
+        L.sayRandom(D().lauraSpringGet, 1.6);
+        break;
+      }
+      case "toss": {
+        const toy = G.holdingToy, ip2 = L.interactPoint();
+        const dx = (ip2.x - L.x), dy = (ip2.y - L.y), len = Math.hypot(dx, dy) || 1;
+        let tx = L.x, ty = L.y;
+        for (let d = 8; d <= 56; d += 4) { const nx = L.x + dx / len * d, ny = L.y + dy / len * d; if (!G.world.boxFree(nx - 2, ny - 2, 4, 4)) break; tx = nx; ty = ny; }
+        toy.held = false; toy.x = tx; toy.y = ty; toy.room = G.room; toy.bounce = 8;
+        G.holdingToy = null; LPK.audio.sfx.boing();
+        L.sayRandom(D().lauraToss, 1.4);
+        const cc = G.cat("cc");
+        if (LPK.olympicsOnToss(G, toy)) break;
+        if (cc.room === G.room && !cc.concealed) cc.chaseSpring(toy);
+        break;
+      }
+      case "belly": {
+        const cc = tg.cat; cc.setState("bellyRub", 999);
+        L.flip = cc.x < L.x; L.dir = "side"; L.state = "kneel";
+        G.bellyGame = { cat: cc, t: 0, hits: 0, flash: 0 };
+        break;
+      }
+      case "bowl": {
+        const b = G.bowls[tg.obj.id];
+        if (!G.holding) { L.sayRandom(D().lauraBowlEmpty, 2.2); break; }
+        if (b.food) { L.sayRandom(D().lauraBowlFull, 1.6); break; }
+        b.food = G.holding;
+        LPK.audio.sfx.crunch();
+        L.say(`${LPK.foods[G.holding].name} served!`, 1.6);
+        LPK.events.emit("bowlFilled", { owner: b.owner, food: b.food, bowl: tg.obj.id });
+        break;
+      }
+      case "hide": {
+        const key = tg.obj.key, m = G.cat("marshmallow");
+        LPK.events.emit("spotSearched", { spot: key });
+        if (m.concealed && m.spot.key === key) {
+          m.reveal();
+          L.sayRandom(D().lauraFoundHidden, 2.8);
+          LPK.audio.sfx.found();
+          LPK.events.emit("catFound", { cat: "marshmallow", hidden: true, searched: true, spot: key });
+        } else if (!m.concealed && m.spot.key === key && m.room === G.room) {
+          L.sayRandom(D().lauraFound, 2);
+        } else L.sayRandom(D().lauraSearchEmpty, 1.8);
+        break;
+      }
+    }
+  }
+
+  // Jump the clock forward (to the next time it's `minutes`; weekdayOnly = next Mon-Fri)
+  G.skipTo = (minutes, weekdayOnly) => {
+    const c = G.clock;
+    if (minutes <= c.minutes) { c.day = (c.day + 1) % 7; }
+    if (weekdayOnly) while (c.day === 0 || c.day === 6) c.day = (c.day + 1) % 7;
+    c.minutes = minutes;
+    G.robert.sync();
+    G.cats.forEach(cat => { if (cat.state === "headSleep") cat.setState("sleep", 10); });
+    G.banner = { title: c.label(), text: "Time flies...", t: 2.5 };
+  };
+
+  G.pickFood = (food) => {
+    G.foodMenu = null;
+    if (!food) { G.holding = null; G.laura.say("Put it away.", 1.2); return; }
+    G.holding = food;
+    G.laura.say(D().lauraPicked[0].replace("{food}", LPK.foods[food].name), 1.8);
+    LPK.events.emit("foodPicked", { food });
+  };
+
+  // --------------------------------------------------------- sizing
+  function resize() {
+    G.dpr = Math.min(3, window.devicePixelRatio || 1);
+    canvas.width = Math.round(window.innerWidth * G.dpr);
+    canvas.height = Math.round(window.innerHeight * G.dpr);
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  function computeView(zoomBoost) {
+    const T = LPK.config.tile, mv = LPK.config.minVisibleTiles;
+    let S = Math.max(1, Math.floor(Math.min(canvas.width / (mv.w * T), canvas.height / (mv.h * T))));
+    S += zoomBoost;
+    G.S = S;
+    G.viewW = Math.ceil(canvas.width / S); G.viewH = Math.ceil(canvas.height / S);
+    if (buffer.width !== G.viewW || buffer.height !== G.viewH) { buffer.width = G.viewW; buffer.height = G.viewH; }
+  }
+  function updateCamera(dt, focus, free) {
+    const w = G.world;
+    let tx = focus.x - G.viewW / 2, ty = focus.y - 12 - G.viewH / 2;
+    if (!free) tx = w.width <= G.viewW ? (w.width - G.viewW) / 2 : Math.max(0, Math.min(w.width - G.viewW, tx));
+    if (!free) ty = w.height <= G.viewH ? (w.height - G.viewH) / 2 : Math.max(0, Math.min(w.height - G.viewH, ty));
+    const k = Math.min(1, dt * 6);
+    G.cam.x += (tx - G.cam.x) * k; G.cam.y += (ty - G.cam.y) * k;
+  }
+  G.worldToScreen = (x, y) => ({ x: (x - Math.round(G.cam.x)) * G.S / G.dpr, y: (y - Math.round(G.cam.y)) * G.S / G.dpr });
+
+  // --------------------------------------------------------- update
+  function updatePlay(dt) {
+    G.fade = Math.max(0, G.fade - dt);
+    if (G.celebration) {
+      G.celebration.t += dt;
+      G.laura.update(dt, input);
+      G.cats.forEach(c => c.update(dt));
+      if (G.celebration.t > 1 && input.pressed("act")) G.endCelebration();
+      return;
+    }
+    if (G.foodMenu) { updateFoodMenu(); return; }
+    if (G.choiceMenu) { updateChoiceMenu(); return; }
+    if (G.bellyGame) { updateBellyGame(dt); return; }
+    if (!G.petting.active && input.pressed("pause")) { G.screen = "pause"; G.ui.sel = 0; LPK.audio.purr(0); return; }
+
+    G.clock.update(dt * (G.laura.state === "rest" ? LPK.config.restTimeSpeed : 1));
+    G.laura.update(dt, input);
+    G.laura.recentRun = G.laura.state === "run" ? 1.2 : Math.max(0, (G.laura.recentRun || 0) - dt);
+    G.cats.forEach(c => c.update(dt));
+    G.robert.update(dt);
+    G.toys.forEach(t => { t.bounce = Math.max(0, t.bounce - dt * 10); if (t.held) { t.room = G.room; t.x = G.laura.x + 6; t.y = G.laura.y - 10; } });
+    G.petting.update(dt, input);
+    LPK.olympicsUpdate(G, dt, input);
+    checkHappiness(dt);
+    // Weekend hangout: rest on the couch while Robert's on the sofa
+    const R = G.robert;
+    if (G.laura.state === "rest" && R.present && R.state === "sit" && R.room === G.room && R.spot && R.spot.id === "sofa" && !G.hangoutDone) {
+      G.hangoutDone = true;
+      R.say(R.pick(D().robertHangout), 2.5); G.laura.sayRandom(D().lauraHangout, 2.5);
+      G.cats.filter(c => c.room === G.room).forEach(c => G.petting.addRaw(c, 6));
+      LPK.events.emit("weekendHangout", {});
+    }
+    if (G.laura.state !== "rest") G.hangoutDone = false;
+    updateClown(dt);
+    updateDesk(dt);
+    G.garageOpen = G.garageOpen || 0;
+    G.garageOpen += Math.sign((G.garageTarget || 0) - G.garageOpen) * Math.min(Math.abs((G.garageTarget || 0) - G.garageOpen), dt * 0.6);
+    if (G.room === "garage" && G.garageOpen > 0.5 && G.laura.x > (G.world.def.cols - 2.2) * 16) {
+      if (!G.notices.garageWalk) { G.notices.garageWalk = true; G.laura.sayRandom(D().lauraGarageWalk, 2.4); }
+    } else G.notices.garageWalk = false;
+    // Level 4: tag CC while he zooms
+    const cc = G.cat("cc");
+    G.zoomCool = Math.max(0, (G.zoomCool || 0) - dt);
+    if (G.flags.zoomies && cc.room === G.room && cc.distTo(G.laura) < 28 && !G.zoomCool) {
+      G.zoomCool = 1.5; G.laura.sayRandom(D().lauraZoomTag, 1.2); LPK.audio.sfx.found(); LPK.events.emit("zoomTag", {});
+    }
+
+    const L = G.laura, T = G.world.T;
+    // Walking through a doorway into another room
+    const door = G.world.doorwayAt(L.x, L.y);
+    if (door && !G.petting.active) { G.switchRoom(door.to, door.toExit); return; }
+
+    // Spotting cats
+    for (const c of G.cats) {
+      if (c.room !== G.room || c.concealed || c.state === "transit") { if (c.room !== G.room) c.found = false; continue; }
+      if (!c.found && c.distTo(L) < 70) {
+        c.found = true;
+        const lines = c.id === "cc" ? D().lauraFoundCC : c.id === "popsicle" ? D().lauraFoundPop : D().lauraFound;
+        if (!L.speech) L.sayRandom(lines, 2.4);
+        if (c.id === "marshmallow") LPK.audio.sfx.found();
+        LPK.events.emit("catFound", { cat: c.id, hidden: !!(c.spot && c.spot.hidden && !c.moving), spot: c.spot && c.spot.key });
+      }
+    }
+    // Fur clues (Level 2)
+    for (const cl of G.clues) {
+      if (cl.room === G.room && !cl.found && Math.hypot(L.x - cl.x, L.y - cl.y) < 20) {
+        cl.found = true; L.sayRandom(D().lauraClue, 2.4); LPK.events.emit("clueFound", {});
+      }
+    }
+    // What can Laura do right here?
+    G.prompt = null;
+    const cheering = G.olympics && G.olympics.phase === "cheer";
+    if (!G.petting.active && !cheering && (!L.busy || L.state === "rest")) {
+      G.prompt = findTarget();
+      if (G.prompt && input.pressed("act")) useTarget(G.prompt);
+      else if (G.holding && input.pressed("stop")) G.pickFood(null);
+    }
+    // Doorways to rooms that aren't built yet
+    for (const ex of G.world.def.exits) {
+      if (ex.to && G.worlds[ex.to]) continue;
+      let near;
+      if (ex.side === "back") near = L.x > ex.x * T - 4 && L.x < (ex.x + ex.w) * T + 4 && L.y < (G.world.def.wallRows + 0.6) * T;
+      else if (ex.side === "front") near = L.x > ex.x * T - 4 && L.x < (ex.x + ex.w) * T + 4 && L.y > (G.world.def.rows - 1.6) * T;
+      else near = L.y > ex.y * T - 4 && L.y < (ex.y + ex.h) * T + 4 && (ex.side === "right" ? L.x > (G.world.def.cols - 1.8) * T : L.x < 1.8 * T);
+      const key = "exit-" + G.room + ex.id;
+      if (near) { if (!G.notices[key]) { G.notices[key] = true; L.say(ex.message || "Not yet!", 2.6); } }
+      else G.notices[key] = false;
+    }
+    G.floaters = G.floaters.filter(f => (f.t += dt) < 1.4);
+    G.autosave = (G.autosave || 0) + dt;
+    if (G.autosave > 15) { G.autosave = 0; G.saveNow(); }
+  }
+
+  // All-three-happy check (Level 6), and Level 6's "one in-game day" rule
+  function checkHappiness(dt) {
+    G.happyCheck = (G.happyCheck || 0) - dt;
+    if (G.happyCheck > 0) return;
+    G.happyCheck = 1;
+    if (G.cats.every(c => c.happiness >= 80)) LPK.events.emit("allHappy", {});
+    const rec = LPK.save.data.missions.ultimateCuddle, m = G.progression.currentMission();
+    if (m && m.id === "ultimateCuddle" && rec && rec.day !== undefined && G.clock.day !== rec.day && G.clock.hour >= 5) {
+      rec.doneSteps = []; rec.day = G.clock.day; LPK.save.write();
+      G.laura.sayRandom(D().lauraDayOver, 3);
+      G.banner = { title: "A brand-new day", text: "The Ultimate Kitty Cuddle starts over. All three, one day!", t: 4 };
+    }
+  }
+  // Everybody Gets Some Love: all three Purr Meters filled in the same day
+  LPK.events.on("purrFull", (p) => {
+    if (!G.clock) return;
+    if (!G.dailyFull || G.dailyFull.day !== G.clock.day) G.dailyFull = { day: G.clock.day, set: new Set() };
+    G.dailyFull.set.add(p.cat);
+    if (G.dailyFull.set.size >= 3) LPK.events.emit("everybodyLove", {});
+  });
+
+  // The back-room clown: Laura flips its switch -> head turns, eyes glow, it
+  // says a friendly line (mask closed), then the mask splits wide open to show
+  // the scary face inside, whose jaw snaps up and down while it says the evil
+  // line. Creepy carnival music plays the whole time.
+  LPK.CLOWN = { turn: 0.6, talk1: 1.0, split: 4.8, evil: 5.8, close: 10.6, shut: 11.4, total: 12.4 };
+  function clownSpot() {
+    const w = G.worlds.backRoom, f = w && w.def.furniture.find(o => o.kind === "clown");
+    return f ? { room: "backRoom", x: f.x * 16 + 8, y: f.y * 16 + f.h * 16 } : null;
+  }
+  G.activateClown = () => {
+    if (G.clown) return;
+    const C = LPK.CLOWN, lines = D().clownLines;
+    G.clownIdx = ((G.clownIdx == null ? Math.floor(Math.random() * lines.length) : G.clownIdx) + 1) % lines.length;
+    G.clownPos = clownSpot();
+    G.clown = { t: C.total, total: C.total, pair: lines[G.clownIdx], line: null };
+    G.laura.sayRandom(D().lauraSwitch, 1.0);
+    LPK.audio.sfx.click(); LPK.audio.clownShow(C);
+    LPK.events.emit("clownWoke", {});
+  };
+  function updateClown(dt) {
+    if (!G.clown) return;
+    G.clown.t -= dt;
+    const C = LPK.CLOWN, e = G.clown.total - G.clown.t, c = G.clownPos;
+    G.clown.line = e > C.talk1 && e < C.split ? G.clown.pair.friendly : e > C.evil - 0.2 && e < C.close ? G.clown.pair.evil : null;
+    if (e > C.split + 0.4 && !G.clown.reacted) {
+      // the face splits open: the cats have opinions
+      G.clown.reacted = true;
+      const pop = G.cat("popsicle"), cc = G.cat("cc"), m = G.cat("marshmallow");
+      if (pop.room === c.room && !pop.scripted && pop.distTo(c) < 170 && !["eat", "petted", "headSleep"].includes(pop.state)) {
+        pop.say("!!", 1.2); LPK.audio.sfx.startle(); pop.startle(c.x);
+      }
+      if (cc.room === c.room && cc.distTo(c) < 170) cc.say("*unimpressed*", 1.8);
+    }
+    if (e > C.shut + 0.2 && !G.clown.lauraDone) {
+      // after the show: Laura's opinion, then Marshmallow's (straight to camera)
+      G.clown.lauraDone = true; G.laura.sayRandom(D().lauraClown, 2.4);
+      const m = G.cat("marshmallow");
+      if (m.room === c.room && !m.concealed && ["sleep", "sit", "grumble"].includes(m.state) && m.sameRoomAsLaura()) m.startStare(c, () => m.settle(), "clown");
+    }
+    if (G.clown.t <= 0) G.clown = null;
+  }
+
+  // ---- Laura's desk: emails and calls (and Marshmallow "helping") ----
+  function startDesk(kind) {
+    const L = G.laura;
+    L.restFrom = { x: L.x, y: L.y };
+    L.x = 3 * 16 + 8; L.y = 4 * 16 + 10; L.state = "work"; L.dir = "up";
+    G.desk.screen = kind;
+    G.desk.session = { kind, t: 0, idx: -1, nextT: 0, lines: kind === "email" ? D().lauraEmail : D().lauraCall };
+  }
+  function updateDesk(dt) {
+    const s = G.desk && G.desk.session;
+    if (!s) {
+      if (G.desk && G.desk.screen === "nonsense" && (G.desk.nonsenseT -= dt) <= 0) G.desk.screen = "idle";
+      return;
+    }
+    const L = G.laura;
+    s.t += dt;
+    if (!s.marshTried && s.t > 1.5) {
+      s.marshTried = true;
+      const m = G.cat("marshmallow");
+      if (m.room === "masterBedroom" && !m.concealed && ["sleep", "sit"].includes(m.state) && Math.random() < 0.75) { m.keyboardRaid(); s.waitCat = true; }
+    }
+    if (s.waitCat) {                                   // Laura's lines pause while Marshmallow "helps"
+      const m = G.cat("marshmallow");
+      s.nextT = s.t + 1.2;
+      if (m.room !== "masterBedroom" || (!m.moving && !["keyWalk", "sip"].includes(m.state) && !m.onAMission)) s.waitCat = false;
+    }
+    if (s.t >= s.nextT) {
+      s.idx++;
+      if (s.idx < s.lines.length) { L.say(s.lines[s.idx], 2.2); s.nextT += 2.4; if (s.kind === "email") LPK.audio.sfx.pat(s.idx % 2); }
+      else {
+        G.desk.session = null; G.desk.screen = "idle";
+        L.state = "idle"; if (L.restFrom) { L.x = L.restFrom.x; L.y = L.restFrom.y; }
+        L.sayRandom(D().lauraDeskDone, 2);
+        LPK.events.emit("workFromHome", {});
+      }
+    }
+  }
+  G.stopDesk = () => { if (G.desk.session) { G.desk.session.idx = 99; G.desk.session.nextT = 0; } };
+  function updateChoiceMenu() {
+    const M = G.choiceMenu, n = M.options.length;
+    if (input.pressed("up")) M.sel = (M.sel + n - 1) % n;
+    if (input.pressed("down")) M.sel = (M.sel + 1) % n;
+    if (input.pressed("act")) { const o = M.options[M.sel]; G.choiceMenu = null; o.fn(); }
+    else if (input.pressed("pause") || input.pressed("stop")) G.choiceMenu = null;
+  }
+
+  // The Royal Belly Rub timing mini-game (spec 17B)
+  function updateBellyGame(dt) {
+    const bg = G.bellyGame; bg.t += dt; bg.flash = Math.max(0, bg.flash - dt);
+    const speed = 2.2 + bg.hits * 0.7;
+    bg.marker = (Math.sin(bg.t * speed) + 1) / 2;
+    G.cats.forEach(c => { if (c !== bg.cat) c.update(dt); });
+    if (input.pressed("act") || input.pressed("patL") || input.pressed("patR")) {
+      if (bg.marker > 0.36 && bg.marker < 0.64) {
+        bg.hits++; bg.flash = 0.3; LPK.audio.sfx.rub(); G.addHeart(bg.cat);
+        if (bg.hits >= 3) {
+          G.petting.addRaw(bg.cat, 25); bg.cat.say(bg.cat.happyLine(), 2.5);
+          G.laura.sayRandom(D().lauraBellyWin, 2.5);
+          LPK.events.emit("bellyRub", {});
+          endBelly();
+        }
+      } else {
+        LPK.audio.sfx.kick(); bg.cat.say("*bunny kicks*", 1.6);
+        G.laura.sayRandom(D().lauraBellyKick, 2.4);
+        endBelly();
+      }
+    } else if (input.pressed("stop") || input.pressed("pause")) endBelly();
+  }
+  function endBelly() { const c = G.bellyGame.cat; G.bellyGame = null; c.setState("sit", 4); G.laura.state = "idle"; }
+
+  function updateFoodMenu() {
+    const keys = Object.keys(LPK.foods), n = keys.length + 1;
+    if (input.pressed("up")) G.foodMenu.sel = (G.foodMenu.sel + n - 1) % n;
+    if (input.pressed("down")) G.foodMenu.sel = (G.foodMenu.sel + 1) % n;
+    if (input.pressed("act")) G.pickFood(keys[G.foodMenu.sel] || null);
+    else if (input.pressed("pause") || input.pressed("stop")) G.foodMenu = null;
+  }
+
+  // --------------------------------------------------------- render world
+  function renderWorld() {
+    const stareCat = G.cats.find(c => c.room === G.room && (c.state === "stare" || c.state === "turnCam"));
+    const ce = G.clown && G.clownPos && G.clownPos.room === G.room ? G.clown.total - G.clown.t : -1;
+    const clownCam = ce > 0.4 && ce < LPK.CLOWN.shut + 0.1;
+    // once the mask opens, push in close on the clown's face (even past the room edge)
+    const faceCam = clownCam && !stareCat && ce > LPK.CLOWN.split && ce < LPK.CLOWN.shut;
+    computeView(faceCam ? 3 : stareCat || clownCam ? 1 : 0);
+    const focus = stareCat ? { x: stareCat.x, y: stareCat.y - stareCat.z }
+      : faceCam ? { x: G.clownPos.x + 8, y: G.clownPos.y - 30 }
+      : clownCam ? { x: G.clownPos.x + 20, y: G.clownPos.y - 10 } : G.laura;
+    updateCamera(G.dt, focus, faceCam);
+    const g = bctx;
+    g.imageSmoothingEnabled = false;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.fillStyle = "#1c1626"; g.fillRect(0, 0, buffer.width, buffer.height);
+    g.translate(-Math.round(G.cam.x), -Math.round(G.cam.y));
+    const w = G.world, R = LPK.roomRenderer, t = G.time;
+    R.drawFloor(g, w);
+    R.drawWalls(g, w, t);
+    for (const cl of G.clues) if (cl.room === G.room) { LPK.px.rect(g, cl.x - 2, cl.y, 4, 2, "#f6f3ee"); LPK.px.rect(g, cl.x - 1, cl.y - 1, 2, 1, "#ffffff"); LPK.px.rect(g, cl.x + 2, cl.y + 1, 2, 1, "#8f877e"); }
+    const items = w.def.furniture.map(f => R.furnitureDraw(f, w, t));
+    items.push({ sortY: G.laura.sortY, draw: (g) => G.laura.draw(g) });
+    G.cats.filter(c => c.room === G.room).forEach(c => items.push({ sortY: c.sortY, draw: (g) => c.draw(g) }));
+    if (G.robert.present && G.robert.room === G.room) items.push({ sortY: G.robert.sortY, draw: (g) => G.robert.draw(g) });
+    for (const toy of G.toys) if (toy.room === G.room) items.push({ sortY: toy.held ? G.laura.sortY + 1 : toy.y, draw: (g) => R.drawSpring(g, toy.x, toy.y, toy.colors, t, toy.bounce) });
+    items.sort((a, b) => a.sortY - b.sortY).forEach(i => i.draw(g));
+    if (w.def.ambient) { g.fillStyle = w.def.ambient; g.fillRect(0, 0, w.width, w.height); }   // fairy-light / LED room glow
+    R.drawLighting(g, w, Math.max(G.clock.darkness(), w.def.dim || 0), t);
+    const O = G.olympics;
+    if (O && O.event === "cc" && G.room === "livingRoom") O.rings.forEach((r, i) => {
+      const done = i < O.ring, next = i === O.ring, pulse = next ? Math.round(Math.sin(t * 6)) : 0;
+      g.strokeStyle = done ? "rgba(126,217,154,0.8)" : next ? "#ffd166" : "rgba(255,209,102,0.5)"; g.lineWidth = 2;
+      g.beginPath(); g.ellipse(Math.round(r.x), Math.round(r.y), 9 + pulse, 5 + pulse, 0, 0, 7); g.stroke();
+    });
+    for (const f of G.floaters) if (f.room === G.room) LPK.px.heart(g, f.x - 3, f.y - f.t * 18, `rgba(255,79,134,${1 - f.t / 1.4})`);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(buffer, 0, 0, G.viewW * G.S, G.viewH * G.S);
+    if (G.fade > 0) { ctx.fillStyle = `rgba(28,22,38,${G.fade / 0.35})`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+  }
+
+  // --------------------------------------------------------- loop
+  let last = performance.now();
+  function frame(now) {
+    try { step(now); } catch (e) { console.error(e); input.endFrame(); }
+    requestAnimationFrame(frame);
+  }
+  function step(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    G.dt = dt; G.time += dt;
+    const clicks = input.takeClicks();
+    LPK.ui.handleClicks(G, clicks);
+    if (G.screen === "play") updatePlay(dt);
+    else LPK.ui.handleMenuKeys(G);
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = "#1c1626"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (!G.clock) G.clock = new LPK.Clock(LPK.config.startDay, LPK.Clock.parse(LPK.config.startTime));
+    if (!G.laura) buildWorld();
+    if (G.screen === "title") { G.cats.forEach(c => c.update(dt)); G.robert.update(dt); }
+    renderWorld();
+    ctx.setTransform(G.dpr, 0, 0, G.dpr, 0, 0);
+    LPK.ui.draw(G, ctx);
+    input.endFrame();
+  }
+
+  // Android back button (called by the app wrapper)
+  window.onAndroidBack = () => {
+    if (G.screen === "play") {
+      if (G.celebration) { G.endCelebration(); return true; }
+      if (G.foodMenu) { G.foodMenu = null; return true; }
+      if (G.choiceMenu) { G.choiceMenu = null; return true; }
+      if (G.bellyGame) { endBelly(); return true; }
+      if (G.petting.active) { G.petting.stop("back"); return true; }
+      G.screen = "pause"; G.ui.sel = 0; return true;
+    }
+    if (G.screen === "pause") { G.screen = "play"; return true; }
+    if (["profiles", "achievements", "settings", "skip", "wardrobe"].includes(G.screen)) { G.screen = G.prevScreen; G.ui.sel = 0; return true; }
+    return false;
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { LPK.audio.purr(0); if (G.screen === "play") { G.saveNow(); if (!G.celebration) G.screen = "pause"; } }
+  });
+
+  requestAnimationFrame(frame);
+  return G;
+})();

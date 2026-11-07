@@ -1,0 +1,145 @@
+// =====================================================================
+//  DIALOGUE — every line in the game. "family" versions are used when
+//  Family-Friendly Dialogue is ON in Settings.
+// =====================================================================
+window.LPK = window.LPK || {};
+
+LPK.dialogue = {
+  // ---- Laura ----
+  lauraStart:     ["Marshmallow? Where's my sleepy girl?", "Okay, nap queen... where are you hiding?"],
+  lauraFound:     ["There you are, Marshmallow!", "Found you, sleepyhead!", "Aww, look at her. Asleep. Shocking."],
+  lauraFoundCC:   ["CC! Hi, handsome.", "There's my GQ boy."],
+  lauraFoundPop:  ["Orangey! Hi, baby!", "Hi, Popsicle! What are you up to? ...Nothing good."],
+  lauraPetStart:  ["Hi, pretty girl...", "Who's a soft kitty?"],
+  lauraPetCC:     ["Such a gentleman.", "Who's the boss? You're the boss."],
+  lauraPetPop:    ["My sweet orange baby.", "Hi, Orangey! You're so soft!"],
+  lauraRejected:  ["Rude!", "Fine. Be that way.", "...I'll take that as a 'later.'", "Wow. Okay."],
+  lauraRejectedCC:["He's busy being important.", "Too cool for me again?"],
+  lauraRejectedPop:["Okay, okay, I'm not scary!", "Popsicle, it's just me!"],
+  lauraAfterStare:["Did she just... look at me like that?", "I felt that one.", "Judged. By a cat. Again."],
+  lauraBreakHint: ["She wants a little break. Hands off for a sec!"],
+  lauraWhileRunningNear: ["Oops — too fast!"],
+  lauraCelebrate: ["They love me! THEY LOVE ME!", "I'm crying. Happy crying."],
+  lauraBackRoomLocked: ["The back room opens in Build 3!"],
+  lauraSearchEmpty: ["Not here...", "Nope. Just dust bunnies.", "Hmm. No Marshmallow."],
+  lauraClue:      ["White fur... she's close!", "A tuft of Marshmallow fur. The trail is warm!"],
+  lauraFoundHidden: ["Gotcha! The 22-hour nap continues, I see.", "Found you! Very sneaky, very sleepy."],
+  lauraPicked:    ["Got the {food}!"],
+  lauraFoodRefused:["Too fancy? Not fancy enough? Help me out here.", "Okay, not that one. Noted."],
+  lauraShoo:      ["Hey! That's HER food!", "Nope! Not yours, mister!", "Shoo! Go eat your own!"],
+  lauraTrash:     ["Out of the trash, Orangey!", "Popsicle! That is GARBAGE!"],
+  lauraTrashIdle: ["Just trash. Popsicle disagrees."],
+  lauraBowlFull:  ["It's still full."],
+  lauraBowlEmpty: ["Empty. I need food from the treat cabinet first."],
+  lauraConfused:  ["...Are you okay, buddy?", "One brain cell, fully booked."],
+  lauraBox:       ["He's eating the box again.", "That box is NOT food, Orangey."],
+  lauraHolding:   ["(I'm holding {food}. Walk up to a cat or a bowl!)"],
+
+  lauraRest:      ["Just resting my eyes...", "Five minutes. Just five."],
+  lauraUp:        ["Okay, I'm up. I'm up."],
+  lauraPillow:    ["...is there a cat on my head? There's a cat on my head.", "Human pillow, reporting for duty."],
+  lauraSpringGet: ["One rainbow spring, coming up!"],
+  lauraToss:      ["Go get it, GQ!", "Fetch! ...do cats fetch?"],
+  lauraBellyKick: ["Ow! Bunny kicks! ...worth it.", "He got me. Classic belly-rub trap."],
+  lauraBellyWin:  ["The Royal Belly Rub has been accepted!", "He let me! He actually let me!"],
+  lauraRobertHome:["Robert's home!", "Hi, honey!"],
+  lauraSnore:     ["Listen to that tiny snore...", "How is that snore so SMALL?"],
+  lauraZoomTag:   ["Got close!", "Slow DOWN, GQ!"],
+
+  lauraOlyRing:   ["Through the ring!", "Gorgeous form, GQ!", "The crowd goes wild!"],
+  lauraOlyClimb:  ["Now the climb! Toss the spring by the cat tree!"],
+  lauraCheer:     ["GO ORANGEY!", "You got this, baby!", "Believe in yourself!"],
+  lauraCheerMiss: ["...that was a good try!", "Points for style!"],
+  lauraOlyMarsh:  ["Gentle... rhythmic... Olympic.", "Nap-athlon, here we go."],
+  lauraHangout:   ["Weekend hangout!", "Movie night with the boss?"],
+  lauraFreePlay:  ["Free Play! Just me and my babies.", "No missions. Just kitties."],
+  lauraDayOver:   ["The day's over... let's try again tomorrow!"],
+
+  lauraClown:     ["Nope. Nope nope nope.", "Why do we OWN this?", "I will never get used to that thing."],
+
+  // ---- The clown decoration ----
+  // Four routines, like the real animatronic: a friendly line with the mask
+  // closed, then the face splits open for the evil line.
+  clownLines: [
+    { friendly: "Welcome, welcome to my lonely little circus! Would you like to see a magic trick?",
+      evil:     "TA-DAAA! For my next trick... I'll make YOU disappear! HA HA HA HA!" },
+    { friendly: "Oh, I'm SO happy you came! I'm so excited I could just... burst!",
+      evil:     "SURPRIIISE! Now the REAL show begins! HEE HEE HEE HA HA HA!" },
+    { friendly: "I saved the grand finale just for you, my special guest!",
+      evil:     "Try not to scream TOO loud... the neighbors are sleeping. MWAHAHAHA!" },
+    { friendly: "Hmm... something's missing... but the show must go on!",
+      evil:     "I know! The show needs a few more... VICTIMS! HA HA HA HA!" } ],
+  lauraSwitch:    ["Okay... flipping the switch...", "Why do I keep doing this?"],
+  lauraGarageOpen:["Garage is open!", "Hello, outside!"],
+  lauraGarageClose:["And closed. No escaping kitties!"],
+  lauraGarageWalk:["Laura's not leaving — the kitties need her!"],
+  lauraBasement:  ["It's so dark down here...", "Basement time. Spooky."],
+  marshmallowZoomies:      ["!!!", "*ZOOM*", "brrrrt!", "*wiggle wiggle*", "!!"],
+  zoomieNoises:            ["!!!", "*ZOOM*", "brrrrt!", "*wiggle wiggle*", "!!", "*skrrrt*"],
+  afterCatnip:             ["*blinks slowly*", "...what just happened?", "*flops over*"],
+  begMeow:                 ["Meow?", "MEOW!", "mrrp?", "Meow meow!", "*more?*", "Mew!"],
+  robertChickenHome:       ["Guess who brought home a rotisserie chicken!", "Chicken night!"],
+  robertChickenToss:       ["Here you go, buddy.", "Okay, okay, one piece.", "Catch!", "Don't tell Mom.", "Gentle!"],
+  robertChickenDone:       ["That's all, boys. Chicken's gone!", "Alright, that's the last piece."],
+  marshmallowAfterZoomies: ["...that never happened.", "*acts like nothing happened*", "*licks paw casually*"],
+  marshmallowStareClown: { normal: "F* that clown.", family: "Absolutely not." },
+  marshmallowStareThrone: { normal: "Look at you down there. Peasant.", family: "I'm up here. You're down there." },
+
+  // Laura's desk (she works from home)
+  lauraEmail: ["Okay. Emails.", "'Per my last email...' Deep breath.", "Unsubscribe. Unsubscribe. UNSUBSCRIBE.", "Reply-all storm. Muting that.",
+               "This meeting could have been an email. It WAS an email.", "Sent! Inbox zero... for about four seconds."],
+  lauraCall:  ["Hi! Yes— can you hear me? ...Hello?", "Sorry, you're breaking up. No, that's the cat.", "Mm-hm. Mm-hm. Totally. Love that.",
+               "Can you send that in an email? Great.", "Yep. Sounds good. Bye. Bye-bye. Okay, bye!"],
+  lauraKeyboard:["MARSHMALLOW. 'jjjjjkkkk;;;;' is NOT a reply!", "She just sent my boss 'gggggggggg'.", "Off the keyboard, Your Majesty!"],
+  lauraCoffeeSip:["Did you just... drink my coffee?!", "That was MY coffee!"],
+  lauraCoffeeSpill:["NOOO, my coffee!", "Coffee. Everywhere. Thanks, Marshmallow."],
+  lauraCoffeeRefill:["Fresh coffee. Guard it with my life."],
+  lauraDeskDone:["Okay, back to the kitties.", "Work: done. Cuddles: now."],
+
+  // ---- Robert ----
+  robertHome:     ["Hey, everybody.", "Home sweet home."],
+  robertLeave:    ["Off to work. Be good, CC."],
+  robertWake:     ["*stretch*", "Morning, buddy."],
+  robertBlock:    ["Nope. That's hers.", "Not yours, buddy.", "Ah-ah-ah."],
+  robertGuard:    ["Go ahead, Marshmallow. I got you."],
+  robertGuardDone:["Enjoy, Marshmallow."],
+  robertHangout:  ["Scoot over.", "Best seat in the house."],
+
+  // ---- Marshmallow ----
+  marshmallowBreak:    ["Paws off. Briefly.", "Intermission.", "...one sec."],
+  marshmallowGrumpy:   ["Mrrp?!", "Hmph.", "*ear flick*"],
+  marshmallowRefuse:   ["*sniff* ...no.", "*turns away*", "Hmph. Finicky."],
+  marshmallowCrunchies:["*CRUNCH CRUNCH*", "*happy crunching*"],
+  // The Judgmental Camera Stare (spec section 4).
+  marshmallowStareBoys:   { normal: "F* these cats.", family: "Not these two again." },
+  marshmallowStareLaura:  { normal: "F* this.",       family: "...Seriously?" },
+  marshmallowHappy:    ["*purrrrr*", "*happy tail*", "*biscuits*"],
+
+  // ---- CC ----
+  ccAngelic:  ["♪ mew ♪"],
+  ccBored:    ["*boss has places to be*", "*GQ exit*"],
+  ccHappy:    ["*purr*", "*slow blink*"],
+  ccInspect:  ["*sniff sniff*", "*inspects*", "*approves*"],
+  ccSpringGuard: ["MY spring.", "*guards spring*"],
+  ccSpringUpset: ["*huff*", "*boss glare*"],
+  ccSpringOk:    ["...fine. You may toss it."],
+  ccBellyUp:     ["*rolls over*", "*belly up*"],
+  ccRobert:      ["!", "*runs to Robert*"],
+  ccIntrigued:   ["?", "*head tilt*"],
+  ccZoom:        ["*ZOOM*", "*zoomies*"],
+
+  // ---- Popsicle ----
+  popHungry:  ["MEOW?", "Food? FOOD?", "MEOW MEOW?"],
+  popStartled:["!!", "*startled*"],
+  popConfused:["?", "...?", "?"],
+  popChomp:   ["*chomp chomp*", "*nom*"],
+  popTrash:   ["*rustle rustle*", "*garbage noises*"],
+  popWander:  ["...what was I doing?", "*wanders off*"],
+  popHappy:   ["*purr*", "*happy chirp*"],
+  popYawn:    ["*yaaawn*", "*big yawn*"],
+  popFail:    ["...nailed it.", "*meant to do that*", "*pretends nothing happened*"],
+  popSleepy:  ["*zzz*", "*sleepy blink*"],
+  windowWatch:["*chirp chirp*", "*bird!*", "*ek-ek-ek*", "*tail flick*"],
+  marshPeek:  ["*peek*", "...", "*sniff*"],
+  lauraKeyboardSolo: ["Is she... typing? MARSHMALLOW.", "Who is she emailing?!", "Not my keyboard!"],
+};
