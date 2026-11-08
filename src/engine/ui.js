@@ -100,21 +100,30 @@ LPK.ui = (() => {
     logo(H * 0.17, size);
     text("Three kitties. Three personalities. One Laura. Unlimited purrs.", W / 2, H * 0.17 + size * 1.75, Math.max(11, u * 0.85), C.dim, "center", "normal");
     const s = LPK.save.data;
-    const bw = Math.min(320, W * 0.7), bh = Math.min(44, H / 12), x = W / 2 - bw / 2;
     let y = H * 0.17 + size * 2.15;
-    const gap = bh + Math.max(6, H / 70);
+    // six buttons: one column normally; two columns on short screens (phones held sideways)
+    const avail = H - 26 - y, twoCol = avail < 6 * 50;
+    const cols = twoCol ? 2 : 1, rows = 6 / cols;
+    const bw = twoCol ? Math.min(280, W * 0.4) : Math.min(320, W * 0.7);
+    const bh = Math.max(28, Math.min(44, H / 12, avail / rows - 8));
+    const gap = bh + Math.max(6, Math.min(H / 70, avail / rows - bh));
+    const colGap = 14, x0 = W / 2 - (bw * cols + colGap * (cols - 1)) / 2;
+    let n = 0;
+    const place = (label, action, opt) => {
+      const c = n % cols, r = Math.floor(n / cols); n++;
+      button(label, x0 + c * (bw + colGap), y + r * gap, bw, bh, action, opt);
+    };
     const startLabel = G.ui.confirmStart ? "Start over? Tap again" : "Start Game";
-    button(startLabel, x, y, bw, bh, () => {
+    place(startLabel, () => {
       if (s.hasGame && !G.ui.confirmStart) { G.ui.confirmStart = true; return; }
       G.ui.confirmStart = false; G.newGame();
-    }); y += gap;
-    button("Continue", x, y, bw, bh, () => G.continueGame(), { enabled: !!s.hasGame }); y += gap;
-    if (s.freePlay) button("Free Play", x, y, bw, bh, () => G.startFreePlay(), { color: "#c48a2a" });
-    else button("Free Play  (unlocks after the story)", x, y, bw, bh, () => {}, { enabled: false, size: Math.min(bh * 0.36, u) });
-    y += gap;
-    button("Character Profiles", x, y, bw, bh, () => go("profiles")); y += gap;
-    button("Achievements", x, y, bw, bh, () => go("achievements")); y += gap;
-    button("Settings", x, y, bw, bh, () => go("settings"));
+    });
+    place("Continue", () => G.continueGame(), { enabled: !!s.hasGame });
+    if (s.freePlay) place("Free Play", () => G.startFreePlay(), { color: "#c48a2a" });
+    else place(twoCol ? "Free Play (after story)" : "Free Play  (unlocks after the story)", () => {}, { enabled: false, size: Math.min(bh * 0.36, u) });
+    place("Character Profiles", () => go("profiles"));
+    place("Achievements", () => go("achievements"));
+    place("Settings", () => go("settings"));
     text(`Build ${LPK.config.build} · Keyboard: arrows/WASD + Space · Touch supported`, W / 2, H - 14, Math.max(10, u * 0.7), C.dim, "center", "normal");
   }
 
@@ -679,7 +688,7 @@ LPK.ui = (() => {
       else if (I.pressed("pause") && game.ui.back) game.ui.back();
     },
     draw(game, c) {
-      G = game; ctx = c; W = window.innerWidth; H = window.innerHeight;
+      G = game; ctx = c; W = LPK.view.w; H = LPK.view.h;
       u = Math.max(11, Math.min(20, Math.min(W, H) / 30));
       G.ui.buttons = []; G.ui.items = []; G.ui.back = null; G.ui.keyLeftRight = null;
       if (G.screen !== "title") G.ui.confirmStart = false;

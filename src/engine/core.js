@@ -65,6 +65,22 @@ LPK.save = (() => {
   };
 })();
 
+// --------------------------------------------------------------- VIEW
+// The game's screen size. On a touch screen held upright (portrait), the game
+// is drawn rotated 90° so it still plays sideways — Safari on iPhone can't
+// lock the screen to landscape, and rotation lock may be on.
+LPK.view = {
+  rotated: false, w: window.innerWidth, h: window.innerHeight,
+  update() {
+    const iw = window.innerWidth, ih = window.innerHeight;
+    const touch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    this.rotated = !!touch && ih > iw;
+    this.w = this.rotated ? ih : iw; this.h = this.rotated ? iw : ih;
+  },
+  // screen point -> game point
+  toGame(cx, cy) { return this.rotated ? { x: cy, y: window.innerWidth - cx } : { x: cx, y: cy }; },
+};
+
 // --------------------------------------------------------------- AUDIO
 // All sounds are synthesized (no audio files needed yet).
 LPK.audio = (() => {
@@ -227,6 +243,10 @@ LPK.input = (() => {
   window.addEventListener("keyup", (e) => held.delete(e.code));
   window.addEventListener("blur", () => { held.clear(); touchHeld.clear(); pointers.clear(); stick = null; });
 
+  // Phones held upright (e.g. iPhone Safari, which can't lock to landscape):
+  // the game is drawn turned sideways, so touches are turned to match.
+  const toGame = (e) => LPK.view.toGame(e.clientX, e.clientY);
+
   function hitButton(x, y) { return touchButtons.find(b => (x - b.x) ** 2 + (y - b.y) ** 2 <= (b.r * 1.15) ** 2); }
 
   function bind(canvas) {
@@ -234,18 +254,18 @@ LPK.input = (() => {
       e.preventDefault();
       LPK.audio.init();
       lastType = e.pointerType === "touch" ? "touch" : "mouse";
-      const x = e.clientX, y = e.clientY;
+      const { x, y } = toGame(e);
       clicks.push({ x, y });
       const b = hitButton(x, y);
       if (b) { pointers.set(e.pointerId, { role: "button", id: b.id }); touchHeld.add(b.id); touchPressed.add(b.id); return; }
-      if (LPK.input.stickEnabled && x < window.innerWidth * 0.5) {
+      if (LPK.input.stickEnabled && x < LPK.view.w * 0.5) {
         stick = { ox: x, oy: y, x, y, id: e.pointerId };
         pointers.set(e.pointerId, { role: "stick" });
       }
     });
     canvas.addEventListener("pointermove", (e) => {
       const p = pointers.get(e.pointerId);
-      if (p && p.role === "stick" && stick) { stick.x = e.clientX; stick.y = e.clientY; }
+      if (p && p.role === "stick" && stick) { const q = toGame(e); stick.x = q.x; stick.y = q.y; }
     });
     const up = (e) => {
       const p = pointers.get(e.pointerId);

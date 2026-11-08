@@ -365,13 +365,25 @@ LPK.game = (() => {
 
   // --------------------------------------------------------- sizing
   function resize() {
+    const V = LPK.view; V.update();
     G.dpr = Math.min(3, window.devicePixelRatio || 1);
-    canvas.width = Math.round(window.innerWidth * G.dpr);
-    canvas.height = Math.round(window.innerHeight * G.dpr);
-    canvas.style.width = window.innerWidth + "px";
-    canvas.style.height = window.innerHeight + "px";
+    canvas.width = Math.round(V.w * G.dpr);
+    canvas.height = Math.round(V.h * G.dpr);
+    canvas.style.width = V.w + "px";
+    canvas.style.height = V.h + "px";
+    // upright phone: turn the whole game sideways (top of the game toward the right edge)
+    canvas.style.transformOrigin = "0 0";
+    canvas.style.transform = V.rotated ? `translateX(${window.innerWidth}px) rotate(90deg)` : "none";
   }
   window.addEventListener("resize", resize);
+  window.addEventListener("orientationchange", () => setTimeout(resize, 250));
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", resize);
+  // Stop the browser from scrolling, bouncing, pulling the page down or
+  // pinch-zooming while you play (iPhone Safari especially).
+  const block = (e) => e.preventDefault();
+  document.addEventListener("touchmove", block, { passive: false });
+  document.addEventListener("gesturestart", block, { passive: false });
+  document.addEventListener("dblclick", block, { passive: false });
   resize();
 
   function computeView(zoomBoost) {

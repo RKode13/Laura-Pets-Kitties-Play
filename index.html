@@ -4,12 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#1c1626">
+  <!-- "Add to Home Screen" on iPhone opens it full screen, like an app -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kitties">
   <title>Laura Pets Kitties</title>
   <style>
     html, body { margin: 0; height: 100%; background: #1c1626; overflow: hidden;
       touch-action: none; -webkit-user-select: none; user-select: none;
-      -webkit-tap-highlight-color: transparent; }
-    canvas { display: block; image-rendering: pixelated; }
+      -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none; }
+    body { position: fixed; inset: 0; }      /* no page to scroll or pull down */
+    canvas { display: block; image-rendering: pixelated; position: absolute; top: 0; left: 0; touch-action: none; }
   </style>
 </head>
 <body>
