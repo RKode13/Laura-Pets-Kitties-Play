@@ -208,9 +208,9 @@ LPK.Evan = class Evan extends LPK.Cat {
     const anim = this.state === "squish" ? Math.floor(this.t * 3) : this.state === "draw" ? Math.floor(this.t * 5) : Math.floor(this.t * fps);
     const shapes = LPK.sprites.kid(this.id, walking ? this.dir : "down", anim, { pose, outfit: this.outfit(), sleeping: this.state === "sleep", hold: this.holding, swing: this.swinging });
     if (this.z === 0) LPK.px.rect(g, this.x - 6, this.y - 1, 12, 2, "rgba(0,0,0,0.22)");
-    LPK.px.draw(g, shapes, this.x, this.y - this.z, walking && this.dir === "side" && this.flip);
+    LPK.px.draw(g, shapes, this.x, this.y - this.z, lie ? !!this.spot.headRight : walking && this.dir === "side" && this.flip);
     if (this.state === "sleep") {
-      const p = (this.t * 0.5) % 1, zx = lie ? this.x - 18 : this.x, zy = this.y - this.z;
+      const p = (this.t * 0.5) % 1, zx = lie ? (this.spot.headRight ? this.x + 12 : this.x - 18) : this.x, zy = this.y - this.z;
       LPK.px.rect(g, zx + 4 + p * 4, zy - 22 - p * 6, 3, 1, `rgba(140,150,220,${1 - p})`);
       LPK.px.rect(g, zx + 6 + p * 4, zy - 23 - p * 6, 1, 1, `rgba(140,150,220,${1 - p})`);
       LPK.px.rect(g, zx + 4 + p * 4, zy - 24 - p * 6, 3, 1, `rgba(140,150,220,${1 - p})`);

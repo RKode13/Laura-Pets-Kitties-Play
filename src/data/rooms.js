@@ -80,7 +80,6 @@ LPK.rooms = {
     },
     owenSpots: {
       owenCouch:   { x: 11.9, y: 4.8, z: 6, approach: [12, 5], sit: true },
-      owenSleep:   { x: 14.2, y: 5.05, z: 12, approach: [14, 5], lie: true },   // under a blanket on the sectional
     },
     // Places CC likes to inspect on patrol
     pointsOfInterest: [[3, 13], [3, 4], [8, 3], [16, 11], [6, 12]],
@@ -465,6 +464,9 @@ LPK.rooms = {
       dresserTop:  { label: "the top of the dresser", x: 7.6, y: 10.95, z: 24, approach: [7, 9], high: true },
       underBigBed: { label: "under the big bed",     x: 10.5, y: 8.5,  z: 0,  approach: [10, 9], hidden: true },
       deskTop:     { label: "Laura's desk",          x: 2.6,  y: 3.98, z: 12, approach: [2, 5] },
+    },
+    owenSpots: {
+      owenSleep:   { x: 13.5, y: 9.05, z: 56, approach: [13, 9], lie: true, headRight: true },   // tucked into Laura's big bed, head on her pillows
     },
     pointsOfInterest: [[3, 7], [7, 8], [12, 11], [2, 10]],
     lauraStart: { x: 2, y: 8 },

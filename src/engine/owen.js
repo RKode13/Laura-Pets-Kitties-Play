@@ -2,7 +2,7 @@
 // and loves video games: Fortress Evening on his Pretendo Stitch, and Laura
 // Pets Kitties. Every night he has to keep up his streaks: remind him
 // between 7:00 and 8:30 PM (before or after Evan's bedtime) for bonus points.
-// Miss 8:30 and he loses his streak.
+// Miss 8:30 and he loses his streak. He sleeps in Laura's big bed.
 // Shares Evan's kid engine (movement, drawing, saying hi to the cats).
 window.LPK = window.LPK || {};
 
@@ -21,7 +21,7 @@ LPK.Owen = class Owen extends LPK.Evan {
 
   sync() {
     this.stopMoving(); this.tasks = []; this.holding = null; this.gear = null; this.ball = null; this.tucked = false;
-    if (this.bedtime()) { this.placeAt("livingRoom.owenSleep"); this.setState("sleep", 1e9); this.mode = "night"; return; }
+    if (this.bedtime()) { this.placeAt("masterBedroom.owenSleep"); this.setState("sleep", 1e9); this.mode = "night"; return; }
     this.placeAt("livingRoom.owenCouch"); this.setState("sit", 3); this.mode = "day";
   }
 
@@ -30,7 +30,7 @@ LPK.Owen = class Owen extends LPK.Evan {
     if (night && this.mode !== "night") {
       this.mode = "night"; this.holding = null; this.gear = null; this.ball = null;
       this.say(this.pick(D.owenBedtime), 2.2);
-      this.goTo("livingRoom.owenSleep", "walk", () => this.setState("sleep", 1e9));
+      this.goTo("masterBedroom.owenSleep", "walk", () => this.setState("sleep", 1e9));
       return;
     }
     if (!night && this.mode === "night") { this.mode = "day"; this.say(this.pick(D.owenWake), 2.2); this.setState("stand", 2); return; }
