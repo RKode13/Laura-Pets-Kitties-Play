@@ -216,7 +216,24 @@ LPK.roomRenderer = (() => {
         R(g, x - 2, 6, dw + 4, 4, "#e9e1d4");
       } else if (dec.kind === "slidingDoor") {
         R(g, x, 4, dw, wallH - 4, "#e6e6e4");
-        for (let i = 0; i < dw / 3; i++) R(g, x + 1 + i * 3, 6, 2, wallH - 7, i % 2 ? "#f7f7f5" : "#e0e0de");  // vertical blinds
+        const o = (LPK.game && LPK.game.room === "kitchen" && LPK.game.blindsOpen) ? LPK.game.blindsOpen() : 0;
+        if (o > 0) {
+          // the backyard Robert takes care of: blue sky, trees, fence, a perfectly striped lawn
+          const vx = x + 1, vy = 6, vw = dw - 2, vh = wallH - 7;
+          R(g, vx, vy, vw, vh, "#a8d4f0");
+          E(g, vx + vw * 0.2, vy + 9, 7, 6, "#3a8a3a"); E(g, vx + vw * 0.75, vy + 8, 8, 7, "#2e7a34"); E(g, vx + vw * 0.5, vy + 11, 6, 4, "#4a9a44");
+          R(g, vx, vy + 13, vw, 5, "#a87a4a"); for (let i = 0; i < vw; i += 3) R(g, vx + i, vy + 12, 2, 6, "#bc8e5a");
+          for (let i = 0; i < 6; i++) R(g, vx + (i * vw) / 6, vy + 18, Math.ceil(vw / 6), vh - 18, i % 2 ? "#5cb04a" : "#72c45e");
+          [[0.15, 20], [0.4, 23], [0.85, 21]].forEach(([fx, fy], i) => R(g, vx + vw * fx, vy + fy, 2, 2, ["#ff7aa8", "#ffd166", "#ff5a5a"][i]));
+          if (Math.floor(LPK.game.time * 3) % 2) R(g, vx + vw * 0.62, vy + 5, 2, 1, "#2a2a30");          // a little bird
+        }
+        // blinds: slats bunch up to the sides as they open
+        const n = Math.floor(dw / 3), half = dw / 2;
+        for (let i = 0; i < n; i++) {
+          const left = i < n / 2, k = left ? i : n - 1 - i;
+          const sx = left ? x + 1 + k * 3 * (1 - o) + k * 0.6 * o : x + dw - 3 - k * 3 * (1 - o) - k * 0.6 * o;
+          R(g, sx, 6, 2, wallH - 7, i % 2 ? "#f7f7f5" : "#e0e0de");
+        }
         R(g, x, 4, dw, 2, "#cfcfcd");
       } else if (dec.kind === "wallPlates") {
         E(g, x + 6, 14, 5, 5, "#f2f0ec"); E(g, x + 6, 14, 3, 3, "#c86a6a");

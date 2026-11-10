@@ -206,6 +206,8 @@ LPK.game = (() => {
     }
     const ow = G.owen;
     if (ow && ow.room === G.room && ow.distTo(L) < 36 && ow.state !== "sleep" && ow.state !== "streaks" && ow.streakWindow()) return { kind: "owenStreak", label: "Owen, do your streaks!", ok: true };
+    // standing right at the sliding door: the backyard view wins over nearby cats
+    if (G.room === "kitchen" && Math.hypot(L.x - 17.25 * T, L.y - 4.2 * T) < 20) return { kind: "backyard", label: G.yard ? "(admiring the yard...)" : "Look out at the backyard", ok: !G.yard };
     const art = LPK.save.data.evanDrawings || [];
     if (G.room === "kitchen" && art.length && Math.hypot(L.x - 14 * T, L.y - 5.4 * T) < 22) return { kind: "fridgeArt", label: "Look at Evan's drawings", ok: true };
     const cc = G.cat("cc");
@@ -247,6 +249,7 @@ LPK.game = (() => {
     if (o.kind === "rest") return { kind: "rest", obj: o, label: G.clock.phase === "night" ? "Rest on the couch (time flies)" : "Rest on the couch", ok: true };
     if (o.kind === "bowl") return { kind: "bowl", obj: o, label: G.holding ? `Fill ${o.label} with ${LPK.foods[G.holding].name}` : `${o.label} (empty-handed)`, ok: true };
     if (o.kind === "trash") return { kind: "trash", obj: o, label: "Check the trash can", ok: true };
+    if (o.kind === "backyard") return { kind: "backyard", obj: o, label: G.yard ? "(admiring the yard...)" : "Look out at the backyard", ok: !G.yard };
     return { kind: "hide", obj: o, label: o.label, ok: true };
   }
 
@@ -254,6 +257,7 @@ LPK.game = (() => {
     const L = G.laura;
     switch (tg.kind) {
       case "evanBed": L.say(D().lauraBedtime[0], 1.6); G.evan.tuckIn(); break;
+      case "backyard": G.admireYard(); break;
       case "evanSnack": G.evan.giveSnack(); break;
       case "owenStreak": L.say(D().owenStreakAsk[0], 1.6); G.owen.doStreaks(); break;
       case "fridgeArt": {
@@ -412,6 +416,32 @@ LPK.game = (() => {
     return { pts, hits, i: 0, end: [x, y] };
   };
 
+  // The kitchen's sliding door: open the blinds, admire the yard Robert
+  // worked so hard on, and reward him with 10 smoochies.
+  G.admireYard = () => {
+    const L = G.laura, R = G.robert;
+    G.yard = { t: 0, said: 0 };
+    L.flip = false; L.dir = "up";
+    LPK.audio.sfx.click();
+  };
+  function updateYard(dt) {
+    const Y = G.yard; if (!Y) return;
+    const L = G.laura, R = G.robert, here = R.present && R.room === "kitchen";
+    Y.t += dt;
+    if (Y.t > 2.0 && Y.said === 0) { Y.said = 1; L.say(L.pick ? L.pick(D().lauraYard) : D().lauraYard[Math.floor(Math.random() * D().lauraYard.length)], 2.8); }
+    if (Y.t > 4.9 && Y.said === 1) {
+      Y.said = 2;
+      L.say(R.present ? D().lauraSmooch[0] : D().lauraSmoochAway[0], 2.6);
+      G.smooches = { t: 0, x: L.x, y: L.y - 34, to: here ? R : null };
+      const key = G.clock.day;
+      if (G.yardDay !== key) { G.yardDay = key; G.progression.addPoints(10); G.notify("10 smoochies!", "+10 Kitty Happiness Points"); }
+      LPK.events.emit("yardPraise", {});
+    }
+    if (Y.t > 7.7 && Y.said === 2) { Y.said = 3; if (here) { R.say(R.pick(D().robertSmooch), 2.4); R.flip = L.x < R.x; } }
+    if (Y.t > 10.3) G.yard = null;
+  }
+  G.blindsOpen = () => { const Y = G.yard; if (!Y) return 0; return Y.t < 0.7 ? Y.t / 0.7 : Y.t > 9.5 ? Math.max(0, (10.3 - Y.t) / 0.8) : 1; };
+
   G.pickFood = (food) => {
     G.foodMenu = null;
     if (!food) { G.holding = null; G.laura.say("Put it away.", 1.2); return; }
@@ -484,6 +514,8 @@ LPK.game = (() => {
     G.robert.update(dt);
     G.evan.update(dt);
     G.owen.update(dt);
+    updateYard(dt);
+    if (G.smooches && (G.smooches.t += dt) > 4.5) G.smooches = null;
     LPK.catFight.update(G, dt);
     if (G.fightText && (G.fightText.t -= dt) <= 0) G.fightText = null;
     G.shake = Math.max(0, (G.shake || 0) - dt);
@@ -732,11 +764,12 @@ LPK.game = (() => {
     // once the mask opens, push in close on the clown's face (even past the room edge)
     const faceCam = clownCam && !stareCat && ce > LPK.CLOWN.split && ce < LPK.CLOWN.shut;
     const fightCam = !stareCat && !clownCam && LPK.catFight.focus(G);
-    computeView(faceCam ? 3 : fightCam ? 2 : stareCat || clownCam ? 1 : 0);
-    const focus = fightCam ? fightCam : stareCat ? { x: stareCat.x, y: stareCat.y - stareCat.z }
+    const yardCam = !stareCat && !fightCam && G.yard && G.room === "kitchen" && G.yard.t < 2.0 ? { x: 17.25 * 16, y: 3 * 16 + 4 } : null;
+    computeView(faceCam ? 3 : fightCam ? 2 : yardCam || stareCat || clownCam ? 1 : 0);
+    const focus = yardCam ? yardCam : fightCam ? fightCam : stareCat ? { x: stareCat.x, y: stareCat.y - stareCat.z }
       : faceCam ? { x: G.clownPos.x + 8, y: G.clownPos.y - 30 }
       : clownCam ? { x: G.clownPos.x + 20, y: G.clownPos.y - 10 } : G.laura;
-    updateCamera(G.dt, focus, faceCam || !!fightCam);
+    updateCamera(G.dt, focus, faceCam || !!fightCam || !!yardCam);
     const g = bctx;
     g.imageSmoothingEnabled = false;
     g.setTransform(1, 0, 0, 1, 0, 0);
@@ -754,6 +787,22 @@ LPK.game = (() => {
     if (G.evan && G.evan.room === G.room) items.push({ sortY: G.evan.sortY, draw: (g) => G.evan.draw(g) });
     if (G.owen && G.owen.room === G.room) items.push({ sortY: G.owen.sortY, draw: (g) => G.owen.draw(g) });
     LPK.catFight.drawItems(items, G);
+    if (G.smooches && G.room === "kitchen") {
+      const S = G.smooches;
+      items.push({ sortY: 9999, draw: (g) => {
+        const n = Math.min(10, Math.floor(S.t / 0.22) + 1);
+        for (let i = 0; i < n; i++) {
+          const a = S.t - i * 0.22, p = Math.min(1, a / 1.6), tx = S.to ? S.to.x : S.x + (i % 2 ? 14 : -14), ty = S.to ? S.to.y - 40 : S.y - 30;
+          const x = S.x + (tx - S.x) * p + Math.sin(a * 6 + i) * 4, y = S.y + (ty - S.y) * p - Math.sin(p * Math.PI) * 12;
+          g.globalAlpha = Math.max(0, Math.min(1, 2.2 - a));
+          LPK.px.heart(g, Math.round(x - 3), Math.round(y - 3), i % 3 ? "#ff5a8a" : "#ff8ab0");
+          g.globalAlpha = 1;
+        }
+        // the count
+        g.fillStyle = "#ffffff"; g.font = "bold 7px sans-serif"; g.textAlign = "center";
+        g.fillText(`x${n}`, S.x + 12, S.y - 6);
+      } });
+    }
     for (const toy of G.toys) if (toy.room === G.room) items.push({ sortY: toy.held ? G.laura.sortY + 1 : toy.y, draw: (g) => R.drawSpring(g, toy.x, toy.y, toy.colors, t, toy.bounce) });
     items.sort((a, b) => a.sortY - b.sortY).forEach(i => i.draw(g));
     if (w.def.ambient) { g.fillStyle = w.def.ambient; g.fillRect(0, 0, w.width, w.height); }   // fairy-light / LED room glow

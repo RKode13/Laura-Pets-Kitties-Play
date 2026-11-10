@@ -324,7 +324,7 @@ LPK.ui = (() => {
     }
     // speech bubbles
     const bubbles = [];
-    if (L.speech) { const p = G.worldToScreen(L.x, L.y - (L.state === "kneel" ? 26 : 32)), f = G.worldToScreen(L.x, L.y); bubbles.push([L.speech.text, p.x, p.y, "speech", f.y]); }
+    if (L.speech && !(G.yard && G.yard.t < 2)) { const p = G.worldToScreen(L.x, L.y - (L.state === "kneel" ? 26 : 32)), f = G.worldToScreen(L.x, L.y); bubbles.push([L.speech.text, p.x, p.y, "speech", f.y]); }
     for (const c of [...G.cats, G.robert, G.evan, G.owen]) if (c && c.bubble && c.room === G.room && !c.concealed && c.state !== "transit" && c.present !== false) {
       const h = c.headPos(), p = G.worldToScreen(h.x, h.y), f = G.worldToScreen(c.x, c.y - c.z);
       bubbles.push([c.bubble.text, p.x, p.y, c.bubble.kind, f.y]);

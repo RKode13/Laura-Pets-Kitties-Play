@@ -127,6 +127,7 @@ LPK.rooms = {
       { id: "herBowl",  kind: "bowl",   label: "Marshmallow's bowl", x: 2.5, y: 5.6, owner: "marshmallow" },
       { id: "boysBowls",kind: "bowl",   label: "the boys' bowls", x: 19.5, y: 11.6, owner: "boys" },
       { id: "trash",    kind: "trash",  label: "Trash can", x: 9.5, y: 8.3 },
+      { id: "backyard", kind: "backyard", label: "Look out at the backyard", x: 17.25, y: 3.4 },
     ],
     restingSpots: {
       kitchenMat:       { label: "the kitchen mat",      x: 10.8, y: 4.7,  z: 0,  approach: [11, 5] },
