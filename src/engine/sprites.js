@@ -20,6 +20,21 @@ LPK.sprites = (() => {
       r(-3, -10, 6, 2, L.topDark);
       return s;
     }
+    if (pose === "dance") {                       // side view, bent over, hands on knees, butt bouncing
+      const b = frame % 2;                        // the bounce
+      r(0, -7, 2, 6, L.pants); r(3, -7, 2, 6, L.pants);                 // legs, knees forward
+      r(0, -1, 3, 1, L.shoes); r(3, -1, 4, 1, L.shoes);
+      r(-5, -13 - b * 2, 7, 6, L.pants);                                // the butt, sticking out and bouncing
+      r(-4, -14 - b * 2, 5, 1, L.top, 1);
+      r(-1, -16 - b, 7, 5, L.top); r(4, -17 - b, 4, 4, L.top);          // torso leaning forward
+      r(-4, -17 - b, 5, 3, L.hairDark);                                  // hair down her back
+      r(5, -15 - b, 2, 7, L.topDark); r(4, -8, 2, 2, L.skin);           // arm down, hand on her knee
+      r(7, -23 - b, 6, 7, L.skin);                                       // face, looking ahead
+      r(6, -24 - b, 7, 3, L.hair); r(5, -23 - b, 3, 9, L.hair);         // hair
+      r(4, -19 - b, 2, 6, L.hairDark, 1);
+      r(10, -21 - b, 1, 1, L.eyes, 1); r(10, -18 - b, 2, 1 + b, L.lips, 1);   // singing
+      return s;
+    }
     if (pose === "kneel") {                       // side view, kneeling, petting
       const pat = opt.pat || 0;                  // hand pat offset (0/1/2)
       r(-6, -2, 4, 2, L.shoes);                  // back foot

@@ -15,7 +15,7 @@ LPK.Laura = class Laura {
   say(text, secs = 2.6) { this.speech = { text, t: secs }; }
   sayRandom(list, secs) { this.say(list[Math.floor(Math.random() * list.length)], secs); }
 
-  get busy() { return ["kneel", "reach", "celebrate", "rest", "work"].includes(this.state); }
+  get busy() { return ["kneel", "reach", "celebrate", "rest", "work", "dance"].includes(this.state); }
   get sortY() { return this.state === "rest" ? this.y + 14 : this.y; }
 
   update(dt, input) {
@@ -50,6 +50,18 @@ LPK.Laura = class Laura {
 
   draw(g) {
     if (this.state === "rest") { LPK.px.draw(g, LPK.sprites.laura("lie", "side", 0), this.x, this.y, false); return; }
+    if (this.state === "dance") {
+      LPK.px.rect(g, this.x - 6, this.y - 1, 12, 2, "rgba(0,0,0,0.22)");
+      LPK.px.draw(g, LPK.sprites.laura("dance", "side", Math.floor(this.t * 6)), this.x, this.y, this.flip);
+      for (let i = 0; i < 3; i++) {                         // little music notes
+        const p = (this.t * 0.8 + i / 3) % 1, nx = this.x + (this.flip ? -8 : 8) + Math.sin(p * 6 + i) * 5 + (i - 1) * 6, ny = this.y - 26 - p * 18;
+        const c = ["#ff7aa8", "#ffd166", "#7fd0ff"][i];
+        g.globalAlpha = 1 - p;
+        LPK.px.rect(g, nx, ny, 2, 2, c); LPK.px.rect(g, nx + 1, ny - 4, 1, 4, c); LPK.px.rect(g, nx + 2, ny - 4, 1, 1, c);
+        g.globalAlpha = 1;
+      }
+      return;
+    }
     const pose = this.state === "kneel" ? "kneel" : this.state === "reach" ? "reach" : this.state === "celebrate" ? "celebrate"
       : this.state === "run" || this.state === "walk" ? "walk" : "stand";
     const frame = Math.floor(this.dist / (this.state === "run" ? 7 : 6));

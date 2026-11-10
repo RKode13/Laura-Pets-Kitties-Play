@@ -44,7 +44,7 @@ LPK.game = (() => {
     G.evan.sync();
     G.owen = new LPK.Owen(G);
     G.owen.sync();
-    LPK.catFight.end(G); G.fightText = null; G.shake = 0;
+    LPK.catFight.end(G); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60;
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -442,6 +442,40 @@ LPK.game = (() => {
   }
   G.blindsOpen = () => { const Y = G.yard; if (!Y) return 0; return Y.t < 0.7 ? Y.t / 0.7 : Y.t > 9.5 ? Math.max(0, (10.3 - Y.t) / 0.8) : 1; };
 
+  // "Mom, I'm hungry!" — every so often one of the boys says it, Laura does
+  // the hungry dance (bent over, hands on knees, bouncing) singing it back
+  // four times, then asks what they want. Evan: "Food!!!!!" Owen: "I'm not
+  // telling you."
+  G.hungryCool = 60;
+  function updateHungry(dt) {
+    const L = G.laura, H = G.hungry, Dl = D();
+    if (!H) {
+      if ((G.hungryCool -= dt) > 0 || L.busy || G.petting.active || G.foodMenu || G.artView || G.yard || G.clown || LPK.catFight.active) return;
+      const kids = [G.evan, G.owen].filter(k => k && k.room === G.room && k.mode === "day" && !k.moving && k.z === 0 && k.distTo(L) < 90
+        && !["askSnack", "snack", "streaks", "flying", "watchBall", "catch", "throw", "swing"].includes(k.state));
+      if (!kids.length || Math.random() > dt / 45) return;
+      const kid = kids[Math.floor(Math.random() * kids.length)];
+      kid.stopMoving(); kid.tasks = []; kid.holding = null; kid.fighting = true; kid.setState("stand", 99);
+      kid.say(Dl.kidHungry[0], 2.2);
+      G.hungry = { kid, t: 0, step: 0 };
+      return;
+    }
+    H.t += dt;
+    const k = H.kid, evan = k.id === "evan";
+    const at = (sec) => { const n = at.n++; return H.t >= sec && H.step === n; };     // the scene's beats, in order
+    at.n = 0;
+    if (at(2.2)) { H.step++; L.state = "dance"; L.dir = "side"; L.flip = k.x < L.x; }
+    for (let i = 0; i < 4; i++) if (at(2.3 + i * 1.15)) { H.step++; L.say(Dl.lauraHungrySong[0], 1.1); LPK.audio.sfx.sing(); }
+    if (at(7.0)) { H.step++; L.state = "idle"; L.say(Dl.lauraWhatWant[0], 2.2); }
+    if (at(9.3)) { H.step++; k.say(evan ? Dl.evanWant[0] : Dl.owenWant[0], 2.2); }
+    if (at(11.6)) { H.step++; L.say(evan ? Dl.lauraOkEvan[0] : Dl.lauraOkOwen[0], 2); }
+    if (at(13.4)) {
+      k.fighting = false; k.setState("stand", 1);
+      LPK.events.emit("momHungry", { kid: k.id });
+      G.hungry = null; G.hungryCool = 150 + Math.random() * 150;
+    }
+  }
+
   G.pickFood = (food) => {
     G.foodMenu = null;
     if (!food) { G.holding = null; G.laura.say("Put it away.", 1.2); return; }
@@ -515,6 +549,7 @@ LPK.game = (() => {
     G.evan.update(dt);
     G.owen.update(dt);
     updateYard(dt);
+    updateHungry(dt);
     if (G.smooches && (G.smooches.t += dt) > 4.5) G.smooches = null;
     LPK.catFight.update(G, dt);
     if (G.fightText && (G.fightText.t -= dt) <= 0) G.fightText = null;
