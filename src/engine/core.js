@@ -136,6 +136,10 @@ LPK.audio = (() => {
     boing: () => tone(300, 0.18, 0.05, "triangle", 2.2),
     rub: () => tone(520, 0.08, 0.05, "sine", 1.3),
     kick: () => { tone(260, 0.06, 0.06, "square", 0.7); tone(200, 0.06, 0.05, "square", 0.7, 0.07); },
+    hiss: () => { for (let i = 0; i < 4; i++) tone(1400 + Math.random() * 900, 0.05, 0.025, "sawtooth", 0.7, i * 0.04); },
+    slam: () => { tone(90, 0.35, 0.14, "square", 0.5); tone(140, 0.2, 0.08, "sawtooth", 0.4, 0.02); },
+    bell: () => { tone(1568, 0.5, 0.07, "triangle", 1.0); tone(2350, 0.4, 0.03, "sine", 1.0); },
+    cheer: () => { for (let i = 0; i < 14; i++) tone(300 + Math.random() * 500, 0.25, 0.02, "sawtooth", 1.1 + Math.random() * 0.3, i * 0.05); [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.25, 0.06, "square", 1.0, 0.3 + i * 0.12)); },
   };
   // A warbly organ voice: two slightly detuned oscillators + vibrato, like an
   // old carnival calliope that's been sitting in a basement too long.

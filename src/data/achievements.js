@@ -52,5 +52,9 @@ LPK.achievements = [
   { id: "fridgeArt",       name: "Fridge Gallery",             desc: "Get one of Evan's drawings up on the fridge.", event: "evanDrawing", build: 4 },
   { id: "gameInGame",      name: "A Game Within a Game",       desc: "Catch Evan playing Laura Pets Kitties on his iPad.", event: "evanIpad", build: 4 },
   { id: "snackTime",       name: "Pasta & Fruit Chef",         desc: "Give Evan the snack he asked for.", event: "evanSnack", build: 4 },
+  { id: "streakKeeper",    name: "Streak Keeper",              desc: "Remind Owen to do his streaks before 8:30 PM.", event: "owenStreaks", build: 4 },
+  { id: "victoryEvening",  name: "Victory Evening",            desc: "Catch Owen playing Fortress Evening on his Pretendo Stitch.", event: "owenGaming", build: 4 },
+  { id: "stillChampion",   name: "And STILL Champion",         desc: "Witness Blacky win a wrestling match against Orangey.", event: "catFight", build: 4 },
+  { id: "topRope",         name: "From the Top Rope",          desc: "See Blacky's flying elbow drop.", event: "catFight", match: { move: "elbow" }, build: 4 },
   { id: "purrfection",     name: "PURRFECTION!",               desc: "Complete the main story: the Ultimate Kitty Cuddle.", event: "missionComplete", match: { mission: "ultimateCuddle" }, build: 4 },
 ];

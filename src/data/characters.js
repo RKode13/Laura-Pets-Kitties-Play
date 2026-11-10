@@ -211,6 +211,41 @@ LPK.characters = {
       conductor: { name: "Train conductor",   top: "#a3243a", topDark: "#841a2e", dots: ["#c0394f"], pants: "#1c1c22", feet: ["#f2b43a", "#e8703a"], collar: "henley", suspenders: true, cap: true, mustache: true },
     },
   },
+  // ------------------------------------------------------------ OWEN
+  // From his photos: dark brown hair, short and swept up in front, brown eyes,
+  // round rosy cheeks and a big grin. A bit taller and sturdier than Evan.
+  owen: {
+    name: "Owen",
+    title: "The All-Star",
+    role: "Supporting character (not playable)",
+    relationship: "Laura's son · Evan's big brother",
+    gender: "Male",
+    description: "Evan's big brother. Plays flag football and baseball, and loves video games: Fortress Evening on his Pretendo Stitch, and Laura Pets Kitties. Has to keep up his streaks every night!",
+    // (stats are a first guess; edit freely)
+    attributes: { athleticism: 9, strength: 8, speed: 7, gaming: 10, competitiveness: 9, bigBrother: 9 },
+    favorites: ["Flag football", "Baseball", "Fortress Evening on his Pretendo Stitch", "Laura Pets Kitties"],
+    joinsInBuild: 4,
+    // Remind him to do his streaks between streakStart and streakBy for bonus points.
+    schedule: { wake: "7:00 AM", streakStart: "7:00 PM", streakBy: "8:30 PM", bed: "9:30 PM" },
+    streakPoints: 15,
+    behavior: { walkSpeed: 34, runSpeed: 62, hopSeconds: 0.4, activitySeconds: [8, 18] },
+    look: {
+      skin: "#efc4a2", skinDark: "#d8a888", hair: "#3c2a1e", hairDark: "#26180f", hairLight: "#5a4030",
+      eyes: "#3a2418", cheeks: "#e8968a", mouth: "#9a3a3a",
+      build: { bw: 6, hw: 5, leg: 10, torso: 12, headH: 9 },
+      blanket: ["#3a4a8a", "#5a6ab0", "#2a3870"],
+    },
+    // Team colors only (no real team logos)
+    outfits: {
+      school:   { name: "Green tee + backpack", top: "#3e5a3a", topDark: "#30482c", pants: "#2a3048", feet: ["#e8e8e8", "#e8e8e8"], shortSleeves: true, backpack: true, backpackColor: "#1e1e24", backpackLight: "#3a3a44" },
+      football: { name: "Flag football",      top: "#5b2a86", topDark: "#46206a", logo: "#f2c230", pants: "#55575e", feet: ["#d8343c", "#d8343c"], shorts: true, shortSleeves: true, collar: "vneck" },
+      baseball: { name: "Baseball",           top: "#e8b830", topDark: "#c89a20", script: "#3a2a1e", pants: "#c8c8cc", feet: ["#2a2a2e", "#2a2a2e"], shortSleeves: true, cap: true, capColor: "#2e2620", capBadge: "#e8b830" },
+      soccer:   { name: "Soccer #22 + medal", top: "#d8343c", topDark: "#b02830", sleeve: "#c8d4ec", number: "#2a3a8a", medal: true, pants: "#3a3a40", feet: ["#e8e8e8", "#e8e8e8"], shorts: true, shortSleeves: true, collar: "vneck" },
+      suit:     { name: "Navy suit",          top: "#1e2a48", topDark: "#162038", pants: "#1e2a48", feet: ["#141418", "#141418"], collar: "suit", tie: "#141418" },
+      king:     { name: "100 Days King",      top: "#f2f0ec", topDark: "#d8d6d0", pants: "#2a3048", feet: ["#e8e8e8", "#e8e8e8"], shortSleeves: true, collar: "ringer", ring: "#2a4ad8", crown: true },
+      pajamas:  { name: "Pajamas",            top: "#3a4a6a", topDark: "#2e3c58", dots: ["#6a7ab0"], pants: "#3a4a6a", feet: ["#d8d8d8", "#d8d8d8"], shortSleeves: true },
+    },
+  },
 };
 
 // Friendly display names for attributes (used by Character Profiles).
@@ -221,4 +256,5 @@ LPK.attributeLabels = {
   bossFactor: "Boss factor", style: "Style", protectiveness: "Protectiveness",
   coolness: "Coolness", awesomeness: "Awesomeness", legendaryStatus: "Legendary status",
   creativity: "Creativity", artistry: "Drawing", energy: "Energy", mischief: "Gets into things",
+  gaming: "Gaming", competitiveness: "Competitive", bigBrother: "Big brother", athleticism: "Athleticism",
 };

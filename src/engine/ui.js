@@ -174,7 +174,7 @@ LPK.ui = (() => {
 
   function drawProfiles() {
     overlay(0.82);
-    const ids = ["laura", "marshmallow", "cc", "popsicle", "robert", "evan"];
+    const ids = ["laura", "marshmallow", "cc", "popsicle", "robert", "evan", "owen"];
     const tabW = Math.min(170, (W - 40) / ids.length - 6), tabH = Math.min(40, H / 12);
     ids.forEach((id, i) => {
       const ch = LPK.characters[id];
@@ -194,9 +194,9 @@ LPK.ui = (() => {
     const scale = Math.max(2, Math.floor(pw / 46));
     const shapes = id === "laura" ? LPK.sprites.laura("stand", "down", 0)
       : id === "robert" ? LPK.sprites.robert("down", 0, { shades: Math.floor(G.time / 2) % 2 === 0, casual: Math.floor(G.time / 4) % 2 === 1 })
-      : id === "evan" ? LPK.sprites.evan("down", 0, { outfit: Object.keys(ch.outfits)[Math.floor(G.time / 2.5) % Object.keys(ch.outfits).length] })
+      : id === "evan" || id === "owen" ? LPK.sprites.kid(id, "down", 0, { outfit: Object.keys(ch.outfits)[Math.floor(G.time / 2.5) % Object.keys(ch.outfits).length] })
       : LPK.sprites.cat(ch.look, Math.floor(G.time / 3) % 2 ? "sit" : "front", 0, { eyes: id === "marshmallow" ? "stare" : "open" });
-    sprite(shapes, 30 + pw / 2, top + 14 + pw * 0.86, id === "robert" ? scale * 0.8 : id === "laura" ? scale * 0.95 : id === "evan" ? scale * 1.05 : scale * 1.4);
+    sprite(shapes, 30 + pw / 2, top + 14 + pw * 0.86, id === "robert" ? scale * 0.8 : id === "laura" ? scale * 0.95 : id === "evan" || id === "owen" ? scale * 1.05 : scale * 1.4);
     // details
     const x = 30 + pw + 20, maxW = W - x - 36;
     let y = top + 30;
@@ -218,10 +218,12 @@ LPK.ui = (() => {
       text(`Weekdays: up ${S.weekday.wake}, work ${S.weekday.leave}–${S.weekday.home}, dinner guard ${S.weekday.dinner}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.05;
       text(`Weekends: home · dinner guard ${S.weekend.dinner} · Tiny Snore after ${S.weekend.sleep}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
     }
-    if (id === "evan") {
+    if (id === "evan" || id === "owen") {
       const S = ch.schedule;
       text(`Loves: ${ch.favorites.join(" · ")}`, x, y, u * 0.75, C.pink, "left", "normal"); y += u * 1.05;
-      text(`Bedtime: tuck him in ${S.bedWindow}–${S.bed} for +${ch.bedtimePoints} points`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
+      if (id === "evan") text(`Bedtime: tuck him in ${S.bedWindow}–${S.bed} for +${ch.bedtimePoints} points`, x, y, u * 0.75, C.green, "left", "normal");
+      else text(`Streaks: remind him ${S.streakStart}–${S.streakBy} for +${ch.streakPoints} points`, x, y, u * 0.75, C.green, "left", "normal");
+      y += u * 1.2;
     }
     if (id === "marshmallow" && LPK.save.data.cats.marshmallow) {
       const tr = LPK.save.data.cats.marshmallow.trust || 0;
@@ -323,7 +325,7 @@ LPK.ui = (() => {
     // speech bubbles
     const bubbles = [];
     if (L.speech) { const p = G.worldToScreen(L.x, L.y - (L.state === "kneel" ? 26 : 32)), f = G.worldToScreen(L.x, L.y); bubbles.push([L.speech.text, p.x, p.y, "speech", f.y]); }
-    for (const c of [...G.cats, G.robert, G.evan]) if (c && c.bubble && c.room === G.room && !c.concealed && c.state !== "transit" && c.present !== false) {
+    for (const c of [...G.cats, G.robert, G.evan, G.owen]) if (c && c.bubble && c.room === G.room && !c.concealed && c.state !== "transit" && c.present !== false) {
       const h = c.headPos(), p = G.worldToScreen(h.x, h.y), f = G.worldToScreen(c.x, c.y - c.z);
       bubbles.push([c.bubble.text, p.x, p.y, c.bubble.kind, f.y]);
     }
@@ -430,6 +432,15 @@ LPK.ui = (() => {
       text(kb ? "Q to put it away" : "PUT AWAY button", pad + 32, hy + sz * 1.6, sz * 0.65, C.dim, "left", "normal");
     }
     if (G.olympics && G.olympics.event) drawOlympics(sz);
+    if (G.fightText) {
+      const ft = G.fightText, k = Math.min(1, (ft.total - ft.t) / 0.15), size = Math.min(W / 12, 56) * (0.6 + 0.4 * k);
+      ctx.save(); ctx.translate(W / 2, H * 0.3); ctx.rotate(-0.06);
+      ctx.font = `900 ${Math.round(size)}px "Impact", "Arial Black", ${FONT}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      const fit = Math.min(1, W * 0.86 / ctx.measureText(ft.text).width); ctx.scale(fit, fit);     // always fits on screen
+      ctx.lineWidth = Math.max(4, size / 7); ctx.strokeStyle = "#2a1236"; ctx.strokeText(ft.text, 0, 0);
+      ctx.fillStyle = "#ffd166"; ctx.fillText(ft.text, 0, 0);
+      ctx.restore();
+    }
     if (G.foodMenu) drawFoodMenu();
     if (G.artView) drawArtView();
     if (G.choiceMenu) drawChoiceMenu();

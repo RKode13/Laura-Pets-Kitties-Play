@@ -206,6 +206,23 @@ LPK.sprites = (() => {
       headSide(11, by - 2);
       return s;
     }
+    if (pose === "champ") {                        // standing tall in the championship belt, elbows out, paws on hips
+      const b = frame % 2;
+      for (let i = 0; i < 5; i++) r(5 + (i > 2 ? 1 : 0), -4 - i * 2 - (i > 3 ? b : 0), 2, 2, look.tail);
+      r(-4, -4, 3, 4, look.body); r(1, -4, 3, 4, look.body);
+      if (look.paws) { r(-4, -1, 3, 1, look.paws, 1); r(1, -1, 3, 1, look.paws, 1); }
+      e(0, -10, 5, 7, look.body);
+      if (look.chest) r(-2, -15, 4, 6, look.chest, 1);
+      // elbows out, paws on hips
+      r(-8, -15, 3, 2, look.body); r(-8, -13, 2, 3, look.body); r(-6, -11, 2, 2, look.paws || look.body);
+      r(5, -15, 3, 2, look.body); r(6, -13, 2, 3, look.body); r(4, -11, 2, 2, look.paws || look.body);
+      // the championship belt
+      r(-6, -10, 12, 3, "#c89a20"); r(-3, -11, 6, 5, "#f6d040"); r(-2, -10, 4, 3, "#ffe680", 1); r(-1, -9, 2, 1, "#d84a4a", 1);
+      r(-6, -9, 1, 1, "#ffe680", 1); r(5, -9, 1, 1, "#ffe680", 1);
+      headFront(0, -21);
+      r(-2, -18, 4, 1, "#3a2a2a", 1); r(-1, -17, 2, 1, "#f07a8a", 1);          // big grin
+      return s;
+    }
     if (pose === "hunker") {                       // zoomie crouch: low, butt up and wiggling, looking up
       const wig = frame % 2;
       for (let i = 0; i < 6; i++) r(-15 + i * 2, -2 - (i < 2 ? (wig + i) : 0), 2, 2, (look.tailStripe && i % 2) ? look.tailStripe : look.tail);   // tail flicking low
@@ -416,63 +433,94 @@ LPK.sprites = (() => {
     return s;
   }
 
-  // ------------------------------------------------------------ EVAN
-  // Kid-sized (shorter than Laura and Robert). opt: { outfit, pose: stand/walk/sit/lie, sleeping }
-  function evan(dir = "down", frame = 0, opt = {}) {
-    const E = LPK.characters.evan.look, O = LPK.characters.evan.outfits[opt.outfit] || LPK.characters.evan.outfits.sweater, s = [];
+  // ------------------------------------------------------------ THE KIDS
+  // Evan and Owen share one kid sprite; each has his own build, hair, face
+  // and outfits (characters.js). opt: { outfit, pose: stand/walk/sit/lie,
+  // sleeping, hold, swing }
+  function kid(id, dir = "down", frame = 0, opt = {}) {
+    const CH = LPK.characters[id], E = CH.look, O = CH.outfits[opt.outfit] || Object.values(CH.outfits)[0], s = [];
+    const B = Object.assign({ bw: 5, hw: 4, leg: 9, torso: 11, headH: 8 }, E.build || {});
     const r = (x, y, w, h, c, n) => s.push(["r", x, y, w, h, c, n]);
     const pose = opt.pose || "stand";
     const step = pose === "walk" ? frame % 4 : 0, sw = step === 1 ? 1 : step === 3 ? -1 : 0;
-    const dots = O.dots || [];
+    const dots = O.dots || [], hw = B.hw, HH = B.headH, legW = B.bw - 2;
+    const legTop = -(B.leg + 1), top = legTop - B.torso + 1, armLen = 7 + (B.torso - 11);
     const head = (hx, hy, side) => {
       // hy = bottom of the chin
-      if (O.cap) { r(hx - 5, hy - 11, 10, 3, "#1c1c24"); r(hx - 5, hy - 8, 10, 1, "#0e0e12", 1); r(hx - 1, hy - 10, 2, 1, "#d8b04a", 1); }
+      const crown = O.crown, capped = O.cap || crown;
+      if (O.cap) { r(hx - hw - 1, hy - HH - 3, 2 * hw + 2, 3, O.capColor || "#1c1c24"); r(hx - hw - 1, hy - HH, 2 * hw + 2, 1, "#0e0e12", 1); r(hx - 1, hy - HH - 2, 2, 1, O.capBadge || "#d8b04a", 1); }
       if (dir === "up" && !side) {
-        r(hx - 4, hy - 8, 8, 8, E.skin); r(hx - 5, hy - 5, 1, 2, E.skin); r(hx + 4, hy - 5, 1, 2, E.skin);
-        if (!O.cap) r(hx - 4, hy - 10, 8, 3, E.hair);
-        r(hx - 4, hy - 8, 8, 7, E.hair); r(hx - 4, hy - 3, 8, 2, E.hairDark, 1);          // short faded back
+        r(hx - hw, hy - HH, 2 * hw, HH, E.skin); r(hx - hw - 1, hy - 5, 1, 2, E.skin); r(hx + hw, hy - 5, 1, 2, E.skin);
+        if (!capped) r(hx - hw, hy - HH - 2, 2 * hw, 3, E.hair);
+        r(hx - hw, hy - HH, 2 * hw, HH - 1, E.hair); r(hx - hw, hy - 3, 2 * hw, 2, E.hairDark, 1);
+        if (crown) drawCrown(hx, hy);
         return;
       }
-      r(hx - 4, hy - 8, 8, 8, E.skin);
-      if (side) { r(hx - 2, hy - 5, 1, 2, E.skinDark, 1); }
-      else { r(hx - 5, hy - 5, 1, 2, E.skin); r(hx + 4, hy - 5, 1, 2, E.skin); }
+      r(hx - hw, hy - HH, 2 * hw, HH, E.skin);
+      if (side) r(hx - 2, hy - 5, 1, 2, E.skinDark, 1);
+      else { r(hx - hw - 1, hy - 5, 1, 2, E.skin); r(hx + hw, hy - 5, 1, 2, E.skin); }
       if (!O.cap) {
-        r(hx - 4, hy - 10, 8, 3, E.hair); r(hx, hy - 11, 3, 1, E.hair);                  // swept-up top
-        r(hx - 1, hy - 10, 3, 1, E.hairLight, 1);
-        if (side) { r(hx - 4, hy - 8, 3, 5, E.hair); r(hx - 4, hy - 4, 2, 2, E.hairDark, 1); r(hx + 1, hy - 8, 3, 1, E.hair, 1); }
-        else { r(hx - 4, hy - 8, 5, 1, E.hair, 1); r(hx - 4, hy - 7, 2, 1, E.hair, 1);   // side-swept fringe
-               r(hx - 4, hy - 8, 1, 3, E.hairDark, 1); r(hx + 3, hy - 8, 1, 2, E.hairDark, 1); }   // short sides
+        r(hx - hw, hy - HH - 2, 2 * hw, 3, E.hair); r(hx, hy - HH - 3, 3, 1, E.hair);
+        r(hx - 1, hy - HH - 2, 3, 1, E.hairLight, 1);
+        if (side) { r(hx - hw, hy - HH, 3, 5, E.hair); r(hx - hw, hy - HH + 4, 2, 2, E.hairDark, 1); r(hx + 1, hy - HH, 3, 1, E.hair, 1); }
+        else { r(hx - hw, hy - HH, hw + 1, 1, E.hair, 1); r(hx - hw, hy - HH + 1, 2, 1, E.hair, 1);
+               r(hx - hw, hy - HH, 1, 3, E.hairDark, 1); r(hx + hw - 1, hy - HH, 1, 2, E.hairDark, 1); }
       }
+      if (crown) drawCrown(hx, hy);
       const shut = opt.sleeping;
       if (side) {
         r(hx + 2, hy - 5, 1, 1, shut ? "#7a5a4a" : E.eyes, 1);
-        r(hx + 2, hy - 3, 1, 1, E.freckles, 1);
+        if (E.freckles) r(hx + 2, hy - 3, 1, 1, E.freckles, 1);
+        if (E.cheeks) r(hx + 1, hy - 3, 2, 1, E.cheeks, 1);
         r(hx + 1, hy - 2, 3, 1, E.mouth, 1); r(hx + 2, hy - 2, 1, 1, "#fffaf0", 1);
         if (O.mustache) r(hx + 1, hy - 3, 3, 1, "#7a4a26", 1);
         return;
       }
       if (shut) { r(hx - 3, hy - 5, 2, 1, "#7a5a4a", 1); r(hx + 1, hy - 5, 2, 1, "#7a5a4a", 1); }
       else { r(hx - 3, hy - 5, 1, 1, E.eyes, 1); r(hx + 2, hy - 5, 1, 1, E.eyes, 1); }
-      r(hx - 3, hy - 3, 1, 1, E.freckles, 1); r(hx + 2, hy - 3, 1, 1, E.freckles, 1); r(hx - 1, hy - 4, 1, 1, E.freckles, 1);
-      if (!shut) { r(hx - 2, hy - 2, 4, 1, E.mouth, 1); r(hx - 1, hy - 2, 2, 1, "#fffaf0", 1); }  // the big gap-tooth grin
+      if (E.freckles) { r(hx - 3, hy - 3, 1, 1, E.freckles, 1); r(hx + 2, hy - 3, 1, 1, E.freckles, 1); r(hx - 1, hy - 4, 1, 1, E.freckles, 1); }
+      if (E.cheeks) { r(hx - hw + 1, hy - 3, 2, 1, E.cheeks, 1); r(hx + hw - 3, hy - 3, 2, 1, E.cheeks, 1); }
+      if (!shut) { r(hx - 2, hy - 2, 4, 1, E.mouth, 1); r(hx - 1, hy - 2, 2, 1, "#fffaf0", 1); }   // the big grin
       if (O.mustache) { r(hx - 3, hy - 3, 2, 1, "#7a4a26", 1); r(hx + 1, hy - 3, 2, 1, "#7a4a26", 1); r(hx - 1, hy - 3, 2, 1, "#7a4a26", 1); }
+    };
+    const drawCrown = (hx, hy) => {
+      const y = hy - HH - 4;
+      r(hx - hw, y + 1, 2 * hw, 3, "#e8b830"); r(hx - hw, y - 1, 2, 2, "#e8b830"); r(hx - 1, y - 2, 2, 3, "#e8b830"); r(hx + hw - 2, y - 1, 2, 2, "#e8b830");
+      r(hx - 1, y + 2, 2, 1, "#d84a4a", 1); r(hx - hw + 1, y + 2, 1, 1, "#4a6ae8", 1); r(hx + hw - 2, y + 2, 1, 1, "#4a6ae8", 1);
     };
     const chest = (y, back) => {
       dots.forEach((c, i) => { r(-3 + (i * 4) % 7, y + 2 + i * 3, 1, 1, c, 1); r(2 - (i * 3) % 5, y + 5 + i * 2, 1, 1, c, 1); });
-      if (back) { if (O.backpack) { r(-4, y + 1, 8, 8, "#2a8ae8"); r(-3, y + 2, 6, 1, "#5ab0f8", 1); r(-4, y + 6, 8, 1, "#1a5ab0", 1); } if (O.suspenders) { r(-3, y, 1, 10, "#6a6a72", 1); r(2, y, 1, 10, "#6a6a72", 1); } return; }
+      const bp = O.backpackColor || "#2a8ae8";
+      if (back) {
+        if (O.backpack) { r(-4, y + 1, 8, 8, bp); r(-3, y + 2, 6, 1, O.backpackLight || "#5ab0f8", 1); r(-4, y + 6, 8, 1, "#1a1a20", 1); }
+        if (O.suspenders) { r(-3, y, 1, 10, "#6a6a72", 1); r(2, y, 1, 10, "#6a6a72", 1); }
+        if (O.number) { r(-2, y + 3, 1, 4, O.number, 1); r(1, y + 3, 1, 4, O.number, 1); r(-2, y + 3, 2, 1, O.number, 1); r(1, y + 3, 2, 1, O.number, 1); }
+        return;
+      }
       if (O.collar === "henley") { r(-1, y, 2, 3, O.topDark, 1); r(0, y + 2, 1, 1, "#c9a26a", 1); }
       if (O.collar === "zip") { r(-2, y - 1, 4, 2, O.topDark, 1); r(0, y, 1, 4, "#b89a4a", 1); }
       if (O.collar === "polo") { r(-2, y, 1, 2, O.topDark, 1); r(1, y, 1, 2, O.topDark, 1); }
       if (O.collar === "pj") r(-2, y, 4, 1, "#d8434a", 1);
-      if (O.collar === "suit") { r(-1, y, 2, 6, "#f4f2ee", 1); r(0, y + 1, 1, 5, "#ece8d8", 1); r(2, y + 3, 2, 1, "#f4f2ee", 1); }
-      if (O.backpack) { r(-4, y, 1, 9, "#2a8ae8", 1); r(3, y, 1, 9, "#2a8ae8", 1); }
+      if (O.collar === "vneck") { r(-2, y, 1, 1, O.topDark, 1); r(-1, y + 1, 2, 1, O.topDark, 1); r(1, y, 1, 1, O.topDark, 1); }
+      if (O.collar === "suit") { r(-1, y, 2, 6, "#f4f2ee", 1); r(0, y + 1, 1, 5, O.tie || "#ece8d8", 1); r(2, y + 3, 2, 1, "#f4f2ee", 1); }
+      if (O.collar === "ringer") r(-2, y, 4, 1, O.ring || "#2a4ad8", 1);
+      if (O.logo) { r(-2, y + 3, 4, 2, O.logo, 1); }
+      if (O.script) { r(-3, y + 3, 6, 1, O.script, 1); r(-2, y + 4, 3, 1, O.script, 1); }
+      if (O.number) { r(-2, y + 5, 1, 3, O.number, 1); r(1, y + 5, 1, 3, O.number, 1); }
+      if (O.medal) { r(-2, y, 1, 4, "#2a3a8a", 1); r(1, y, 1, 4, "#2a3a8a", 1); r(-1, y + 4, 2, 2, "#e8c040", 1); }
+      if (O.backpack) { r(-4, y, 1, 9, bp, 1); r(3, y, 1, 9, bp, 1); }
       if (O.suspenders) { r(-3, y, 1, 10, "#6a6a72", 1); r(2, y, 1, 10, "#6a6a72", 1); }
     };
     const arm = (x, y, len) => {
-      if (O.shortSleeves) { r(x, y, 2, 3, O.top); r(x, y + 3, 2, len - 1, E.skin); }
-      else { r(x, y, 2, len, O.top); r(x, y + len, 2, 2, E.skin); }
+      if (O.shortSleeves) { r(x, y, 2, 3, O.sleeve || O.top); r(x, y + 3, 2, len - 1, E.skin); }
+      else { r(x, y, 2, len, O.sleeve || O.top); r(x, y + len, 2, 2, E.skin); }
     };
-    // things he's holding: paper + crayon, iPad, squishy, toy plane, pasta, fruit
+    const leg = (x, y, h) => {
+      if (O.shorts) { r(x, y, legW, 4, O.pants); r(x, y + 4, legW, h - 4, E.skin); }
+      else r(x, y, legW, h, O.pants);
+    };
+    // things he's holding: paper + crayon, iPad, squishy, toy plane, pasta, fruit,
+    // football, baseball bat, Pretendo Stitch, phone
     const hold = (cx, cy) => {
       const k = opt.hold, f = frame % 2;
       if (k === "paper") { r(cx - 4, cy - 1, 8, 6, "#fbfaf2"); r(cx - 3, cy, 3, 1, "#e84a5a", 1); r(cx, cy + 2, 3, 1, "#4a8ae8", 1); r(cx - 2, cy + 3, 2, 1, "#4ac06a", 1); r(cx + 3 - f, cy - 2, 1, 3, "#f2b43a", 1); }
@@ -481,54 +529,67 @@ LPK.sprites = (() => {
       if (k === "plane") { r(cx - 7, cy - 4, 14, 2, "#eef0f6"); r(cx - 1, cy - 7, 3, 8, "#4a8ae8"); r(cx - 7, cy - 6, 2, 2, "#e84a5a"); r(cx + 6, cy - 4, 1, 2, "#9ab0d0", 1); }
       if (k === "pasta") { r(cx - 4, cy + 1, 8, 3, "#f4f2ee"); r(cx - 3, cy - 1, 6, 2, "#f2c94c"); r(cx - 1, cy - 1, 2, 1, "#d8434a", 1); }
       if (k === "fruit") { r(cx - 4, cy + 1, 8, 3, "#f4f2ee"); s.push(["e", cx - 2, cy, 1.5, 1.5, "#e84a5a"]); s.push(["e", cx + 1, cy, 1.5, 1.5, "#f2b43a"]); s.push(["e", cx, cy - 1, 1.5, 1.5, "#6ac04a"]); }
-    };
-    const leg = (x, y, h) => {
-      if (O.shorts) { r(x, y, 3, 4, O.pants); r(x, y + 4, 3, h - 4, E.skin); }
-      else r(x, y, 3, h, O.pants);
+      if (k === "football") { s.push(["e", cx + 3, cy, 4, 2.5, "#8a4a26"]); r(cx + 1, cy, 4, 1, "#f4f2ee", 1); r(cx + 2, cy - 1, 1, 3, "#f4f2ee", 1); r(cx + 4, cy - 1, 1, 3, "#f4f2ee", 1); }
+      if (k === "bat") {
+        if (opt.swing) { r(cx, cy - 1, 12, 2, "#c8c8d0"); r(cx + 9, cy - 1, 4, 2, "#a8a8b0"); r(cx - 1, cy - 1, 2, 2, "#2a2a30"); }      // mid-swing, level
+        else { r(cx + 1, cy - 12, 2, 12, "#c8c8d0"); r(cx + 1, cy - 13, 2, 3, "#a8a8b0"); r(cx + 1, cy, 2, 2, "#2a2a30"); }               // up over the shoulder
+      }
+      if (k === "stitch") {                                                                     // the Pretendo Stitch
+        r(cx - 7, cy - 2, 3, 6, "#e84a5a"); r(cx + 4, cy - 2, 3, 6, "#3ac0e8");
+        r(cx - 4, cy - 2, 8, 6, "#1a1a20"); r(cx - 3, cy - 1, 6, 4, f ? "#5ac06a" : "#7ad08a", 1);
+        r(cx - 2, cy, 2, 2, "#c88a4a", 1); r(cx + 1, cy + 1 - f, 1, 1, "#fbfaf2", 1);            // a little fort + a builder
+      }
+      if (k === "phone") { r(cx - 2, cy - 3, 5, 8, "#1a1a20"); r(cx - 1, cy - 2, 3, 6, f ? "#f6d040" : "#ffe46a", 1); r(cx, cy, 1, 2, "#e8643a", 1); }
     };
     if (pose === "lie") {
-      // tucked into bed, head on the pillow (head to the left)
+      // tucked in, head on the pillow (head to the left)
+      const bl = O.blanket || E.blanket || ["#e88aa8", "#f6b4c8", "#c86a8a"];
       r(-18, -12, 9, 5, "#f2f0ec");
       r(-17, -16, 7, 7, E.skin); r(-17, -17, 7, 3, E.hair); r(-17, -14, 1, 2, E.hairDark, 1);
       r(-15, -12, 2, 1, "#7a5a4a", 1); r(-12, -12, 2, 1, "#7a5a4a", 1);
-      r(-13, -10, 1, 1, E.freckles, 1);
-      r(-10, -14, 26, 9, "#e88aa8"); r(-10, -14, 26, 2, "#f6b4c8"); r(-10, -10, 26, 1, "#c86a8a", 1);
+      if (E.freckles) r(-13, -10, 1, 1, E.freckles, 1);
+      r(-10, -14, 26, 9, bl[0]); r(-10, -14, 26, 2, bl[1]); r(-10, -10, 26, 1, bl[2], 1);
       return s;
     }
+    const lx = -B.bw + 1, rx = B.bw - 1 - legW;
     if (pose === "sit") {
-      leg(-4, -8, 6); leg(1, -8, 6);
-      r(-4, -2, 3, 2, O.feet[0]); r(1, -2, 3, 2, O.feet[1]);
-      r(-5, -18, 10, 10, O.top); arm(-7, -17, 7); arm(5, -17, 7);
-      chest(-18, false);
-      r(-1, -19, 2, 1, E.skin);
-      head(0, -19, false);
-      if (opt.hold) hold(0, -11);
+      const st = -18 - (B.torso - 11);
+      leg(lx, -8, 6); leg(rx, -8, 6);
+      r(lx, -2, legW, 2, O.feet[0]); r(rx, -2, legW, 2, O.feet[1]);
+      r(-B.bw, st, 2 * B.bw, B.torso - 1, O.top); arm(-B.bw - 2, st + 1, armLen); arm(B.bw, st + 1, armLen);
+      chest(st, false);
+      r(-1, st - 1, 2, 1, E.skin);
+      head(0, st - 1, false);
+      if (opt.hold) hold(0, st + 7);
       return s;
     }
     if (dir === "side") {
-      leg(-2 + sw * 2, -10, 9); leg(-1 - sw * 2, -10, 9);
-      r(-2 + sw * 2, -1, 4, 1, O.feet[0]); r(-1 - sw * 2, -1, 4, 1, O.feet[1]);
-      if (O.backpack) { r(-6, -19, 3, 8, "#2a8ae8"); r(-6, -15, 3, 1, "#1a5ab0", 1); }
-      r(-3, -20, 7, 11, O.top);
-      dots.forEach((c, i) => r(-1 + i, -17 + i * 3, 1, 1, c, 1));
-      if (O.suspenders) r(0, -20, 1, 10, "#6a6a72", 1);
-      arm(-1 + sw, -19, 7);
-      r(-1, -21, 2, 1, E.skin);
-      head(0, -21, true);
-      if (opt.hold) hold(opt.hold === "plane" ? 6 : 3, opt.hold === "plane" ? -18 : -12);
+      const tw = 7 + (B.bw - 5) * 2;
+      leg(-2 + sw * 2, legTop, B.leg); leg(-1 - sw * 2, legTop, B.leg);
+      r(-2 + sw * 2, -1, legW + 1, 1, O.feet[0]); r(-1 - sw * 2, -1, legW + 1, 1, O.feet[1]);
+      if (O.backpack) { r(-B.bw - 1, top + 1, 3, 8, O.backpackColor || "#2a8ae8"); }
+      r(-3, top, tw, B.torso, O.top);
+      dots.forEach((c, i) => r(-1 + i, top + 3 + i * 3, 1, 1, c, 1));
+      if (O.suspenders) r(0, top, 1, 10, "#6a6a72", 1);
+      arm(-1 + sw, top + 1, armLen);
+      r(-1, top - 1, 2, 1, E.skin);
+      head(0, top - 1, true);
+      if (opt.hold) hold(opt.hold === "plane" ? 6 : 3, opt.hold === "plane" ? top + 2 : top + 8);
       return s;
     }
     // front / back
-    leg(-4 + sw, -10, 9); leg(1 - sw, -10, 9);
-    r(-4 + sw, -1, 3, 1, O.feet[0]); r(1 - sw, -1, 3, 1, O.feet[1]);
-    r(-5, -20, 10, 11, O.top);
-    arm(-7, -19, 7); arm(5, -19, 7);
-    chest(-20, dir === "up");
-    r(-1, -21, 2, 1, E.skin);
-    head(0, -21, false);
-    if (opt.hold && dir !== "up") hold(0, opt.hold === "plane" ? -22 : -13);
+    leg(lx + sw, legTop, B.leg); leg(rx - sw, legTop, B.leg);
+    r(lx + sw, -1, legW, 1, O.feet[0]); r(rx - sw, -1, legW, 1, O.feet[1]);
+    r(-B.bw, top, 2 * B.bw, B.torso, O.top);
+    arm(-B.bw - 2, top + 1, armLen); arm(B.bw, top + 1, armLen);
+    chest(top, dir === "up");
+    r(-1, top - 1, 2, 1, E.skin);
+    head(0, top - 1, false);
+    if (opt.hold && dir !== "up") hold(0, opt.hold === "plane" ? top - 2 : opt.hold === "bat" ? top + 8 : top + 7);
     return s;
   }
+  const evan = (dir, frame, opt) => kid("evan", dir, frame, opt);
+  const owen = (dir, frame, opt) => kid("owen", dir, frame, opt);
 
-  return { laura, cat, robert, clown, evan };
+  return { laura, cat, robert, clown, evan, owen, kid };
 })();

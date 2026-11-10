@@ -187,6 +187,7 @@ LPK.Cat = class Cat {
     if (this.zoomies && !["move", "hunker", "transit", "hop"].includes(this.state)) { this.zoomies = null; this.zoomSpeed = null; }   // interrupted
     if (this.waiting) { if (this.timer <= 0) { this.waiting = false; this.nextTask(); } }
     else if (this.moving) this.updateMovement(dt);
+    else if (this.fighting) { /* the wrestling match is in charge (catfight.js) */ }
     else if (this.state === "hunker") this.thinkHunker();
     else if (this.begging && this.state !== "petted" && this.state !== "eat") this.thinkBeg(dt);
     else if (this.state === "eat") this.updateEating(dt);
@@ -380,8 +381,10 @@ LPK.Cat = class Cat {
   }
 
   draw(g) {
-    if (this.concealed || this.state === "transit") return;
-    const p = this.poseFor();
+    if (this.concealed || this.state === "transit" || this.fightHidden) return;
+    const fp = this.fightPose;
+    const p = fp === "champ" ? { pose: "champ", eyes: "happy", frame: Math.floor(this.t * 2) } : fp === "bellyUp" ? { pose: "bellyUp", frame: Math.floor(this.t * 8), eyes: "closed" }
+      : fp ? { pose: fp, eyes: "open" } : this.poseFor();
     for (const d of this.dust) LPK.px.rect(g, d.x - d.t * 6, d.y - d.t * 8, 2 + d.t * 4, 2, `rgba(220,215,205,${1 - d.t * 2})`);
     const dx = this.x, dy = this.y - this.z - (p.jitter || 0) - (p.jump || 0);
     const face = this.faceOpts ? this.faceOpts() : {};

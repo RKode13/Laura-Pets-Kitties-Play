@@ -7,8 +7,8 @@
 window.LPK = window.LPK || {};
 
 LPK.Evan = class Evan extends LPK.Cat {
-  constructor(game) {
-    super("evan", game, "evansRoom.evanPlay");
+  constructor(game, id = "evan", spot = "evansRoom.evanPlay") {
+    super(id, game, spot);
     this.present = true; this.mode = "day"; this.tucked = false; this.holding = null;
     this.lastX = this.x; this.lastY = this.y; this.dir = "down";
   }
@@ -17,7 +17,8 @@ LPK.Evan = class Evan extends LPK.Cat {
   get sortY() { return this.y + (this.z > 0 ? 8 : 0); }
   get D() { return LPK.dialogue; }
   headPos() { return { x: this.x, y: this.y - this.z - (this.state === "sleep" ? 14 : this.isSitting ? 26 : 34) }; }
-  get isSitting() { return ["sit", "draw", "squish", "ipad", "snack"].includes(this.state) && this.spot && this.spot.sit; }
+  get sitStates() { return ["sit", "draw", "squish", "ipad", "snack"]; }
+  get isSitting() { return this.sitStates.includes(this.state) && this.spot && this.spot.sit; }
   mins() { return this.game.clock.minutes; }
   at(str) { return LPK.Clock.parse(str); }
   get S() { return this.def.schedule; }
@@ -205,7 +206,7 @@ LPK.Evan = class Evan extends LPK.Cat {
     const pose = lie ? "lie" : this.isSitting ? "sit" : walking ? "walk" : "stand";
     const fps = this.moveMode === "run" ? 11 : 6;
     const anim = this.state === "squish" ? Math.floor(this.t * 3) : this.state === "draw" ? Math.floor(this.t * 5) : Math.floor(this.t * fps);
-    const shapes = LPK.sprites.evan(walking ? this.dir : "down", anim, { pose, outfit: this.outfit(), sleeping: this.state === "sleep", hold: this.holding });
+    const shapes = LPK.sprites.kid(this.id, walking ? this.dir : "down", anim, { pose, outfit: this.outfit(), sleeping: this.state === "sleep", hold: this.holding, swing: this.swinging });
     if (this.z === 0) LPK.px.rect(g, this.x - 6, this.y - 1, 12, 2, "rgba(0,0,0,0.22)");
     LPK.px.draw(g, shapes, this.x, this.y - this.z, walking && this.dir === "side" && this.flip);
     if (this.state === "sleep") {
@@ -214,5 +215,6 @@ LPK.Evan = class Evan extends LPK.Cat {
       LPK.px.rect(g, zx + 6 + p * 4, zy - 23 - p * 6, 1, 1, `rgba(140,150,220,${1 - p})`);
       LPK.px.rect(g, zx + 4 + p * 4, zy - 24 - p * 6, 3, 1, `rgba(140,150,220,${1 - p})`);
     }
+    this.drawExtra && this.drawExtra(g);
   }
 };

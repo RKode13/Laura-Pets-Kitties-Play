@@ -78,6 +78,10 @@ LPK.rooms = {
     evanSpots: {
       couch:       { x: 13, y: 4.8, z: 6, approach: [13, 5], sit: true },
     },
+    owenSpots: {
+      owenCouch:   { x: 11.9, y: 4.8, z: 6, approach: [12, 5], sit: true },
+      owenSleep:   { x: 14.2, y: 5.05, z: 12, approach: [14, 5], lie: true },   // under a blanket on the sectional
+    },
     // Places CC likes to inspect on patrol
     pointsOfInterest: [[3, 13], [3, 4], [8, 3], [16, 11], [6, 12]],
     lauraStart: { x: 3, y: 12.6 },
@@ -134,6 +138,7 @@ LPK.rooms = {
       atTrash:          { label: "the trash can",        x: 9.5,  y: 8.35, z: 0,  approach: [9, 8] },
       byBoysBowls:      { label: "the boys' bowls",      x: 18.6, y: 11.4, z: 0,  approach: [18, 11] },
       atHerBowl:        { label: "her bowl",             x: 3.2,  y: 5.6,  z: 0,  approach: [3, 5] },
+      counterTop:       { label: "the kitchen counter",  x: 11.5, y: 4.05, z: 20, approach: [11, 4] },   // Blacky's top rope
     },
     toys: [
       { id: "springPink", kind: "spring", x: 13, y: 11, colors: ["#ff7aa8", "#ffd166"] },
@@ -203,6 +208,9 @@ LPK.rooms = {
     },
     robertSpots: {
       chair: { x: 15, y: 4.7, z: 6, approach: [15, 5], sit: true },
+    },
+    owenSpots: {
+      field: { x: 9.5, y: 10.6, approach: [9, 10] },                           // room to throw a football / swing a bat
     },
     pointsOfInterest: [[2, 6], [10, 4], [16, 6], [9, 10], [4, 11], [12, 12]],
     lauraStart: { x: 3, y: 7.5 },
@@ -404,6 +412,9 @@ LPK.rooms = {
       owenDresserTop: { label: "the top of the dresser", x: 9.6, y: 3.98, z: 20, approach: [9, 5], high: true },
       owenWindow:     { label: "the window",        x: 7.6, y: 3.02, z: 11, approach: [7, 4] },
       underOwenBed: { label: "in the bed's storage drawer", x: 2.5, y: 6.7, z: 0, approach: [2, 7], hidden: true },
+    },
+    owenSpots: {
+      owenFloor: { x: 8.5, y: 8.6, approach: [8, 8], sit: true },              // gaming on the floor of his room
     },
     robertSpots: {
       bed: { x: 3.2, y: 7.05, z: 34, approach: [3, 7], sit: true, lie: true },   // drawn on top of the bed

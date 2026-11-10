@@ -42,6 +42,9 @@ LPK.game = (() => {
     G.robert.sync();
     G.evan = new LPK.Evan(G);
     G.evan.sync();
+    G.owen = new LPK.Owen(G);
+    G.owen.sync();
+    LPK.catFight.end(G); G.fightText = null; G.shake = 0;
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -201,6 +204,8 @@ LPK.game = (() => {
       if (ev.inBedtimeWindow()) return { kind: "evanBed", label: "It's bedtime, Evan!", ok: true };
       if (ev.state === "askSnack") return { kind: "evanSnack", label: `Give Evan some ${ev.snackWant}`, ok: true };
     }
+    const ow = G.owen;
+    if (ow && ow.room === G.room && ow.distTo(L) < 36 && ow.state !== "sleep" && ow.state !== "streaks" && ow.streakWindow()) return { kind: "owenStreak", label: "Owen, do your streaks!", ok: true };
     const art = LPK.save.data.evanDrawings || [];
     if (G.room === "kitchen" && art.length && Math.hypot(L.x - 14 * T, L.y - 5.4 * T) < 22) return { kind: "fridgeArt", label: "Look at Evan's drawings", ok: true };
     const cc = G.cat("cc");
@@ -250,6 +255,7 @@ LPK.game = (() => {
     switch (tg.kind) {
       case "evanBed": L.say(D().lauraBedtime[0], 1.6); G.evan.tuckIn(); break;
       case "evanSnack": G.evan.giveSnack(); break;
+      case "owenStreak": L.say(D().owenStreakAsk[0], 1.6); G.owen.doStreaks(); break;
       case "fridgeArt": {
         const n = (LPK.save.data.evanDrawings || []).length;
         G.artView = { i: n - 1, t: 0 }; LPK.audio.sfx.click();
@@ -380,7 +386,7 @@ LPK.game = (() => {
     if (minutes <= c.minutes) { c.day = (c.day + 1) % 7; }
     if (weekdayOnly) while (c.day === 0 || c.day === 6) c.day = (c.day + 1) % 7;
     c.minutes = minutes;
-    G.robert.sync(); G.evan.sync();
+    G.robert.sync(); G.evan.sync(); G.owen.sync(); LPK.catFight.end(G);
     G.cats.forEach(cat => { if (cat.state === "headSleep") cat.setState("sleep", 10); });
     G.banner = { title: c.label(), text: "Time flies...", t: 2.5 };
   };
@@ -477,6 +483,10 @@ LPK.game = (() => {
     G.cats.forEach(c => c.update(dt));
     G.robert.update(dt);
     G.evan.update(dt);
+    G.owen.update(dt);
+    LPK.catFight.update(G, dt);
+    if (G.fightText && (G.fightText.t -= dt) <= 0) G.fightText = null;
+    G.shake = Math.max(0, (G.shake || 0) - dt);
     G.toys.forEach(t => {
       t.bounce = Math.max(0, t.bounce - dt * 10);
       if (t.held) { t.room = G.room; t.x = G.laura.x + 6; t.y = G.laura.y - 10; }
@@ -721,16 +731,18 @@ LPK.game = (() => {
     const clownCam = ce > 0.4 && ce < LPK.CLOWN.shut + 0.1;
     // once the mask opens, push in close on the clown's face (even past the room edge)
     const faceCam = clownCam && !stareCat && ce > LPK.CLOWN.split && ce < LPK.CLOWN.shut;
-    computeView(faceCam ? 3 : stareCat || clownCam ? 1 : 0);
-    const focus = stareCat ? { x: stareCat.x, y: stareCat.y - stareCat.z }
+    const fightCam = !stareCat && !clownCam && LPK.catFight.focus(G);
+    computeView(faceCam ? 3 : fightCam ? 2 : stareCat || clownCam ? 1 : 0);
+    const focus = fightCam ? fightCam : stareCat ? { x: stareCat.x, y: stareCat.y - stareCat.z }
       : faceCam ? { x: G.clownPos.x + 8, y: G.clownPos.y - 30 }
       : clownCam ? { x: G.clownPos.x + 20, y: G.clownPos.y - 10 } : G.laura;
-    updateCamera(G.dt, focus, faceCam);
+    updateCamera(G.dt, focus, faceCam || !!fightCam);
     const g = bctx;
     g.imageSmoothingEnabled = false;
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.fillStyle = "#1c1626"; g.fillRect(0, 0, buffer.width, buffer.height);
-    g.translate(-Math.round(G.cam.x), -Math.round(G.cam.y));
+    const sh = G.shake > 0 ? Math.round((Math.random() - 0.5) * 6 * G.shake / 0.35) : 0;
+    g.translate(-Math.round(G.cam.x) + sh, -Math.round(G.cam.y) + Math.round(sh / 2));
     const w = G.world, R = LPK.roomRenderer, t = G.time;
     R.drawFloor(g, w);
     R.drawWalls(g, w, t);
@@ -740,6 +752,8 @@ LPK.game = (() => {
     G.cats.filter(c => c.room === G.room).forEach(c => items.push({ sortY: c.sortY, draw: (g) => c.draw(g) }));
     if (G.robert.present && G.robert.room === G.room) items.push({ sortY: G.robert.sortY, draw: (g) => G.robert.draw(g) });
     if (G.evan && G.evan.room === G.room) items.push({ sortY: G.evan.sortY, draw: (g) => G.evan.draw(g) });
+    if (G.owen && G.owen.room === G.room) items.push({ sortY: G.owen.sortY, draw: (g) => G.owen.draw(g) });
+    LPK.catFight.drawItems(items, G);
     for (const toy of G.toys) if (toy.room === G.room) items.push({ sortY: toy.held ? G.laura.sortY + 1 : toy.y, draw: (g) => R.drawSpring(g, toy.x, toy.y, toy.colors, t, toy.bounce) });
     items.sort((a, b) => a.sortY - b.sortY).forEach(i => i.draw(g));
     if (w.def.ambient) { g.fillStyle = w.def.ambient; g.fillRect(0, 0, w.width, w.height); }   // fairy-light / LED room glow
@@ -776,7 +790,7 @@ LPK.game = (() => {
     ctx.fillStyle = "#1c1626"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     if (!G.clock) G.clock = new LPK.Clock(LPK.config.startDay, LPK.Clock.parse(LPK.config.startTime));
     if (!G.laura) buildWorld();
-    if (G.screen === "title") { G.cats.forEach(c => c.update(dt)); G.robert.update(dt); G.evan && G.evan.update(dt); }
+    if (G.screen === "title") { G.cats.forEach(c => c.update(dt)); G.robert.update(dt); G.evan && G.evan.update(dt); G.owen && G.owen.update(dt); }
     renderWorld();
     ctx.setTransform(G.dpr, 0, 0, G.dpr, 0, 0);
     LPK.ui.draw(G, ctx);
