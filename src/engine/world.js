@@ -7,7 +7,7 @@ window.LPK = window.LPK || {};
 LPK.getSpot = (key) => {
   const [room, id] = key.split(".");
   const r = LPK.rooms[room];
-  const def = (r.restingSpots && r.restingSpots[id]) || (r.robertSpots && r.robertSpots[id]) || (r.evanSpots && r.evanSpots[id]) || (r.owenSpots && r.owenSpots[id]);
+  const def = (r.restingSpots && r.restingSpots[id]) || (r.robertSpots && r.robertSpots[id]) || (r.evanSpots && r.evanSpots[id]) || (r.owenSpots && r.owenSpots[id]) || (r.joeSpots && r.joeSpots[id]);
   return Object.assign({ key, room, id, z: 0 }, def);
 };
 

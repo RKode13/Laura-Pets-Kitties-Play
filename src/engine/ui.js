@@ -174,7 +174,7 @@ LPK.ui = (() => {
 
   function drawProfiles() {
     overlay(0.82);
-    const ids = ["laura", "marshmallow", "cc", "popsicle", "robert", "evan", "owen"];
+    const ids = ["laura", "marshmallow", "cc", "popsicle", "robert", "evan", "owen", "joe"];
     const tabW = Math.min(170, (W - 40) / ids.length - 6), tabH = Math.min(40, H / 12);
     ids.forEach((id, i) => {
       const ch = LPK.characters[id];
@@ -194,9 +194,10 @@ LPK.ui = (() => {
     const scale = Math.max(2, Math.floor(pw / 46));
     const shapes = id === "laura" ? LPK.sprites.laura("stand", "down", 0)
       : id === "robert" ? LPK.sprites.robert("down", 0, { shades: Math.floor(G.time / 2) % 2 === 0, casual: Math.floor(G.time / 4) % 2 === 1 })
+      : id === "joe" ? LPK.sprites.joe("down", 0, { hold: Math.floor(G.time / 3) % 2 ? "cup" : null })
       : id === "evan" || id === "owen" ? LPK.sprites.kid(id, "down", 0, { outfit: Object.keys(ch.outfits)[Math.floor(G.time / 2.5) % Object.keys(ch.outfits).length] })
       : LPK.sprites.cat(ch.look, Math.floor(G.time / 3) % 2 ? "sit" : "front", 0, { eyes: id === "marshmallow" ? "stare" : "open" });
-    sprite(shapes, 30 + pw / 2, top + 14 + pw * 0.86, id === "robert" ? scale * 0.8 : id === "laura" ? scale * 0.95 : id === "evan" || id === "owen" ? scale * 1.05 : scale * 1.4);
+    sprite(shapes, 30 + pw / 2, top + 14 + pw * 0.86, id === "robert" || id === "joe" ? scale * 0.8 : id === "laura" ? scale * 0.95 : id === "evan" || id === "owen" ? scale * 1.05 : scale * 1.4);
     // details
     const x = 30 + pw + 20, maxW = W - x - 36;
     let y = top + 30;
@@ -217,6 +218,10 @@ LPK.ui = (() => {
       const S = ch.schedule;
       text(`Weekdays: up ${S.weekday.wake}, work ${S.weekday.leave}–${S.weekday.home}, dinner guard ${S.weekday.dinner}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.05;
       text(`Weekends: home · dinner guard ${S.weekend.dinner} · Tiny Snore after ${S.weekend.sleep}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
+    }
+    if (id === "joe") {
+      text(`Loves: ${ch.favorites.join(" · ")}`, x, y, u * 0.75, C.pink, "left", "normal"); y += u * 1.05;
+      text(`Visits some weekend mornings (${ch.schedule.arrive}–${ch.schedule.leave})`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
     }
     if (id === "evan" || id === "owen") {
       const S = ch.schedule;
@@ -325,7 +330,7 @@ LPK.ui = (() => {
     // speech bubbles
     const bubbles = [];
     if (L.speech && !(G.yard && G.yard.t < 2)) { const p = G.worldToScreen(L.x, L.y - (L.state === "kneel" ? 26 : 32)), f = G.worldToScreen(L.x, L.y); bubbles.push([L.speech.text, p.x, p.y, "speech", f.y]); }
-    for (const c of [...G.cats, G.robert, G.evan, G.owen]) if (c && c.bubble && c.room === G.room && !c.concealed && c.state !== "transit" && c.present !== false) {
+    for (const c of [...G.cats, G.robert, G.evan, G.owen, G.joe]) if (c && c.bubble && c.room === G.room && !c.concealed && c.state !== "transit" && c.present !== false) {
       const h = c.headPos(), p = G.worldToScreen(h.x, h.y), f = G.worldToScreen(c.x, c.y - c.z);
       bubbles.push([c.bubble.text, p.x, p.y, c.bubble.kind, f.y]);
     }
@@ -441,6 +446,13 @@ LPK.ui = (() => {
       ctx.fillStyle = "#ffd166"; ctx.fillText(ft.text, 0, 0);
       ctx.restore();
     }
+    if (G.cupView) drawCupView();
+    if (G.stareOff) {                                          // the stare-down: the world holds its breath
+      const k = Math.min(1, G.stareOff.t / 0.6) * 0.45;
+      const gr = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.2, W / 2, H / 2, Math.max(W, H) * 0.7);
+      gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, `rgba(10,0,10,${k + 0.25})`);
+      ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+    }
     if (G.foodMenu) drawFoodMenu();
     if (G.artView) drawArtView();
     if (G.choiceMenu) drawChoiceMenu();
@@ -505,6 +517,25 @@ LPK.ui = (() => {
       button("▶", W - 16 - bw, cy - bh / 2, bw, bh, () => G.artStep(1), { nav: false });
     }
     button("Back on the fridge", W / 2 - 110, H - bh - 10, 220, bh, () => { G.artView = null; }, { nav: false, color: "#8a5fb8" });
+  }
+
+  // Joe's famous cappuccino, up close (white square mug, chocolate spiderweb foam)
+  function drawCupView() {
+    const c = G.cupView, a = Math.min(1, c.t / 0.25, (c.total - c.t) / 0.3);
+    const R0 = Math.min(W, H) * 0.17, cx = W - R0 * 1.5 - 20, cy = H * 0.42;
+    ctx.save(); ctx.globalAlpha = Math.max(0, a);
+    rr(cx - R0 * 1.4, cy - R0 * 1.3, R0 * 2.8, R0 * 2.9, 16, "rgba(38,22,66,0.92)", C.border, 3);
+    ctx.fillStyle = "#f4f2ee"; ctx.beginPath(); ctx.ellipse(cx, cy + R0 * 0.85, R0 * 1.15, R0 * 0.3, 0, 0, 7); ctx.fill();          // saucer
+    ctx.fillStyle = "#d8b040"; ctx.fillRect(cx + R0 * 0.55, cy + R0 * 0.75, R0 * 0.7, R0 * 0.07);                               // gold spoon
+    ctx.fillStyle = "#ffffff"; ctx.beginPath();                                                                                // square-ish mug
+    ctx.moveTo(cx - R0 * 0.8, cy - R0 * 0.2); ctx.lineTo(cx + R0 * 0.8, cy - R0 * 0.2); ctx.lineTo(cx + R0 * 0.6, cy + R0 * 0.8); ctx.lineTo(cx - R0 * 0.6, cy + R0 * 0.8); ctx.fill();
+    ctx.fillStyle = "#efe2c8"; ctx.beginPath(); ctx.ellipse(cx, cy - R0 * 0.2, R0 * 0.8, R0 * 0.3, 0, 0, 7); ctx.fill();         // foam
+    ctx.strokeStyle = "#5a2e1a"; ctx.lineWidth = Math.max(2, R0 * 0.05);                                                     // chocolate spiderweb
+    for (let i = 0; i < 8; i++) { const t = i / 8 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(cx, cy - R0 * 0.2); ctx.lineTo(cx + Math.cos(t) * R0 * 0.72, cy - R0 * 0.2 + Math.sin(t) * R0 * 0.26); ctx.stroke(); }
+    for (const k of [0.3, 0.55]) { ctx.beginPath(); for (let i = 0; i <= 8; i++) { const t = i / 8 * Math.PI * 2, px = cx + Math.cos(t) * R0 * 0.72 * k, py = cy - R0 * 0.2 + Math.sin(t) * R0 * 0.26 * k; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); } ctx.stroke(); }
+    text("Joe's famous cappuccino", cx, cy - R0 * 0.85, u * 0.95, C.gold, "center");
+    text(`for ${c.who}`, cx, cy + R0 * 1.3, u * 0.8, C.dim, "center", "normal");
+    ctx.restore();
   }
 
   function drawFoodMenu() {

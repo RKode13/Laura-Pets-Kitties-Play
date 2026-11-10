@@ -606,5 +606,64 @@ LPK.sprites = (() => {
   const evan = (dir, frame, opt) => kid("evan", dir, frame, opt);
   const owen = (dir, frame, opt) => kid("owen", dir, frame, opt);
 
-  return { laura, cat, robert, clown, evan, owen, kid };
+  // ------------------------------------------------------------ JOE PINO
+  // opt: { pose: stand/walk/sit, hold: donuts/pitcher/cup }
+  function joe(dir = "down", frame = 0, opt = {}) {
+    const J = LPK.characters.joe.look, s = [];
+    const r = (x, y, w, h, c, n) => s.push(["r", x, y, w, h, c, n]);
+    const pose = opt.pose || "stand";
+    const step = pose === "walk" ? frame % 4 : 0, sw = step === 1 ? 1 : step === 3 ? -1 : 0;
+    const head = (hx, hy, side) => {
+      r(hx - 4, hy - 9, 8, 10, J.skin);
+      r(hx - 4, hy - 11, 8, 3, J.hair); r(hx - 4, hy - 9, 1, 3, J.hairDark, 1);                  // combed back
+      if (!side) r(hx + 3, hy - 9, 1, 3, J.hairDark, 1);
+      if (dir === "up" && !side) { r(hx - 4, hy - 11, 8, 8, J.hair); r(hx - 4, hy - 4, 8, 2, J.hairDark, 1); return; }
+      const ex = side ? [hx + 1] : [hx - 3, hx + 2];
+      ex.forEach(x => { r(x, hy - 7, 1, 1, "#2a2a2a", 1); r(x, hy - 8, 2, 1, J.skinShade, 1); });   // smiling, crinkled eyes
+      r(side ? hx + 1 : hx - 1, hy - 5, 2, 1, J.skinShade, 1);                                   // nose
+      r(side ? hx : hx - 3, hy - 4, side ? 4 : 6, 1, J.mustache, 1);                             // salt-and-pepper mustache
+      r(side ? hx + 1 : hx - 2, hy - 2, side ? 3 : 4, 1, "#fffaf0", 1);                          // big smile
+    };
+    const chest = (y) => {
+      r(-2, y, 4, 7, J.shirt, 1); r(-1, y + 1, 2, 9, J.tie, 1); r(0, y + 3, 1, 1, J.tieDots, 1); r(-1, y + 6, 1, 1, J.tieDots, 1);
+      r(4, y + 3, 2, 1, "#ffffff", 1);                                                          // pocket square
+    };
+    const hold = (x, y) => {
+      const k = opt.hold;
+      if (k === "donuts") { r(x - 6, y - 4, 12, 6, "#f6a8c4"); r(x - 6, y - 4, 12, 1, "#e07aa0", 1); r(x - 4, y - 2, 8, 2, "#a8603a", 1); r(x - 1, y - 2, 2, 1, "#ffffff", 1); }
+      if (k === "pitcher") { r(x - 2, y - 4, 4, 6, "#c8ccd4"); r(x + 2, y - 3, 1, 3, "#a8acb4"); r(x - 2, y - 4, 4, 1, "#e8ecf2", 1); }
+      if (k === "cup") { r(x - 3, y - 3, 6, 5, "#fbfbf8"); r(x - 3, y - 4, 6, 2, "#e8d8b8"); r(x - 2, y - 4, 4, 1, "#6a3a22", 1); r(x - 1, y - 3, 2, 1, "#6a3a22", 1); }
+    };
+    if (pose === "sit") {
+      r(-6, -12, 5, 10, J.pants); r(1, -12, 5, 10, J.pants); r(-6, -3, 5, 3, J.shoes); r(1, -3, 5, 3, J.shoes);
+      r(-7, -30, 14, 19, J.blazer); r(-9, -28, 2, 13, J.blazer); r(7, -28, 2, 13, J.blazer);
+      r(-9, -16, 2, 2, J.skin); r(7, -16, 2, 2, J.skin);
+      chest(-30);
+      head(0, -32, false);
+      if (opt.hold) hold(0, -16);
+      return s;
+    }
+    if (dir === "side") {
+      r(-3 + sw * 2, -16, 4, 15, J.pants); r(-1 - sw * 2, -16, 4, 15, J.pants);
+      r(-3 + sw * 2, -1, 6, 1, J.shoes); r(-1 - sw * 2, -1, 6, 1, J.shoes);
+      r(-5, -33, 10, 18, J.blazer); r(-5, -17, 10, 2, J.belt, 1);
+      r(-1 + sw, -32, 3, 15, J.blazerLight); r(-1 + sw, -17, 3, 2, J.skin);
+      r(3, -33, 2, 6, J.shirt, 1); r(4, -32, 1, 7, J.tie, 1);
+      head(0, -35, true);
+      if (opt.hold) hold(6, -18);
+      return s;
+    }
+    r(-5 + sw, -16, 4, 15, J.pants); r(1 - sw, -16, 4, 15, J.pants);
+    r(-6 + sw, -1, 5, 1, J.shoes); r(1 - sw, -1, 5, 1, J.shoes);
+    r(-7, -33, 14, 18, J.blazer); r(-5, -17, 10, 2, J.belt, 1); r(0, -17, 2, 2, "#c8c4b8", 1);
+    r(-9, -32, 2, 15, J.blazer); r(7, -32, 2, 15, J.blazer);
+    r(-9, -17, 2, 2, J.skin); r(7, -17, 2, 2, J.skin);
+    if (dir !== "up") chest(-33);
+    r(-1, -35, 2, 2, J.skin);
+    head(0, -35, false);
+    if (opt.hold && dir !== "up") hold(0, -18);
+    return s;
+  }
+
+  return { laura, cat, robert, clown, evan, owen, kid, joe };
 })();

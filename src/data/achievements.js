@@ -58,5 +58,7 @@ LPK.achievements = [
   { id: "topRope",         name: "From the Top Rope",          desc: "See Blacky's flying elbow drop.", event: "catFight", match: { move: "elbow" }, build: 4 },
   { id: "tenSmoochies",    name: "10 Smoochies",               desc: "Admire the backyard Robert worked on, and reward him properly.", event: "yardPraise", build: 4 },
   { id: "momImHungry",     name: "Mom, I'm Hungry",            desc: "Do the hungry dance for one of the boys.", event: "momHungry", build: 4 },
+  { id: "joeStareDown",    name: "The Stare-Down",             desc: "Survive Joe Pino's cappuccino comment... and the stare that followed.", event: "joeStare", build: 4 },
+  { id: "bestCappuccino",  name: "Best Cappuccino on the Planet", desc: "Get your own cappuccino from Joe Pino.", event: "joeCappuccino", build: 4 },
   { id: "purrfection",     name: "PURRFECTION!",               desc: "Complete the main story: the Ultimate Kitty Cuddle.", event: "missionComplete", match: { mission: "ultimateCuddle" }, build: 4 },
 ];

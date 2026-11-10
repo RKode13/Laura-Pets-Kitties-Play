@@ -150,6 +150,11 @@ LPK.rooms = {
     evanSpots: {
       table:   { x: 14.2, y: 10.6, approach: [14, 10] },                       // by the dining table, asking for a snack
     },
+    joeSpots: {
+      joeSeat:    { x: 14.4, y: 9.4, approach: [14, 9], sit: true },             // his seat at the dining table
+      joeCounter: { x: 8.5,  y: 4.6, approach: [8, 4] },                         // making cappuccino at the counter
+      robertCup:  { x: 10.5, y: 5.6, approach: [10, 5] },                        // where Robert waits for his cup
+    },
     pointsOfInterest: [[13, 5], [17, 5], [20, 10], [10, 9], [7, 13], [12, 6]],
     lauraStart: { x: 8, y: 12.6 },
   },

@@ -15,7 +15,7 @@ LPK.Laura = class Laura {
   say(text, secs = 2.6) { this.speech = { text, t: secs }; }
   sayRandom(list, secs) { this.say(list[Math.floor(Math.random() * list.length)], secs); }
 
-  get busy() { return ["kneel", "reach", "celebrate", "rest", "work", "dance"].includes(this.state); }
+  get busy() { return ["kneel", "reach", "celebrate", "rest", "work", "dance", "stare"].includes(this.state); }
   get sortY() { return this.state === "rest" ? this.y + 14 : this.y; }
 
   update(dt, input) {

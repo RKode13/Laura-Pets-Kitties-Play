@@ -246,6 +246,29 @@ LPK.characters = {
       pajamas:  { name: "Pajamas",            top: "#3a4a6a", topDark: "#2e3c58", dots: ["#6a7ab0"], pants: "#3a4a6a", feet: ["#d8d8d8", "#d8d8d8"], shortSleeves: true },
     },
   },
+  // ------------------------------------------------------------ JOE PINO
+  // From his photo: gray hair combed back, salt-and-pepper mustache, a big
+  // smile, navy blazer, white shirt, tan patterned tie, khaki pants.
+  joe: {
+    name: "Joe Pino",
+    nicknames: ["Grandpa Joe"],
+    title: "The Patriarch",
+    role: "Visiting character (not playable)",
+    relationship: "Laura's dad",
+    gender: "Male",
+    description: "The quiet, confident boss of the Italian family. Gracious and caring, extremely intelligent, with great work-world experience and a sense of humor you never see coming. Brings donuts and bagels, and makes the best cappuccino on the planet.",
+    attributes: { intelligence: 10, graciousness: 10, cappuccino: 10, quietConfidence: 10, sneakyHumor: 10, inquisitive: 9 },
+    favorites: ["Making cappuccino", "Tim Shortons donuts, donut holes and bagels", "Asking good questions"],
+    joinsInBuild: 4,
+    // Visits some weekend mornings (always the first weekend): arrives, stays, leaves
+    schedule: { arrive: "9:00 AM", leave: "1:00 PM", visitChance: 0.5 },
+    behavior: { walkSpeed: 30, runSpeed: 50, hopSeconds: 0.5, activitySeconds: [20, 40] },
+    look: {
+      skin: "#d9a882", skinShade: "#c08e6a", hair: "#c9c6c2", hairDark: "#9a9692", mustache: "#6e6a66",
+      blazer: "#1f2a4a", blazerLight: "#2c3a62", shirt: "#f4f2ee", tie: "#a8927a", tieDots: "#6a7a9a",
+      pants: "#cbb894", belt: "#1c1c20", shoes: "#4a3424",
+    },
+  },
 };
 
 // Friendly display names for attributes (used by Character Profiles).
@@ -257,4 +280,5 @@ LPK.attributeLabels = {
   coolness: "Coolness", awesomeness: "Awesomeness", legendaryStatus: "Legendary status",
   creativity: "Creativity", artistry: "Drawing", energy: "Energy", mischief: "Gets into things",
   gaming: "Gaming", competitiveness: "Competitive", bigBrother: "Big brother", athleticism: "Athleticism",
+  intelligence: "Intelligence", graciousness: "Gracious", cappuccino: "Cappuccino", quietConfidence: "Quiet confidence", sneakyHumor: "Sneaky humor", inquisitive: "Inquisitive",
 };

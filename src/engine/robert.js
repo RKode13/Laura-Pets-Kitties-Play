@@ -224,6 +224,7 @@ LPK.Robert = class Robert extends LPK.Cat {
     if (!this.present) { this.think(dt); return; }
     super.update(dt);
     this.shadesT -= dt;
+    if (this.cup > 0) this.cup -= dt;
     const dx = this.x - this.lastX, dy = this.y - this.lastY;
     if (Math.abs(dx) + Math.abs(dy) > 0.01) {
       if (Math.abs(dx) > Math.abs(dy)) { this.dir = "side"; this.flip = dx < 0; } else this.dir = dy < 0 ? "up" : "down";
@@ -244,6 +245,10 @@ LPK.Robert = class Robert extends LPK.Cat {
     });
     if (this.z === 0) LPK.px.rect(g, this.x - 8, this.y - 1, 16, 2, "rgba(0,0,0,0.22)");
     LPK.px.draw(g, shapes, this.x, this.y - this.z, walking && this.dir === "side" && this.flip);
+    if (this.cup > 0 && this.state !== "sleep") {             // his cappuccino from Joe
+      const cx = this.x + 8, cy = this.y - this.z - 18;
+      LPK.px.rect(g, cx - 2, cy - 3, 5, 4, "#fbfbf8"); LPK.px.rect(g, cx - 2, cy - 4, 5, 2, "#e8d8b8"); LPK.px.rect(g, cx - 1, cy - 4, 3, 1, "#6a3a22");
+    }
     if (this.chicken) {
       // the rotisserie chicken (in its container on the counter while he pulls it apart)
       const cx = this.x + 1, cy = this.y - 24, pull = this.state === "chicken" ? Math.floor(this.t * 3) % 2 : 0;

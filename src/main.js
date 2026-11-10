@@ -44,6 +44,8 @@ LPK.game = (() => {
     G.evan.sync();
     G.owen = new LPK.Owen(G);
     G.owen.sync();
+    G.joe = new LPK.Joe(G);
+    G.joe.sync(); G.cupView = null;
     LPK.catFight.end(G); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60;
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
@@ -204,6 +206,9 @@ LPK.game = (() => {
       if (ev.inBedtimeWindow()) return { kind: "evanBed", label: "It's bedtime, Evan!", ok: true };
       if (ev.state === "askSnack") return { kind: "evanSnack", label: `Give Evan some ${ev.snackWant}`, ok: true };
     }
+    const jo = G.joe;
+    if (jo && jo.present && jo.room === G.room && jo.holding === "cup" && !jo.sc && jo.distTo(L) < 36) return { kind: "joeCup", label: "Take your cappuccino from Joe", ok: true };
+    if (G.joeTreats && G.room === "kitchen" && !jo.donutTaken && Math.hypot(L.x - 17 * T, L.y - 10.8 * T) < 26) return { kind: "donut", label: "Grab a donut", ok: true };
     const ow = G.owen;
     if (ow && ow.room === G.room && ow.distTo(L) < 36 && ow.state !== "sleep" && ow.state !== "streaks" && ow.streakWindow()) return { kind: "owenStreak", label: "Owen, do your streaks!", ok: true };
     // standing right at the sliding door: the backyard view wins over nearby cats
@@ -258,6 +263,8 @@ LPK.game = (() => {
     switch (tg.kind) {
       case "evanBed": L.say(D().lauraBedtime[0], 1.6); G.evan.tuckIn(); break;
       case "backyard": G.admireYard(); break;
+      case "joeCup": G.joe.giveLauraCup(); break;
+      case "donut": G.joe.donutTaken = true; L.sayRandom(D().lauraDonut, 2.2); G.progression.addPoints(3); LPK.audio.sfx.crunch(); break;
       case "evanSnack": G.evan.giveSnack(); break;
       case "owenStreak": L.say(D().owenStreakAsk[0], 1.6); G.owen.doStreaks(); break;
       case "fridgeArt": {
@@ -390,7 +397,7 @@ LPK.game = (() => {
     if (minutes <= c.minutes) { c.day = (c.day + 1) % 7; }
     if (weekdayOnly) while (c.day === 0 || c.day === 6) c.day = (c.day + 1) % 7;
     c.minutes = minutes;
-    G.robert.sync(); G.evan.sync(); G.owen.sync(); LPK.catFight.end(G);
+    G.robert.sync(); G.evan.sync(); G.owen.sync(); G.joe.sync(); LPK.catFight.end(G);
     G.cats.forEach(cat => { if (cat.state === "headSleep") cat.setState("sleep", 10); });
     G.banner = { title: c.label(), text: "Time flies...", t: 2.5 };
   };
@@ -453,7 +460,7 @@ LPK.game = (() => {
       if ((G.hungryCool -= dt) > 0 || L.busy || G.petting.active || G.foodMenu || G.artView || G.yard || G.clown || LPK.catFight.active) return;
       const kids = [G.evan, G.owen].filter(k => k && k.room === G.room && k.mode === "day" && !k.moving && k.z === 0 && k.distTo(L) < 90
         && !["askSnack", "snack", "streaks", "flying", "watchBall", "catch", "throw", "swing"].includes(k.state));
-      if (!kids.length || Math.random() > dt / 45) return;
+      if (!kids.length || Math.random() > dt / 45 || (G.joe && G.joe.sc)) return;
       const kid = kids[Math.floor(Math.random() * kids.length)];
       kid.stopMoving(); kid.tasks = []; kid.holding = null; kid.fighting = true; kid.setState("stand", 99);
       kid.say(Dl.kidHungry[0], 2.2);
@@ -548,6 +555,8 @@ LPK.game = (() => {
     G.robert.update(dt);
     G.evan.update(dt);
     G.owen.update(dt);
+    G.joe.update(dt);
+    if (G.cupView && (G.cupView.t += dt) > G.cupView.total) G.cupView = null;
     updateYard(dt);
     updateHungry(dt);
     if (G.smooches && (G.smooches.t += dt) > 4.5) G.smooches = null;
@@ -798,7 +807,8 @@ LPK.game = (() => {
     const clownCam = ce > 0.4 && ce < LPK.CLOWN.shut + 0.1;
     // once the mask opens, push in close on the clown's face (even past the room edge)
     const faceCam = clownCam && !stareCat && ce > LPK.CLOWN.split && ce < LPK.CLOWN.shut;
-    const fightCam = !stareCat && !clownCam && LPK.catFight.focus(G);
+    const so = G.stareOff && G.room === "kitchen" ? G.stareOff : null;
+    const fightCam = so ? { x: (so.a.x + so.b.x) / 2, y: (so.a.y + so.b.y) / 2 - 22 } : !stareCat && !clownCam && LPK.catFight.focus(G);
     const yardCam = !stareCat && !fightCam && G.yard && G.room === "kitchen" && G.yard.t < 2.0 ? { x: 17.25 * 16, y: 3 * 16 + 4 } : null;
     computeView(faceCam ? 3 : fightCam ? 2 : yardCam || stareCat || clownCam ? 1 : 0);
     const focus = yardCam ? yardCam : fightCam ? fightCam : stareCat ? { x: stareCat.x, y: stareCat.y - stareCat.z }
@@ -821,6 +831,13 @@ LPK.game = (() => {
     if (G.robert.present && G.robert.room === G.room) items.push({ sortY: G.robert.sortY, draw: (g) => G.robert.draw(g) });
     if (G.evan && G.evan.room === G.room) items.push({ sortY: G.evan.sortY, draw: (g) => G.evan.draw(g) });
     if (G.owen && G.owen.room === G.room) items.push({ sortY: G.owen.sortY, draw: (g) => G.owen.draw(g) });
+    if (G.joe && G.joe.present && G.joe.room === G.room) items.push({ sortY: G.joe.sortY, draw: (g) => G.joe.draw(g) });
+    if (G.joeTreats && G.room === "kitchen") items.push({ sortY: 10 * 16 + 1, draw: (g) => {     // Tim Shortons on the dining table
+      const P = LPK.px, x = 16.2 * 16, y = 7.6 * 16;
+      P.rect(g, x, y, 18, 8, "#f6a8c4"); P.rect(g, x, y, 18, 2, "#e07aa0"); P.rect(g, x + 2, y + 3, 14, 3, "#c87850");
+      P.rect(g, x + 4, y + 3, 3, 2, "#5a2e1a"); P.rect(g, x + 10, y + 3, 3, 2, "#f2d8a0"); P.rect(g, x + 7, y + 4, 2, 1, "#ff7aa8");
+      P.rect(g, x + 22, y - 2, 9, 10, "#d8b888"); P.rect(g, x + 22, y - 2, 9, 2, "#c8a070"); P.rect(g, x + 24, y + 3, 5, 2, "#c84a3a");
+    } });
     LPK.catFight.drawItems(items, G);
     if (G.smooches && G.room === "kitchen") {
       const S = G.smooches;
