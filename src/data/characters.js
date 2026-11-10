@@ -222,7 +222,7 @@ LPK.characters = {
     gender: "Male",
     description: "Evan's big brother. Plays flag football and baseball, and loves video games: Fortress Evening on his Pretendo Stitch, and Laura Pets Kitties. Has to keep up his streaks every night!",
     // (stats are a first guess; edit freely)
-    attributes: { athleticism: 9, strength: 8, speed: 7, gaming: 10, competitiveness: 9, bigBrother: 9 },
+    attributes: { athleticism: 7, strength: 8, speed: 6, gaming: 10, competitiveness: 6, bigBrother: 9 },
     favorites: ["Flag football", "Baseball", "Fortress Evening on his Pretendo Stitch", "Laura Pets Kitties"],
     joinsInBuild: 4,
     // Remind him to do his streaks between streakStart and streakBy for bonus points.
