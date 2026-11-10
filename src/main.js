@@ -201,9 +201,11 @@ LPK.game = (() => {
       if (ev.inBedtimeWindow()) return { kind: "evanBed", label: "It's bedtime, Evan!", ok: true };
       if (ev.state === "askSnack") return { kind: "evanSnack", label: `Give Evan some ${ev.snackWant}`, ok: true };
     }
+    const art = LPK.save.data.evanDrawings || [];
+    if (G.room === "kitchen" && art.length && Math.hypot(L.x - 14 * T, L.y - 5.4 * T) < 22) return { kind: "fridgeArt", label: "Look at Evan's drawings", ok: true };
     const cc = G.cat("cc");
     if (cc.room === G.room && cc.state === "bellyUp" && cc.distTo(L) < 36) return { kind: "belly", cat: cc, label: "Royal Belly Rub!", ok: true };
-    const toy = G.toys.find(t => t.room === G.room && !t.held && Math.hypot(t.x - L.x, t.y - L.y) < 24);
+    const toy = G.toys.find(t => t.room === G.room && !t.held && !t.flight && Math.hypot(t.x - L.x, t.y - L.y) < 24);
     if (toy && !G.holdingToy) return { kind: "spring", toy, label: "Pick up the spring toy", ok: true };
     if (G.holdingToy) return { kind: "toss", label: "Toss the spring!", ok: true };
     // While Marshmallow is hiding, searching beats petting when Laura is right at a hiding spot
@@ -248,6 +250,12 @@ LPK.game = (() => {
     switch (tg.kind) {
       case "evanBed": L.say(D().lauraBedtime[0], 1.6); G.evan.tuckIn(); break;
       case "evanSnack": G.evan.giveSnack(); break;
+      case "fridgeArt": {
+        const n = (LPK.save.data.evanDrawings || []).length;
+        G.artView = { i: n - 1, t: 0 }; LPK.audio.sfx.click();
+        LPK.events.emit("artViewed", {});
+        break;
+      }
       case "pet": tg.cat.available ? G.petting.start(tg.cat) : G.petting.start(tg.cat); break;
       case "feed": {
         const c = tg.cat;
@@ -311,14 +319,27 @@ LPK.game = (() => {
       case "toss": {
         const toy = G.holdingToy, ip2 = L.interactPoint();
         const dx = (ip2.x - L.x), dy = (ip2.y - L.y), len = Math.hypot(dx, dy) || 1;
-        let tx = L.x, ty = L.y;
-        for (let d = 8; d <= 56; d += 4) { const nx = L.x + dx / len * d, ny = L.y + dy / len * d; if (!G.world.boxFree(nx - 2, ny - 2, 4, 4)) break; tx = nx; ty = ny; }
-        toy.held = false; toy.x = tx; toy.y = ty; toy.room = G.room; toy.bounce = 8;
+        const oly = G.olympics && G.olympics.event === "cc" && G.olympics.phase === "climb";
+        toy.held = false; toy.room = G.room; toy.bounce = 8;
+        if (oly) {
+          // Kitty Olympics: a short, straight toss so you can aim it at the cat tree
+          let tx = L.x, ty = L.y;
+          for (let d = 8; d <= 56; d += 4) { const nx = L.x + dx / len * d, ny = L.y + dy / len * d; if (!G.world.boxFree(nx - 2, ny - 2, 4, 4)) break; tx = nx; ty = ny; }
+          toy.x = tx; toy.y = ty;
+        } else {
+          // it flies, ricochets off walls and furniture, and ends up somewhere random
+          const f = G.springFlight(L.x + dx / len * 6, L.y - 2, dx / len, dy / len);
+          toy.flight = f; toy.x = f.pts[0][0]; toy.y = f.pts[0][1];
+          toy.landX = f.end[0]; toy.landY = f.end[1];
+        }
         G.holdingToy = null; LPK.audio.sfx.boing();
         L.sayRandom(D().lauraToss, 1.4);
         const cc = G.cat("cc");
         if (LPK.olympicsOnToss(G, toy)) break;
-        if (cc.room === G.room && !cc.concealed) cc.chaseSpring(toy);
+        if (cc.room === G.room && !cc.concealed) {
+          if (toy.flight && !["petted", "eat", "bellyRub"].includes(cc.state)) { cc.stopMoving(); cc.setState("intrigued", 8); toy.chaser = cc; }   // watches it bounce...
+          else cc.chaseSpring(toy);
+        }
         break;
       }
       case "belly": {
@@ -362,6 +383,27 @@ LPK.game = (() => {
     G.robert.sync(); G.evan.sync();
     G.cats.forEach(cat => { if (cat.state === "headSleep") cat.setState("sleep", 10); });
     G.banner = { title: c.label(), text: "Time flies...", t: 2.5 };
+  };
+
+  // Simulate a thrown spring bouncing around the room. Returns the path
+  // (one point per frame at 60 fps), the frames where it hit something, and
+  // where it ends up.
+  G.springFlight = (x, y, ux, uy) => {
+    const w = G.world, free = (px, py) => w.boxFree(px - 2, py - 2, 4, 4);
+    if (!free(x, y)) { x = G.laura.x; y = G.laura.y - 2; }
+    const a0 = Math.atan2(uy, ux) + (Math.random() - 0.5) * 0.35, sp = 300 + Math.random() * 80;
+    let vx = Math.cos(a0) * sp, vy = Math.sin(a0) * sp;
+    const pts = [[x, y]], hits = [], dt = 1 / 60;
+    const turn = () => { const a = (Math.random() - 0.5) * 0.9, c = Math.cos(a), s = Math.sin(a); [vx, vy] = [vx * c - vy * s, vx * s + vy * c]; };
+    for (let i = 0; i < 420 && Math.hypot(vx, vy) > 16; i++) {
+      let hit = false;
+      if (free(x + vx * dt, y)) x += vx * dt; else { vx = -vx * 0.8; hit = true; }
+      if (free(x, y + vy * dt)) y += vy * dt; else { vy = -vy * 0.8; hit = true; }
+      if (hit) { turn(); hits.push(i); }
+      vx *= 0.989; vy *= 0.989;
+      pts.push([x, y]);
+    }
+    return { pts, hits, i: 0, end: [x, y] };
   };
 
   G.pickFood = (food) => {
@@ -424,6 +466,7 @@ LPK.game = (() => {
       return;
     }
     if (G.foodMenu) { updateFoodMenu(); return; }
+    if (G.artView) { updateArtView(dt); return; }
     if (G.choiceMenu) { updateChoiceMenu(); return; }
     if (G.bellyGame) { updateBellyGame(dt); return; }
     if (!G.petting.active && input.pressed("pause")) { G.screen = "pause"; G.ui.sel = 0; LPK.audio.purr(0); return; }
@@ -434,7 +477,20 @@ LPK.game = (() => {
     G.cats.forEach(c => c.update(dt));
     G.robert.update(dt);
     G.evan.update(dt);
-    G.toys.forEach(t => { t.bounce = Math.max(0, t.bounce - dt * 10); if (t.held) { t.room = G.room; t.x = G.laura.x + 6; t.y = G.laura.y - 10; } });
+    G.toys.forEach(t => {
+      t.bounce = Math.max(0, t.bounce - dt * 10);
+      if (t.held) { t.room = G.room; t.x = G.laura.x + 6; t.y = G.laura.y - 10; }
+      else if (t.flight) {
+        const f = t.flight, prev = Math.floor(f.i); f.i += dt * 60;
+        const k = Math.min(f.pts.length - 1, Math.floor(f.i));
+        if (f.hits.some(h => h > prev && h <= k)) { LPK.audio.sfx.boing(); t.bounce = 6; }
+        t.x = f.pts[k][0]; t.y = f.pts[k][1];
+        t.bounce = Math.max(t.bounce, 3 + Math.abs(Math.sin(f.i / 7)) * 5 * (1 - k / f.pts.length));
+        if (t.chaser && f.pts.length - k < 50) { const c = t.chaser; t.chaser = null; c.chaseSpring(t); }   // ...then POUNCES as it slows down
+        else if (t.chaser) t.chaser.flip = t.x < t.chaser.x;
+        if (k >= f.pts.length - 1) { t.flight = null; t.landX = t.landY = undefined; t.bounce = 4; }
+      }
+    });
     G.petting.update(dt, input);
     LPK.olympicsUpdate(G, dt, input);
     checkHappiness(dt);
@@ -648,6 +704,16 @@ LPK.game = (() => {
     else if (input.pressed("pause") || input.pressed("stop")) G.foodMenu = null;
   }
 
+  // Looking at Evan's drawings on the fridge: ← → flip through, Space/Q closes
+  function updateArtView(dt) {
+    const A = G.artView, n = (LPK.save.data.evanDrawings || []).length;
+    A.t += dt;
+    if (input.pressed("left")) { A.i = (A.i + n - 1) % n; A.t = 0.15; LPK.audio.sfx.click(); }
+    else if (input.pressed("right")) { A.i = (A.i + 1) % n; A.t = 0.15; LPK.audio.sfx.click(); }
+    else if (input.pressed("act") || input.pressed("stop") || input.pressed("pause")) G.artView = null;
+  }
+  G.artStep = (d) => { const A = G.artView, n = (LPK.save.data.evanDrawings || []).length; if (!A) return; A.i = (A.i + n + d) % n; A.t = 0.15; LPK.audio.sfx.click(); };
+
   // --------------------------------------------------------- render world
   function renderWorld() {
     const stareCat = G.cats.find(c => c.room === G.room && (c.state === "stare" || c.state === "turnCam"));
@@ -722,6 +788,7 @@ LPK.game = (() => {
     if (G.screen === "play") {
       if (G.celebration) { G.endCelebration(); return true; }
       if (G.foodMenu) { G.foodMenu = null; return true; }
+      if (G.artView) { G.artView = null; return true; }
       if (G.choiceMenu) { G.choiceMenu = null; return true; }
       if (G.bellyGame) { endBelly(); return true; }
       if (G.petting.active) { G.petting.stop("back"); return true; }

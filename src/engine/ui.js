@@ -331,7 +331,7 @@ LPK.ui = (() => {
       const p = G.worldToScreen(G.clownPos.x, G.clownPos.y - 62), f = G.worldToScreen(G.clownPos.x, G.clownPos.y);
       bubbles.push([G.clown.line, p.x, p.y, "speech", f.y]);
     }
-    const drawBubbles = (topLimit) => bubbles.forEach(b => bubble(b[0], b[1], b[2], b[3], b[4], topLimit));
+    const drawBubbles = (topLimit) => { if (!G.artView) bubbles.forEach(b => bubble(b[0], b[1], b[2], b[3], b[4], topLimit)); };
     if (staring) { drawBubbles(H * 0.09 + 4); return; }
     let hudBottom = 4;                       // tracks how far down the top panels reach
 
@@ -431,6 +431,7 @@ LPK.ui = (() => {
     }
     if (G.olympics && G.olympics.event) drawOlympics(sz);
     if (G.foodMenu) drawFoodMenu();
+    if (G.artView) drawArtView();
     if (G.choiceMenu) drawChoiceMenu();
     if (G.laura.state === "rest") {
       const w = Math.min(380, W - 40);
@@ -468,6 +469,31 @@ LPK.ui = (() => {
       text(o.label, W / 2, by + (rowH - 8) / 2, u * 0.95, "#fff", "center");
       G.ui.buttons.push({ x: x + 16, y: by, w: w - 32, h: rowH - 8, action: () => { G.choiceMenu = null; o.fn(); } });
     });
+  }
+
+  // Evan's drawing pops off the fridge, full size
+  function drawArtView() {
+    const list = LPK.save.data.evanDrawings || [], A = G.artView;
+    if (!list.length) { G.artView = null; return; }
+    const d = list[A.i];
+    overlay(0.72);
+    const pop = Math.min(1, A.t / 0.3), ease = 1 - Math.pow(1 - pop, 3);
+    const maxW = Math.min(W * 0.62, (H - 120) * 4 / 3), pw = maxW, ph = pw * 0.75;
+    const cx = W / 2, cy = H / 2 - 16;
+    ctx.save();
+    ctx.translate(cx, cy); ctx.rotate((1 - ease) * 0.5 - 0.02 + (A.i % 2 ? 0.035 : 0)); ctx.scale(0.15 + 0.85 * ease, 0.15 + 0.85 * ease);
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(-pw / 2 + 8, -ph / 2 + 10, pw, ph);
+    LPK.kidArt.draw(ctx, -pw / 2, -ph / 2, pw, ph, d, A.i);
+    ctx.fillStyle = "rgba(240,230,170,0.75)"; ctx.fillRect(-28, -ph / 2 - 10, 56, 20);   // tape
+    ctx.fillStyle = "#d84a4a"; ctx.beginPath(); ctx.arc(pw / 2 - 18, -ph / 2 + 14, 7, 0, 7); ctx.fill();   // fridge magnet
+    ctx.restore();
+    text(`"${d.what[0].toUpperCase() + d.what.slice(1)}" by Evan  ·  ${A.i + 1} of ${list.length}`, W / 2, cy + ph / 2 + u * 1.4, u * 0.95, C.gold, "center");
+    const bh = Math.min(44, H / 11), bw = Math.min(64, W * 0.1);
+    if (list.length > 1) {
+      button("◀", 16, cy - bh / 2, bw, bh, () => G.artStep(-1), { nav: false });
+      button("▶", W - 16 - bw, cy - bh / 2, bw, bh, () => G.artStep(1), { nav: false });
+    }
+    button("Back on the fridge", W / 2 - 110, H - bh - 10, 220, bh, () => { G.artView = null; }, { nav: false, color: "#8a5fb8" });
   }
 
   function drawFoodMenu() {
@@ -626,7 +652,7 @@ LPK.ui = (() => {
     return m === "on" || (m === "auto" && LPK.input.lastType === "touch");
   }
   function drawTouch() {
-    const show = touchShown() && !G.celebration && !G.foodMenu && !G.choiceMenu;
+    const show = touchShown() && !G.celebration && !G.foodMenu && !G.choiceMenu && !G.artView;
     if (show && G.bellyGame) {
       const R0 = Math.max(34, Math.min(W, H) * 0.09);
       ctx.beginPath(); ctx.arc(W - R0 * 1.5, H - R0 * 1.5, R0 * 1.1, 0, 7); ctx.fillStyle = "rgba(126,217,154,0.6)"; ctx.fill();

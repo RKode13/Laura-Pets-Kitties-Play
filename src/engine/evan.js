@@ -170,7 +170,7 @@ LPK.Evan = class Evan extends LPK.Cat {
     const sv = LPK.save.data, what = this.pick(this.D.evanDrawSubjects);
     const pal = ["#e84a5a", "#4a8ae8", "#4ac06a", "#f2b43a", "#c77dff", "#ff7aa8", "#6e4128"];
     const c = [0, 1, 2].map(() => pal[Math.floor(Math.random() * pal.length)]);
-    sv.evanDrawings = [...(sv.evanDrawings || []), { what, c }].slice(-6);
+    sv.evanDrawings = [...(sv.evanDrawings || []), { what, c, seed: Math.floor(Math.random() * 1e9) }].slice(-6);
     LPK.save.write();
     this.holding = null; this.setState("stand", 2);
     this.say(this.fill(this.pick(this.D.evanDrawDone), { what }), 2.6);

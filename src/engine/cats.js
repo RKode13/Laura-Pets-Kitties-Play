@@ -387,7 +387,8 @@ LPK.CC = class CC extends LPK.Cat {
   chaseSpring(toy) {
     if (["petted", "eat", "bellyRub"].includes(this.state) || this.room !== toy.room) return;
     this.stopMoving();
-    this.goTo({ room: toy.room, tx: Math.floor(toy.x / this.T), ty: Math.floor(toy.y / this.T) }, "sprint", () => {
+    const lx = toy.landX ?? toy.x, ly = toy.landY ?? toy.y;       // where a bouncing spring will end up
+    this.goTo({ room: toy.room, tx: Math.floor(lx / this.T), ty: Math.floor(ly / this.T) }, "sprint", () => {
       this.flip = toy.x < this.x; this.setState("pounce", 0.7); toy.bounce = 6; LPK.audio.sfx.boing();
       this.game.petting.addRaw(this, 8);
       LPK.events.emit("springToss", { cat: this.id });
