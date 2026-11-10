@@ -251,7 +251,7 @@ LPK.characters = {
   // smile, navy blazer, white shirt, tan patterned tie, khaki pants.
   joe: {
     name: "Joe Pino",
-    nicknames: ["Grandpa Joe"],
+    nicknames: ["Grandpa"],
     title: "The Patriarch",
     role: "Visiting character (not playable)",
     relationship: "Laura's dad",

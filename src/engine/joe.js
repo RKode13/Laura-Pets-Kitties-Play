@@ -45,6 +45,13 @@ LPK.Joe = class Joe extends LPK.Evan {
     this.visitT = (this.visitT || 0) + dt;
     if (!this.sceneDone && this.visitT > 8 && R.present && R.mode === "home" && !R.moving && G.room === "kitchen" && this.room === "kitchen"
         && !L.busy && !G.hungry && !LPK.catFight.active && !G.yard && !G.petting.active) return this.startScene();
+    // ---- the boys say hi to Grandpa
+    for (const k of [G.evan, G.owen]) {
+      if (k && k.mode === "day" && k.room === this.room && k.distTo(this) < 50 && !k.bubble && !this.cooldown("hi-" + k.id)) {
+        this.setCooldown("hi-" + k.id, 120);
+        k.say(this.pick(D.kidGrandpa), 2); setTimeout(() => this.present && this.say(this.pick(D.joeBuddy), 1.8), 1600);
+      }
+    }
     // ---- quiet, sharp questions now and then
     if (this.sameRoomAsLaura() && this.distTo(L) < 70 && !this.cooldown("ask") && !this.bubble) {
       this.setCooldown("ask", 40); this.say(this.pick(D.joeAsk), 2.6);
@@ -59,7 +66,7 @@ LPK.Joe = class Joe extends LPK.Evan {
     LPK.save.data.joeSeen = true; LPK.save.write();
     this.say(this.D.joeHello[0], 2.4);
     G.notify("Joe Pino is here!", "He brought Tim Shortons: donuts, donut holes and bagels!");
-    for (const k of [G.evan, G.owen]) if (k && k.mode === "day" && k.room === "livingRoom") k.say("Grandpa Joe! DONUTS!", 2);
+    for (const k of [G.evan, G.owen]) if (k && k.mode === "day" && k.room === "livingRoom") k.say("Grandpa! DONUTS!", 2);
     this.goTo("kitchen.joeSeat", "walk", () => { this.holding = null; G.joeTreats = true; this.mode = "visit"; this.visitT = 0; this.setState("sit", 999); });
   }
 

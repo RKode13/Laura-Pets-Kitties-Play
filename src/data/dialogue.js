@@ -116,6 +116,8 @@ LPK.dialogue = {
   lauraOkEvan:   ["Oh, okay!"],
   lauraOkOwen:   ["Oh, okay."],
   joeHello:      ["Buongiorno! Who wants donuts?"],
+  kidGrandpa:    ["Hi Grandpa!", "Grandpa! Did you bring donuts?", "Grandpa, watch this!"],
+  joeBuddy:      ["Hey, buddy.", "There he is.", "*fist bump*"],
   joeBye:        ["Ciao! Love you guys."],
   joeAsk:        ["So, Laura... how's work going?", "How are the boys doing in school?", "Interesting. Tell me more about that.", "*sips quietly*", "What's Robert working on these days?"],
   joeCappuccinoTime: ["Robert. Laura. Cappuccino time."],
