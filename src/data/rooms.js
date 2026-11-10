@@ -75,6 +75,9 @@ LPK.rooms = {
       frontDoorIn: { x: 3, y: 12.8, approach: [3, 12] },
       sofa:        { x: 16.5, y: 4.8, z: 6, approach: [16, 5], sit: true },
     },
+    evanSpots: {
+      couch:       { x: 13, y: 4.8, z: 6, approach: [13, 5], sit: true },
+    },
     // Places CC likes to inspect on patrol
     pointsOfInterest: [[3, 13], [3, 4], [8, 3], [16, 11], [6, 12]],
     lauraStart: { x: 3, y: 12.6 },
@@ -345,6 +348,12 @@ LPK.rooms = {
       evanBed:   { label: "Evan's bed", x: 3.5, y: 6.2, z: 8, approach: [3, 7] },
       underBed:  { label: "under Evan's bed", x: 4.5, y: 6.6, z: 0, approach: [6, 6], hidden: true },
       clothesPile: { label: "the pile of clothes", x: 6.8, y: 9.2, z: 0, approach: [6, 10] },
+    },
+    evanSpots: {
+      evanSleep:  { x: 3.7, y: 7.05, z: 36, approach: [3, 7], lie: true },    // tucked in (drawn on top of the bed)
+      evanBedSit: { x: 4.5, y: 7.0, z: 6, approach: [4, 7], sit: true },
+      evanPlay:   { x: 9.5, y: 7.6, approach: [9, 7] },
+      evanWindow: { x: 7.5, y: 3.8, approach: [7, 3] },
     },
     pointsOfInterest: [[7, 4], [9, 9], [11, 7], [4, 10]],
     lauraStart: { x: 11, y: 9 },

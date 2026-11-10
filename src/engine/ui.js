@@ -174,8 +174,8 @@ LPK.ui = (() => {
 
   function drawProfiles() {
     overlay(0.82);
-    const ids = ["laura", "marshmallow", "cc", "popsicle", "robert"];
-    const tabW = Math.min(170, (W - 40) / 5 - 6), tabH = Math.min(40, H / 12);
+    const ids = ["laura", "marshmallow", "cc", "popsicle", "robert", "evan"];
+    const tabW = Math.min(170, (W - 40) / ids.length - 6), tabH = Math.min(40, H / 12);
     ids.forEach((id, i) => {
       const ch = LPK.characters[id];
       const short = ch.nicknames && ch.nicknames.length ? ch.nicknames[0] : ch.name;
@@ -194,8 +194,9 @@ LPK.ui = (() => {
     const scale = Math.max(2, Math.floor(pw / 46));
     const shapes = id === "laura" ? LPK.sprites.laura("stand", "down", 0)
       : id === "robert" ? LPK.sprites.robert("down", 0, { shades: Math.floor(G.time / 2) % 2 === 0, casual: Math.floor(G.time / 4) % 2 === 1 })
+      : id === "evan" ? LPK.sprites.evan("down", 0, { outfit: Object.keys(ch.outfits)[Math.floor(G.time / 2.5) % Object.keys(ch.outfits).length] })
       : LPK.sprites.cat(ch.look, Math.floor(G.time / 3) % 2 ? "sit" : "front", 0, { eyes: id === "marshmallow" ? "stare" : "open" });
-    sprite(shapes, 30 + pw / 2, top + 14 + pw * 0.86, id === "robert" ? scale * 0.8 : id === "laura" ? scale * 0.95 : scale * 1.4);
+    sprite(shapes, 30 + pw / 2, top + 14 + pw * 0.86, id === "robert" ? scale * 0.8 : id === "laura" ? scale * 0.95 : id === "evan" ? scale * 1.05 : scale * 1.4);
     // details
     const x = 30 + pw + 20, maxW = W - x - 36;
     let y = top + 30;
@@ -317,7 +318,7 @@ LPK.ui = (() => {
     // speech bubbles
     const bubbles = [];
     if (L.speech) { const p = G.worldToScreen(L.x, L.y - (L.state === "kneel" ? 26 : 32)), f = G.worldToScreen(L.x, L.y); bubbles.push([L.speech.text, p.x, p.y, "speech", f.y]); }
-    for (const c of [...G.cats, G.robert]) if (c && c.bubble && c.room === G.room && !c.concealed && c.state !== "transit" && c.present !== false) {
+    for (const c of [...G.cats, G.robert, G.evan]) if (c && c.bubble && c.room === G.room && !c.concealed && c.state !== "transit" && c.present !== false) {
       const h = c.headPos(), p = G.worldToScreen(h.x, h.y), f = G.worldToScreen(c.x, c.y - c.z);
       bubbles.push([c.bubble.text, p.x, p.y, c.bubble.kind, f.y]);
     }

@@ -40,6 +40,8 @@ LPK.game = (() => {
     G.desk = { screen: "idle", coffee: "full", session: null }; G.choiceMenu = null;
     G.robert = new LPK.Robert(G);
     G.robert.sync();
+    G.evan = new LPK.Evan(G);
+    G.evan.sync();
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -350,7 +352,7 @@ LPK.game = (() => {
     if (minutes <= c.minutes) { c.day = (c.day + 1) % 7; }
     if (weekdayOnly) while (c.day === 0 || c.day === 6) c.day = (c.day + 1) % 7;
     c.minutes = minutes;
-    G.robert.sync();
+    G.robert.sync(); G.evan.sync();
     G.cats.forEach(cat => { if (cat.state === "headSleep") cat.setState("sleep", 10); });
     G.banner = { title: c.label(), text: "Time flies...", t: 2.5 };
   };
@@ -424,6 +426,7 @@ LPK.game = (() => {
     G.laura.recentRun = G.laura.state === "run" ? 1.2 : Math.max(0, (G.laura.recentRun || 0) - dt);
     G.cats.forEach(c => c.update(dt));
     G.robert.update(dt);
+    G.evan.update(dt);
     G.toys.forEach(t => { t.bounce = Math.max(0, t.bounce - dt * 10); if (t.held) { t.room = G.room; t.x = G.laura.x + 6; t.y = G.laura.y - 10; } });
     G.petting.update(dt, input);
     LPK.olympicsUpdate(G, dt, input);
@@ -663,6 +666,7 @@ LPK.game = (() => {
     items.push({ sortY: G.laura.sortY, draw: (g) => G.laura.draw(g) });
     G.cats.filter(c => c.room === G.room).forEach(c => items.push({ sortY: c.sortY, draw: (g) => c.draw(g) }));
     if (G.robert.present && G.robert.room === G.room) items.push({ sortY: G.robert.sortY, draw: (g) => G.robert.draw(g) });
+    if (G.evan && G.evan.room === G.room) items.push({ sortY: G.evan.sortY, draw: (g) => G.evan.draw(g) });
     for (const toy of G.toys) if (toy.room === G.room) items.push({ sortY: toy.held ? G.laura.sortY + 1 : toy.y, draw: (g) => R.drawSpring(g, toy.x, toy.y, toy.colors, t, toy.bounce) });
     items.sort((a, b) => a.sortY - b.sortY).forEach(i => i.draw(g));
     if (w.def.ambient) { g.fillStyle = w.def.ambient; g.fillRect(0, 0, w.width, w.height); }   // fairy-light / LED room glow
@@ -699,7 +703,7 @@ LPK.game = (() => {
     ctx.fillStyle = "#1c1626"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     if (!G.clock) G.clock = new LPK.Clock(LPK.config.startDay, LPK.Clock.parse(LPK.config.startTime));
     if (!G.laura) buildWorld();
-    if (G.screen === "title") { G.cats.forEach(c => c.update(dt)); G.robert.update(dt); }
+    if (G.screen === "title") { G.cats.forEach(c => c.update(dt)); G.robert.update(dt); G.evan && G.evan.update(dt); }
     renderWorld();
     ctx.setTransform(G.dpr, 0, 0, G.dpr, 0, 0);
     LPK.ui.draw(G, ctx);

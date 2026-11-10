@@ -177,6 +177,34 @@ LPK.characters = {
       hair: "#9a958f", hairDark: "#6e6a66", beard: "#c9c4be", skin: "#e2b08e", shoes: "#6a3a1e",
     },
   },
+  // ------------------------------------------------------------ EVAN
+  // From his photos: brown hair, short on the sides and swept over on top,
+  // brown eyes, freckles and a big gap-tooth grin. Outfits from the photos.
+  evan: {
+    name: "Evan",
+    title: "The Big Grin",
+    role: "Supporting character (not playable)",
+    gender: "Male",
+    description: "Lives in the bottom-left room off the hallway. Brown hair, freckles and the biggest gap-tooth grin in the house. More about Evan coming soon!",
+    joinsInBuild: 4,
+    // Times of day for his routine. Edit freely.
+    schedule: { wake: "7:00 AM", bed: "8:30 PM" },
+    behavior: { walkSpeed: 30, runSpeed: 60, hopSeconds: 0.4, activitySeconds: [25, 60] },
+    look: {
+      skin: "#f0c6a4", skinDark: "#d9a988", hair: "#6e4128", hairDark: "#4a2a18", hairLight: "#8f5a36",
+      eyes: "#3a2418", freckles: "#c98a6a", mouth: "#9a3a3a",
+    },
+    // top / topDark / pants / feet, plus extras (dots, shorts, shortSleeves, collar, backpack...)
+    outfits: {
+      sweater:   { name: "Red sweater",       top: "#a3243a", topDark: "#841a2e", dots: ["#c0394f"], pants: "#1c1c22", feet: ["#f2b43a", "#4ac0c8"], collar: "henley" },
+      zip:       { name: "Gray quarter-zip",  top: "#55575e", topDark: "#45474d", pants: "#355489", feet: ["#2a2a2e", "#2a2a2e"], collar: "zip" },
+      school:    { name: "School day",        top: "#5b6276", topDark: "#4b5163", pants: "#2a3048", feet: ["#e8e8e8", "#e8e8e8"], shortSleeves: true, backpack: true },
+      polo:      { name: "Palm-tree polo",    top: "#cfd1cb", topDark: "#b8bab4", dots: ["#8fd13a"], pants: "#23263a", feet: ["#e8e8e8", "#e8e8e8"], shorts: true, shortSleeves: true, collar: "polo" },
+      pajamas:   { name: "Bug pajamas",       top: "#eceae4", topDark: "#d6d4ce", dots: ["#3a6ab8", "#d84a4a", "#4aa04a"], pants: "#eceae4", feet: ["#d8d8d8", "#d8d8d8"], shorts: true, shortSleeves: true, collar: "pj" },
+      suit:      { name: "Navy suit",         top: "#24324f", topDark: "#1b2640", pants: "#24324f", feet: ["#1a1a1a", "#1a1a1a"], collar: "suit" },
+      conductor: { name: "Train conductor",   top: "#a3243a", topDark: "#841a2e", dots: ["#c0394f"], pants: "#1c1c22", feet: ["#f2b43a", "#e8703a"], collar: "henley", suspenders: true, cap: true, mustache: true },
+    },
+  },
 };
 
 // Friendly display names for attributes (used by Character Profiles).

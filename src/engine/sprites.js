@@ -416,5 +416,106 @@ LPK.sprites = (() => {
     return s;
   }
 
-  return { laura, cat, robert, clown };
+  // ------------------------------------------------------------ EVAN
+  // Kid-sized (shorter than Laura and Robert). opt: { outfit, pose: stand/walk/sit/lie, sleeping }
+  function evan(dir = "down", frame = 0, opt = {}) {
+    const E = LPK.characters.evan.look, O = LPK.characters.evan.outfits[opt.outfit] || LPK.characters.evan.outfits.sweater, s = [];
+    const r = (x, y, w, h, c, n) => s.push(["r", x, y, w, h, c, n]);
+    const pose = opt.pose || "stand";
+    const step = pose === "walk" ? frame % 4 : 0, sw = step === 1 ? 1 : step === 3 ? -1 : 0;
+    const dots = O.dots || [];
+    const head = (hx, hy, side) => {
+      // hy = bottom of the chin
+      if (O.cap) { r(hx - 5, hy - 11, 10, 3, "#1c1c24"); r(hx - 5, hy - 8, 10, 1, "#0e0e12", 1); r(hx - 1, hy - 10, 2, 1, "#d8b04a", 1); }
+      if (dir === "up" && !side) {
+        r(hx - 4, hy - 8, 8, 8, E.skin); r(hx - 5, hy - 5, 1, 2, E.skin); r(hx + 4, hy - 5, 1, 2, E.skin);
+        if (!O.cap) r(hx - 4, hy - 10, 8, 3, E.hair);
+        r(hx - 4, hy - 8, 8, 7, E.hair); r(hx - 4, hy - 3, 8, 2, E.hairDark, 1);          // short faded back
+        return;
+      }
+      r(hx - 4, hy - 8, 8, 8, E.skin);
+      if (side) { r(hx - 2, hy - 5, 1, 2, E.skinDark, 1); }
+      else { r(hx - 5, hy - 5, 1, 2, E.skin); r(hx + 4, hy - 5, 1, 2, E.skin); }
+      if (!O.cap) {
+        r(hx - 4, hy - 10, 8, 3, E.hair); r(hx, hy - 11, 3, 1, E.hair);                  // swept-up top
+        r(hx - 1, hy - 10, 3, 1, E.hairLight, 1);
+        if (side) { r(hx - 4, hy - 8, 3, 5, E.hair); r(hx - 4, hy - 4, 2, 2, E.hairDark, 1); r(hx + 1, hy - 8, 3, 1, E.hair, 1); }
+        else { r(hx - 4, hy - 8, 5, 1, E.hair, 1); r(hx - 4, hy - 7, 2, 1, E.hair, 1);   // side-swept fringe
+               r(hx - 4, hy - 8, 1, 3, E.hairDark, 1); r(hx + 3, hy - 8, 1, 2, E.hairDark, 1); }   // short sides
+      }
+      const shut = opt.sleeping;
+      if (side) {
+        r(hx + 2, hy - 5, 1, 1, shut ? "#7a5a4a" : E.eyes, 1);
+        r(hx + 2, hy - 3, 1, 1, E.freckles, 1);
+        r(hx + 1, hy - 2, 3, 1, E.mouth, 1); r(hx + 2, hy - 2, 1, 1, "#fffaf0", 1);
+        if (O.mustache) r(hx + 1, hy - 3, 3, 1, "#7a4a26", 1);
+        return;
+      }
+      if (shut) { r(hx - 3, hy - 5, 2, 1, "#7a5a4a", 1); r(hx + 1, hy - 5, 2, 1, "#7a5a4a", 1); }
+      else { r(hx - 3, hy - 5, 1, 1, E.eyes, 1); r(hx + 2, hy - 5, 1, 1, E.eyes, 1); }
+      r(hx - 3, hy - 3, 1, 1, E.freckles, 1); r(hx + 2, hy - 3, 1, 1, E.freckles, 1); r(hx - 1, hy - 4, 1, 1, E.freckles, 1);
+      if (!shut) { r(hx - 2, hy - 2, 4, 1, E.mouth, 1); r(hx - 1, hy - 2, 2, 1, "#fffaf0", 1); }  // the big gap-tooth grin
+      if (O.mustache) { r(hx - 3, hy - 3, 2, 1, "#7a4a26", 1); r(hx + 1, hy - 3, 2, 1, "#7a4a26", 1); r(hx - 1, hy - 3, 2, 1, "#7a4a26", 1); }
+    };
+    const chest = (y, back) => {
+      dots.forEach((c, i) => { r(-3 + (i * 4) % 7, y + 2 + i * 3, 1, 1, c, 1); r(2 - (i * 3) % 5, y + 5 + i * 2, 1, 1, c, 1); });
+      if (back) { if (O.backpack) { r(-4, y + 1, 8, 8, "#2a8ae8"); r(-3, y + 2, 6, 1, "#5ab0f8", 1); r(-4, y + 6, 8, 1, "#1a5ab0", 1); } if (O.suspenders) { r(-3, y, 1, 10, "#6a6a72", 1); r(2, y, 1, 10, "#6a6a72", 1); } return; }
+      if (O.collar === "henley") { r(-1, y, 2, 3, O.topDark, 1); r(0, y + 2, 1, 1, "#c9a26a", 1); }
+      if (O.collar === "zip") { r(-2, y - 1, 4, 2, O.topDark, 1); r(0, y, 1, 4, "#b89a4a", 1); }
+      if (O.collar === "polo") { r(-2, y, 1, 2, O.topDark, 1); r(1, y, 1, 2, O.topDark, 1); }
+      if (O.collar === "pj") r(-2, y, 4, 1, "#d8434a", 1);
+      if (O.collar === "suit") { r(-1, y, 2, 6, "#f4f2ee", 1); r(0, y + 1, 1, 5, "#ece8d8", 1); r(2, y + 3, 2, 1, "#f4f2ee", 1); }
+      if (O.backpack) { r(-4, y, 1, 9, "#2a8ae8", 1); r(3, y, 1, 9, "#2a8ae8", 1); }
+      if (O.suspenders) { r(-3, y, 1, 10, "#6a6a72", 1); r(2, y, 1, 10, "#6a6a72", 1); }
+    };
+    const arm = (x, y, len) => {
+      if (O.shortSleeves) { r(x, y, 2, 3, O.top); r(x, y + 3, 2, len - 1, E.skin); }
+      else { r(x, y, 2, len, O.top); r(x, y + len, 2, 2, E.skin); }
+    };
+    const leg = (x, y, h) => {
+      if (O.shorts) { r(x, y, 3, 4, O.pants); r(x, y + 4, 3, h - 4, E.skin); }
+      else r(x, y, 3, h, O.pants);
+    };
+    if (pose === "lie") {
+      // tucked into bed, head on the pillow (head to the left)
+      r(-18, -12, 9, 5, "#f2f0ec");
+      r(-17, -16, 7, 7, E.skin); r(-17, -17, 7, 3, E.hair); r(-17, -14, 1, 2, E.hairDark, 1);
+      r(-15, -12, 2, 1, "#7a5a4a", 1); r(-12, -12, 2, 1, "#7a5a4a", 1);
+      r(-13, -10, 1, 1, E.freckles, 1);
+      r(-10, -14, 26, 9, "#e88aa8"); r(-10, -14, 26, 2, "#f6b4c8"); r(-10, -10, 26, 1, "#c86a8a", 1);
+      return s;
+    }
+    if (pose === "sit") {
+      leg(-4, -8, 6); leg(1, -8, 6);
+      r(-4, -2, 3, 2, O.feet[0]); r(1, -2, 3, 2, O.feet[1]);
+      r(-5, -18, 10, 10, O.top); arm(-7, -17, 7); arm(5, -17, 7);
+      chest(-18, false);
+      r(-1, -19, 2, 1, E.skin);
+      head(0, -19, false);
+      return s;
+    }
+    if (dir === "side") {
+      leg(-2 + sw * 2, -10, 9); leg(-1 - sw * 2, -10, 9);
+      r(-2 + sw * 2, -1, 4, 1, O.feet[0]); r(-1 - sw * 2, -1, 4, 1, O.feet[1]);
+      if (O.backpack) { r(-6, -19, 3, 8, "#2a8ae8"); r(-6, -15, 3, 1, "#1a5ab0", 1); }
+      r(-3, -20, 7, 11, O.top);
+      dots.forEach((c, i) => r(-1 + i, -17 + i * 3, 1, 1, c, 1));
+      if (O.suspenders) r(0, -20, 1, 10, "#6a6a72", 1);
+      arm(-1 + sw, -19, 7);
+      r(-1, -21, 2, 1, E.skin);
+      head(0, -21, true);
+      return s;
+    }
+    // front / back
+    leg(-4 + sw, -10, 9); leg(1 - sw, -10, 9);
+    r(-4 + sw, -1, 3, 1, O.feet[0]); r(1 - sw, -1, 3, 1, O.feet[1]);
+    r(-5, -20, 10, 11, O.top);
+    arm(-7, -19, 7); arm(5, -19, 7);
+    chest(-20, dir === "up");
+    r(-1, -21, 2, 1, E.skin);
+    head(0, -21, false);
+    return s;
+  }
+
+  return { laura, cat, robert, clown, evan };
 })();
