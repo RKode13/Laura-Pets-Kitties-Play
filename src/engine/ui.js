@@ -218,6 +218,11 @@ LPK.ui = (() => {
       text(`Weekdays: up ${S.weekday.wake}, work ${S.weekday.leave}–${S.weekday.home}, dinner guard ${S.weekday.dinner}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.05;
       text(`Weekends: home · dinner guard ${S.weekend.dinner} · Tiny Snore after ${S.weekend.sleep}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
     }
+    if (id === "evan") {
+      const S = ch.schedule;
+      text(`Loves: ${ch.favorites.join(" · ")}`, x, y, u * 0.75, C.pink, "left", "normal"); y += u * 1.05;
+      text(`Bedtime: tuck him in ${S.bedWindow}–${S.bed} for +${ch.bedtimePoints} points`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
+    }
     if (id === "marshmallow" && LPK.save.data.cats.marshmallow) {
       const tr = LPK.save.data.cats.marshmallow.trust || 0;
       text(`Affection with Laura: ${Math.round(tr * 100)}%`, x, y, u * 0.8, C.green); y += u * 1.2;

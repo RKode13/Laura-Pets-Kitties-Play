@@ -142,6 +142,9 @@ LPK.rooms = {
       counter: { x: 6.5, y: 4.6, approach: [6, 4] },
       guard:   { x: 4.4, y: 6.0, approach: [4, 6], guard: true },
     },
+    evanSpots: {
+      table:   { x: 14.2, y: 10.6, approach: [14, 10] },                       // by the dining table, asking for a snack
+    },
     pointsOfInterest: [[13, 5], [17, 5], [20, 10], [10, 9], [7, 13], [12, 6]],
     lauraStart: { x: 8, y: 12.6 },
   },
@@ -354,6 +357,7 @@ LPK.rooms = {
       evanBedSit: { x: 4.5, y: 7.0, z: 6, approach: [4, 7], sit: true },
       evanPlay:   { x: 9.5, y: 7.6, approach: [9, 7] },
       evanWindow: { x: 7.5, y: 3.8, approach: [7, 3] },
+      evanDraw:   { x: 9.5, y: 6.4, approach: [9, 6], sit: true },              // on the floor, drawing
     },
     pointsOfInterest: [[7, 4], [9, 9], [11, 7], [4, 10]],
     lauraStart: { x: 11, y: 9 },

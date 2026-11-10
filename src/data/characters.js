@@ -185,11 +185,17 @@ LPK.characters = {
     title: "The Big Grin",
     role: "Supporting character (not playable)",
     gender: "Male",
-    description: "Lives in the bottom-left room off the hallway. Brown hair, freckles and the biggest gap-tooth grin in the house. More about Evan coming soon!",
+    relationship: "Laura's son",
+    description: "Super curious, super creative and full of energy: always running around and getting into things. A great artist (his drawings end up on the fridge). Loves planes, squishies, pasta and fruit, and playing Laura Pets Kitties on his iPad.",
+    attributes: { curiosity: 10, creativity: 10, artistry: 10, energy: 10, speed: 8, mischief: 9 },
+    favorites: ["Planes", "Squishies", "Drawing", "Pasta", "Fruit", "Laura Pets Kitties on his iPad"],
     joinsInBuild: 4,
     // Times of day for his routine. Edit freely.
-    schedule: { wake: "7:00 AM", bed: "8:30 PM" },
-    behavior: { walkSpeed: 30, runSpeed: 60, hopSeconds: 0.4, activitySeconds: [25, 60] },
+    // Bedtime window: tuck him in between bedWindow and bed for bonus points;
+    // after "bed" he takes himself to bed (no bonus).
+    schedule: { wake: "7:00 AM", bedWindow: "7:30 PM", bed: "8:15 PM" },
+    bedtimePoints: 25, snackPoints: 5,
+    behavior: { walkSpeed: 34, runSpeed: 66, hopSeconds: 0.35, activitySeconds: [6, 15] },
     look: {
       skin: "#f0c6a4", skinDark: "#d9a988", hair: "#6e4128", hairDark: "#4a2a18", hairLight: "#8f5a36",
       eyes: "#3a2418", freckles: "#c98a6a", mouth: "#9a3a3a",
@@ -214,4 +220,5 @@ LPK.attributeLabels = {
   cuddliness: "Cuddliness", sleepTendency: "Sleep tendency", athleticism: "Athleticism",
   bossFactor: "Boss factor", style: "Style", protectiveness: "Protectiveness",
   coolness: "Coolness", awesomeness: "Awesomeness", legendaryStatus: "Legendary status",
+  creativity: "Creativity", artistry: "Drawing", energy: "Energy", mischief: "Gets into things",
 };

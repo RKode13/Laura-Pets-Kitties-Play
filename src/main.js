@@ -196,6 +196,11 @@ LPK.game = (() => {
   function findTarget() {
     const L = G.laura, ip = L.interactPoint(), T = G.world.T;
     if (L.state === "rest") return { kind: "getUp", label: "Get up", ok: true };
+    const ev = G.evan;
+    if (ev && ev.room === G.room && ev.distTo(L) < 34 && ev.state !== "sleep") {
+      if (ev.inBedtimeWindow()) return { kind: "evanBed", label: "It's bedtime, Evan!", ok: true };
+      if (ev.state === "askSnack") return { kind: "evanSnack", label: `Give Evan some ${ev.snackWant}`, ok: true };
+    }
     const cc = G.cat("cc");
     if (cc.room === G.room && cc.state === "bellyUp" && cc.distTo(L) < 36) return { kind: "belly", cat: cc, label: "Royal Belly Rub!", ok: true };
     const toy = G.toys.find(t => t.room === G.room && !t.held && Math.hypot(t.x - L.x, t.y - L.y) < 24);
@@ -241,6 +246,8 @@ LPK.game = (() => {
   function useTarget(tg) {
     const L = G.laura;
     switch (tg.kind) {
+      case "evanBed": L.say(D().lauraBedtime[0], 1.6); G.evan.tuckIn(); break;
+      case "evanSnack": G.evan.giveSnack(); break;
       case "pet": tg.cat.available ? G.petting.start(tg.cat) : G.petting.start(tg.cat); break;
       case "feed": {
         const c = tg.cat;

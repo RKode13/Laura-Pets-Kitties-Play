@@ -416,6 +416,12 @@ LPK.roomRenderer = (() => {
         R(g, x + 1, y - 34, fw - 2, fh + 34, "#f0f0ee"); R(g, x + 1, y - 34, fw - 2, 2, "#ffffff");
         R(g, x + 1, y - 6, fw - 2, 1, "#c8c8c6"); R(g, x + fw - 6, y - 28, 2, 14, "#b0b0ae"); R(g, x + fw - 6, y, 2, 14, "#b0b0ae");
         R(g, x + 6, y - 26, 6, 5, "#e8b04a"); R(g, x + 14, y - 22, 5, 6, "#ff7aa8"); R(g, x + 8, y - 16, 5, 4, "#7fb0ff");  // magnets + drawings
+        // Evan's drawings, stuck on the lower door
+        ((LPK.save && LPK.save.data.evanDrawings) || []).slice(-6).forEach((d, i) => {
+          const px = x + 3 + (i % 3) * 8, py = y + 2 + Math.floor(i / 3) * 9;
+          R(g, px, py, 6, 7, "#fbfaf2"); R(g, px + 2, py - 1, 2, 1, "#d84a4a");
+          R(g, px + 1, py + 2, 3, 1, d.c[0]); R(g, px + 2, py + 3, 3, 2, d.c[1]); R(g, px + 1, py + 5, 1, 1, d.c[2]);
+        });
       } };
       case "island": return { sortY: y + fh, draw: (g) => {
         R(g, x, y - 8, fw, fh + 8, "#c4924e"); R(g, x - 1, y - 10, fw + 2, 6, "#ddd6c8");

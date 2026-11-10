@@ -48,5 +48,9 @@ LPK.achievements = [
   { id: "zoomieQueen",     name: "Zoomie Queen",               desc: "Overcharge Marshmallow's Purr Meter past 100% until she gets the zoomies.", event: "marshZoomies", build: 4 },
   { id: "catnipCraze",     name: "Catnip Craze",               desc: "Give a cat a catnip treat and watch the zoomies.", event: "catnipZoomies", build: 4 },
   { id: "chickenNight",    name: "Chicken Night",              desc: "Be there when Robert shares his rotisserie chicken with the boys.", event: "chickenShared", build: 4 },
+  { id: "bedtimeHero",     name: "Bedtime Hero",               desc: "Tuck Evan in between 7:30 and 8:15 PM.", event: "evanBedtime", build: 4 },
+  { id: "fridgeArt",       name: "Fridge Gallery",             desc: "Get one of Evan's drawings up on the fridge.", event: "evanDrawing", build: 4 },
+  { id: "gameInGame",      name: "A Game Within a Game",       desc: "Catch Evan playing Laura Pets Kitties on his iPad.", event: "evanIpad", build: 4 },
+  { id: "snackTime",       name: "Pasta & Fruit Chef",         desc: "Give Evan the snack he asked for.", event: "evanSnack", build: 4 },
   { id: "purrfection",     name: "PURRFECTION!",               desc: "Complete the main story: the Ultimate Kitty Cuddle.", event: "missionComplete", match: { mission: "ultimateCuddle" }, build: 4 },
 ];

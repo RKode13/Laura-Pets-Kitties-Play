@@ -472,6 +472,16 @@ LPK.sprites = (() => {
       if (O.shortSleeves) { r(x, y, 2, 3, O.top); r(x, y + 3, 2, len - 1, E.skin); }
       else { r(x, y, 2, len, O.top); r(x, y + len, 2, 2, E.skin); }
     };
+    // things he's holding: paper + crayon, iPad, squishy, toy plane, pasta, fruit
+    const hold = (cx, cy) => {
+      const k = opt.hold, f = frame % 2;
+      if (k === "paper") { r(cx - 4, cy - 1, 8, 6, "#fbfaf2"); r(cx - 3, cy, 3, 1, "#e84a5a", 1); r(cx, cy + 2, 3, 1, "#4a8ae8", 1); r(cx - 2, cy + 3, 2, 1, "#4ac06a", 1); r(cx + 3 - f, cy - 2, 1, 3, "#f2b43a", 1); }
+      if (k === "ipad")  { r(cx - 5, cy - 2, 10, 7, "#2a2a30"); r(cx - 4, cy - 1, 8, 5, f ? "#8ad8ff" : "#7fc8f0", 1); r(cx - 1 + f, cy + 1, 2, 2, "#fbfaf2", 1); r(cx - 3, cy + 2, 1, 1, "#ff7aa8", 1); }
+      if (k === "squishy") { const q = f; s.push(["e", cx, cy + 1 + q, 3 + q, 3 - q, "#ffb0d8"]); r(cx - 2, cy, 1, 1, "#4a2a3a", 1); r(cx + 1, cy, 1, 1, "#4a2a3a", 1); r(cx - 1, cy + 2, 2, 1, "#e86a9a", 1); }
+      if (k === "plane") { r(cx - 7, cy - 4, 14, 2, "#eef0f6"); r(cx - 1, cy - 7, 3, 8, "#4a8ae8"); r(cx - 7, cy - 6, 2, 2, "#e84a5a"); r(cx + 6, cy - 4, 1, 2, "#9ab0d0", 1); }
+      if (k === "pasta") { r(cx - 4, cy + 1, 8, 3, "#f4f2ee"); r(cx - 3, cy - 1, 6, 2, "#f2c94c"); r(cx - 1, cy - 1, 2, 1, "#d8434a", 1); }
+      if (k === "fruit") { r(cx - 4, cy + 1, 8, 3, "#f4f2ee"); s.push(["e", cx - 2, cy, 1.5, 1.5, "#e84a5a"]); s.push(["e", cx + 1, cy, 1.5, 1.5, "#f2b43a"]); s.push(["e", cx, cy - 1, 1.5, 1.5, "#6ac04a"]); }
+    };
     const leg = (x, y, h) => {
       if (O.shorts) { r(x, y, 3, 4, O.pants); r(x, y + 4, 3, h - 4, E.skin); }
       else r(x, y, 3, h, O.pants);
@@ -492,6 +502,7 @@ LPK.sprites = (() => {
       chest(-18, false);
       r(-1, -19, 2, 1, E.skin);
       head(0, -19, false);
+      if (opt.hold) hold(0, -11);
       return s;
     }
     if (dir === "side") {
@@ -504,6 +515,7 @@ LPK.sprites = (() => {
       arm(-1 + sw, -19, 7);
       r(-1, -21, 2, 1, E.skin);
       head(0, -21, true);
+      if (opt.hold) hold(opt.hold === "plane" ? 6 : 3, opt.hold === "plane" ? -18 : -12);
       return s;
     }
     // front / back
@@ -514,6 +526,7 @@ LPK.sprites = (() => {
     chest(-20, dir === "up");
     r(-1, -21, 2, 1, E.skin);
     head(0, -21, false);
+    if (opt.hold && dir !== "up") hold(0, opt.hold === "plane" ? -22 : -13);
     return s;
   }
 
