@@ -155,7 +155,7 @@ LPK.Owen = class Owen extends LPK.Evan {
       beat(3.6, () => { R.wallet = "out"; });                 // reaches back... pulls out the wallet...
       beat(5.0, () => { R.wallet = "up"; LPK.audio.sfx.bleep(); });   // ...and up comes the (censored) finger
       beat(6.8, () => {
-        this.say(D.owenTenNo[0], 1.6); this.handsOnHead = true; LPK.audio.sfx.startle();
+        this.say(D.owenTenNo[0], 2.2); this.handsOnHead = true; LPK.audio.sfx.startle();
         const away = ["kitchen.joeSeat", "backRoom.field", "owensRoom.owenFloor", "livingRoom.owenCouch"].filter(k => !k.startsWith(this.room + "."));
         this.goTo(away[Math.floor(Math.random() * away.length)], "run", () => { this.handsOnHead = false; this.setState("stand", 2); });
         if (this.sameRoomAsLaura()) LPK.events.emit("tenBucks", {});

@@ -140,7 +140,7 @@ LPK.dialogue = {
   marshmallowStareRo: { normal: "Who invited HER?", family: "Who invited her?" },
   owenTenAsk:    ["Hey, can I have $10?"],
   robertWallet:  ["Sure, let me just get my wallet out."],
-  owenTenNo:     ["NO!"],
+  owenTenNo:     ["NOOOOOOOO!!!!!"],
   zoomieNoises:            ["!!!", "*ZOOM*", "brrrrt!", "*wiggle wiggle*", "!!", "*skrrrt*"],
   afterCatnip:             ["*blinks slowly*", "...what just happened?", "*flops over*"],
   begMeow:                 ["Meow?", "MEOW!", "mrrp?", "Meow meow!", "*more?*", "Mew!"],
