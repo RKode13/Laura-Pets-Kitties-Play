@@ -693,7 +693,8 @@ LPK.roomRenderer = (() => {
         R(g, x + 6, y - 5, 10, 8, "#1e1e22"); R(g, x + 40, y + 3, 8, 6, "#3a3a4a");
         // TV, angled: a slanted dark panel
         g.fillStyle = "#121216"; g.beginPath(); g.moveTo(x + 22, y - 44); g.lineTo(x + 52, y - 38); g.lineTo(x + 52, y - 20); g.lineTo(x + 22, y - 22); g.fill();
-        g.fillStyle = `hsl(${(LPK.game ? LPK.game.time * 10 : 0) % 360},40%,45%)`; g.beginPath(); g.moveTo(x + 24, y - 42); g.lineTo(x + 50, y - 37); g.lineTo(x + 50, y - 22); g.lineTo(x + 24, y - 24); g.fill();
+        g.save(); g.beginPath(); g.moveTo(x + 24, y - 42); g.lineTo(x + 50, y - 37); g.lineTo(x + 50, y - 22); g.lineTo(x + 24, y - 24); g.clip();   // the screen: off, or the scary channels
+        drawScreen(g, "masterBedroom", x + 24, y - 42, 26, 20, LPK.game ? LPK.game.time : 0); g.restore();
         R(g, x + 34, y - 21, 6, 3, "#1e1e22");
       } };
       case "laundryBasket": return { sortY: y + fh, draw: (g) => {
