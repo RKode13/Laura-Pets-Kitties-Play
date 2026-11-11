@@ -64,5 +64,7 @@ LPK.achievements = [
   { id: "designatedDriver",name: "Designated Driver",          desc: "Hear Ro turn down a diet root beer.", event: "rootBeer", build: 4 },
   { id: "tenBucks",        name: "Ten Bucks",                  desc: "Watch Owen ask Robert for $10.", event: "tenBucks", build: 4 },
   { id: "bonk",            name: "Loop-de-Loop... BONK",       desc: "Watch Evan's plane loop around and hit Robert.", event: "planeBonk", build: 4 },
+  { id: "channelSurfer",   name: "Channel Surfer",             desc: "Flip through all three scary channels, then turn the TV off.", event: "tvSurfed", build: 4 },
+  { id: "whatIsThat",      name: "What Is That?!",             desc: "One of the boys catches the scary movie on TV.", event: "tvScare", build: 4 },
   { id: "purrfection",     name: "PURRFECTION!",               desc: "Complete the main story: the Ultimate Kitty Cuddle.", event: "missionComplete", match: { mission: "ultimateCuddle" }, build: 4 },
 ];

@@ -66,6 +66,7 @@ LPK.rooms = {
     },
     interactables: [
       { id: "restCouch", kind: "rest", label: "Rest on the couch", x: 15.5, y: 5.3, seat: { x: 15.5, y: 4.4 } },
+      { id: "tv",        kind: "tv",   label: "TV", x: 3, y: 4.3 },
     ],
     toys: [
       { id: "springBlue", kind: "spring", x: 8, y: 11, colors: ["#4a8ae8", "#7fc3f0"] },
@@ -206,6 +207,7 @@ LPK.rooms = {
     ],
     interactables: [
       { id: "clownSwitch", kind: "clownSwitch", label: "Flip the clown's switch", x: 2.5, y: 6.4 },
+      { id: "tv",          kind: "tv",          label: "TV", x: 4.5, y: 4.3 },
     ],
     toys: [
       { id: "springRainbow", kind: "spring", x: 16.5, y: 11, colors: ["#e8436f", "#ffd166", "#4ac06a", "#4a8ae8"], favorite: true },

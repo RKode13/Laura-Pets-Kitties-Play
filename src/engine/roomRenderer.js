@@ -64,6 +64,48 @@ LPK.roomRenderer = (() => {
     }
   }
 
+  // A TV screen: off (dark, with a reflection), or one of the three scary
+  // channels (spoofs: Shriek, Saturday the 14th, Terrorfied).
+  function drawScreen(g, roomId, x, y, w, h, t) {
+    const tv = LPK.game && LPK.game.tv && LPK.game.tv.room === roomId ? LPK.game.tv : null;
+    g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+    if (!tv) {
+      R(g, x, y, w, h, "#1e2028"); R(g, x + w * 0.15, y + 2, w * 0.2, h - 4, "rgba(255,255,255,0.05)");
+      g.restore(); return;
+    }
+    if (tv.t < 0.35) { for (let i = 0; i < 40; i++) R(g, x + Math.random() * w, y + Math.random() * h, 2, 1, Math.random() < 0.5 ? "#e8e8e8" : "#5a5a62"); g.restore(); return; }   // channel-change static
+    const run = (speed, amp) => x + w / 2 + Math.sin(t * speed) * amp;
+    if (tv.ch === 1) {
+      // SHRIEK: a dark house at night, a masked figure in a black hooded robe
+      R(g, x, y, w, h, "#10131f"); R(g, x + w - 9, y + 3, 5, 5, "#e8e4c8");
+      R(g, x + 3, y + h - 12, 8, 6, "#2a2e40"); R(g, x + 5, y + h - 10, 3, 3, "#f2d060");
+      R(g, x, y + h - 4, w, 4, "#1a1d2a");
+      const fx = run(3.1, w * 0.32), fy = y + h - 4, dir = Math.cos(t * 3.1) >= 0 ? 1 : -1;
+      R(g, fx - 3, fy - 10, 7, 10, "#060608"); R(g, fx - 2, fy - 13, 5, 4, "#060608");
+      R(g, fx - 1, fy - 12, 3, 4, "#f4f4f0"); R(g, fx - 1, fy - 11, 1, 1, "#000"); R(g, fx + 1, fy - 11, 1, 1, "#000"); R(g, fx, fy - 9, 1, 1, "#000");
+      R(g, fx + dir * 4, fy - 8, 1, 3, "#c8ccd4");
+    } else if (tv.ch === 2) {
+      // SATURDAY THE 14TH: a summer camp lake at night, a big guy in a hockey mask
+      R(g, x, y, w, h, "#0c1a14"); R(g, x, y + h - 9, w, 4, "#14304a");
+      R(g, x + 2, y + 4, 4, 9, "#16301e"); R(g, x + w - 8, y + 2, 5, 11, "#16301e");
+      R(g, x, y + h - 5, w, 5, "#1a2a18");
+      const fx = run(1.3, w * 0.28), fy = y + h - 4;
+      R(g, fx - 3, fy - 9, 7, 9, "#3a3a2a"); R(g, fx - 2, fy - 13, 5, 5, "#e8e4d8");
+      R(g, fx - 1, fy - 12, 1, 1, "#000"); R(g, fx + 1, fy - 12, 1, 1, "#000"); R(g, fx - 1, fy - 10, 1, 1, "#c83a3a"); R(g, fx + 1, fy - 10, 1, 1, "#c83a3a");
+      R(g, fx + 4, fy - 9, 1, 5, "#b8bcc4");
+    } else {
+      // TERRORFIED: a flickering black-and-white mime clown with a tiny hat
+      R(g, x, y, w, h, Math.floor(t * 9) % 7 ? "#0a0a0a" : "#2a2a2a");
+      for (let i = 0; i < 4; i++) R(g, x + i * (w / 4) + 2, y + h - 5, 2, 5, "#1a1a1a");
+      const fx = x + w / 2 + Math.sin(t * 4.2) * w * 0.3 + Math.sin(t * 11) * 2, fy = y + h - 3;
+      R(g, fx - 3, fy - 9, 7, 9, "#f2f2f2"); R(g, fx, fy - 8, 1, 1, "#000"); R(g, fx, fy - 6, 1, 1, "#000"); R(g, fx, fy - 4, 1, 1, "#000");
+      R(g, fx - 2, fy - 13, 5, 4, "#f8f8f8"); R(g, fx - 1, fy - 12, 1, 1, "#000"); R(g, fx + 1, fy - 12, 1, 1, "#000"); R(g, fx - 1, fy - 10, 3, 1, "#000");
+      R(g, fx - 1, fy - 15, 3, 2, "#000"); R(g, fx - 2, fy - 13, 5, 1, "#000");
+    }
+    R(g, x, y, w, 1, "rgba(255,255,255,0.08)");
+    g.restore();
+  }
+
   function drawWalls(g, w, t) {
     const d = w.def, T = w.T, wallH = d.wallRows * T;
     // back wall
@@ -178,11 +220,7 @@ LPK.roomRenderer = (() => {
       if (dec.kind === "tv") {
         // TV standing on the media stand
         R(g, x, 8, dw, 34, "#121216");
-        const hue = (t * 8) % 360;
-        const grd = g.createLinearGradient(x, 10, x + dw, 40);
-        grd.addColorStop(0, `hsl(${hue},55%,55%)`); grd.addColorStop(1, `hsl(${(hue + 60) % 360},65%,62%)`);
-        g.fillStyle = grd; g.fillRect(Math.round(x + 2), 10, Math.round(dw - 4), 30);
-        R(g, x + dw / 2 - 6, 18 + Math.round(Math.sin(t * 2) * 2), 12, 10, "rgba(255,255,255,0.55)");
+        drawScreen(g, w.id, Math.round(x + 2), 10, Math.round(dw - 4), 30, t);
         R(g, x + dw / 2 - 4, 42, 8, 4, "#1d1d22");
       } else if (dec.kind === "kitchenDoor") {
         // doorway into the kitchen
@@ -244,7 +282,7 @@ LPK.roomRenderer = (() => {
         R(g, x - 1, 3, dw + 2, 3, "#9a948a");
       } else if (dec.kind === "tvSmall") {
         R(g, x, 12, dw, 24, "#121216");
-        R(g, x + 2, 14, dw - 4, 20, `hsl(${(t * 6) % 360},40%,40%)`);
+        drawScreen(g, w.id, x + 2, 14, dw - 4, 20, t);
       } else if (dec.kind === "brickChimney") {
         R(g, x, 6, dw, wallH - 6, "#d8d4ce");
         for (let yy = 8, row = 0; yy < wallH; yy += 4, row++) for (let xx = x + (row % 2) * 4; xx < x + dw; xx += 8) R(g, xx, yy, 1, 4, "#bdb8b0");

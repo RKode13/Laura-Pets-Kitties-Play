@@ -48,7 +48,7 @@ LPK.game = (() => {
     G.joe.sync(); G.cupView = null;
     G.ro = new LPK.Ro(G);
     G.ro.sync();
-    LPK.catFight.end(G); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null;
+    LPK.catFight.end(G); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.tv = null; G.tvScare = null;
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -258,6 +258,7 @@ LPK.game = (() => {
     if (o.kind === "rest") return { kind: "rest", obj: o, label: G.clock.phase === "night" ? "Rest on the couch (time flies)" : "Rest on the couch", ok: true };
     if (o.kind === "bowl") return { kind: "bowl", obj: o, label: G.holding ? `Fill ${o.label} with ${LPK.foods[G.holding].name}` : `${o.label} (empty-handed)`, ok: true };
     if (o.kind === "trash") return { kind: "trash", obj: o, label: "Check the trash can", ok: true };
+    if (o.kind === "tv") { const on = G.tv && G.tv.room === G.room; return { kind: "tv", obj: o, label: !on ? "Turn on the TV" : G.tv.ch < 3 ? "Change the channel" : "Turn off the TV", ok: true }; }
     if (o.kind === "backyard") return { kind: "backyard", obj: o, label: G.yard ? "(admiring the yard...)" : "Look out at the backyard", ok: !G.yard };
     return { kind: "hide", obj: o, label: o.label, ok: true };
   }
@@ -267,6 +268,7 @@ LPK.game = (() => {
     switch (tg.kind) {
       case "evanBed": L.say(D().lauraBedtime[0], 1.6); G.evan.tuckIn(); break;
       case "backyard": G.admireYard(); break;
+      case "tv": G.pressTV(); break;
       case "smooch": G.giveSmooches(); break;
       case "joeCup": G.joe.giveLauraCup(); break;
       case "donut": G.joe.donutTaken = true; L.sayRandom(D().lauraDonut, 2.2); G.progression.addPoints(3); LPK.audio.sfx.crunch(); break;
@@ -510,6 +512,54 @@ LPK.game = (() => {
     }
   }
 
+  // The TV: on (channel 1) -> channel 2 -> channel 3 -> off. Three scary
+  // movie spoofs. If one of the boys is in the room, "What is that?" and he
+  // runs out screaming.
+  G.pressTV = () => {
+    const L = G.laura, Dl = D(), on = G.tv && G.tv.room === G.room;
+    LPK.audio.sfx.click();
+    if (on && G.tv.ch >= 3) {
+      const surfed = G.tv.seen && G.tv.seen.size >= 3;
+      G.tv = null;
+      L.say(Dl.lauraTvOff[0], 3);
+      if (surfed) LPK.events.emit("tvSurfed", {});
+      return;
+    }
+    if (!on) G.tv = { room: G.room, ch: 1, t: 0, seen: new Set([1]), scared: false };
+    else { G.tv.ch++; G.tv.t = 0; G.tv.seen.add(G.tv.ch); }
+    LPK.audio.sfx.sting();
+    G.notify(`Channel ${G.tv.ch}: ${Dl.tvShows[G.tv.ch]}`, Dl.tvBlurbs[G.tv.ch]);
+  };
+  function updateTV(dt) {
+    const T = G.tv; if (!T) { G.tvScare = null; return; }
+    T.t += dt;
+    const Dl = D();
+    // a boy is in (or wanders into) the room while it's on
+    if (!T.scared && !G.tvScare && T.room === G.room && T.t > 0.6) {
+      const kids = [G.evan, G.owen].filter(k => k && k.mode === "day" && k.room === T.room && !k.fighting && !k.moving && k.state !== "streaks");
+      if (kids.length) {
+        const k = kids[Math.floor(Math.random() * kids.length)];
+        T.scared = true;
+        k.stopMoving(); k.tasks = []; k.holding = null; k.fighting = true; k.setState("stand", 99);
+        k.say(Dl.kidWhatIsThat[0], 1.8);
+        G.tvScare = { kid: k, t: 0 };
+      }
+    }
+    const S = G.tvScare;
+    if (S) {
+      S.t += dt;
+      if (S.t > 1.9 && !S.ran) {
+        S.ran = true; const k = S.kid;
+        k.say(Dl.kidTvScream[0], 2.6); k.handsOnHead = true; LPK.audio.sfx.startle();
+        const away = ["kitchen.table", "backRoom.field", "evansRoom.evanPlay", "owensRoom.owenFloor", "livingRoom.couch"].filter(key => !key.startsWith(k.room + "."));
+        k.fighting = false;
+        k.goTo(away[Math.floor(Math.random() * away.length)], "run", () => { k.handsOnHead = false; k.setState("stand", 2); });
+        if (k.sameRoomAsLaura()) LPK.events.emit("tvScare", { kid: k.id });
+      }
+      if (S.t > 3) G.tvScare = null;
+    }
+  }
+
   G.pickFood = (food) => {
     G.foodMenu = null;
     if (!food) { G.holding = null; G.laura.say("Put it away.", 1.2); return; }
@@ -587,6 +637,7 @@ LPK.game = (() => {
     if (G.cupView && (G.cupView.t += dt) > G.cupView.total) G.cupView = null;
     updateYard(dt);
     updateHungry(dt);
+    updateTV(dt);
     updateSmooches(dt);
     LPK.catFight.update(G, dt);
     if (G.fightText && (G.fightText.t -= dt) <= 0) G.fightText = null;
@@ -840,12 +891,15 @@ LPK.game = (() => {
       : G.evan && G.evan.bonk && ["aim", "fly", "bonk"].includes(G.evan.bonk.step) && G.evan.bonk.t < 6 && G.evan.room === G.room ? G.evan : null;
     const fightCam = so ? { x: (so.a.x + so.b.x) / 2, y: (so.a.y + so.b.y) / 2 - 22 }
       : tb ? { x: (tb.x + G.robert.x) / 2, y: (tb.y + G.robert.y) / 2 - 22 } : !stareCat && !clownCam && LPK.catFight.focus(G);
-    const yardCam = !stareCat && !fightCam && G.yard && G.room === "kitchen" && G.yard.t < 2.0 ? { x: 17.25 * 16, y: 3 * 16 + 4 } : null;
-    computeView(faceCam ? 3 : fightCam ? 2 : yardCam || stareCat || clownCam ? 1 : 0);
-    const focus = yardCam ? yardCam : fightCam ? fightCam : stareCat ? { x: stareCat.x, y: stareCat.y - stareCat.z }
+    // zoom in on the TV for a moment after turning it on / changing the channel
+    const tvDec = G.tv && G.tv.room === G.room && G.tv.t < 2.6 && !stareCat && !fightCam ? G.world.def.wallDecor.find(d => d.kind === "tv" || d.kind === "tvSmall") : null;
+    const tvCam = tvDec ? { x: (tvDec.x + tvDec.w / 2) * 16, y: 52 } : null;
+    const yardCam = !stareCat && !fightCam && !tvCam && G.yard && G.room === "kitchen" && G.yard.t < 2.0 ? { x: 17.25 * 16, y: 3 * 16 + 4 } : null;
+    computeView(faceCam ? 3 : fightCam || tvCam ? 2 : yardCam || stareCat || clownCam ? 1 : 0);
+    const focus = tvCam ? tvCam : yardCam ? yardCam : fightCam ? fightCam : stareCat ? { x: stareCat.x, y: stareCat.y - stareCat.z }
       : faceCam ? { x: G.clownPos.x + 8, y: G.clownPos.y - 30 }
       : clownCam ? { x: G.clownPos.x + 20, y: G.clownPos.y - 10 } : G.laura;
-    updateCamera(G.dt, focus, faceCam || !!fightCam || !!yardCam);
+    updateCamera(G.dt, focus, faceCam || !!fightCam || !!yardCam || !!tvCam);
     const g = bctx;
     g.imageSmoothingEnabled = false;
     g.setTransform(1, 0, 0, 1, 0, 0);
