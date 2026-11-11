@@ -884,15 +884,18 @@ LPK.roomRenderer = (() => {
   }
   // its glow shows day and night (stronger at night) and tints the room a little
   function drawMoodLamps(g, w, darkness, t) {
-    const lamp = w.def.furniture.find(f => f.light === "mood"); if (!lamp) return;
+    const lamps = w.def.furniture.filter(f => f.light === "mood"); if (!lamps.length) return;
     const c = moodColor(t, w.id); if (!c) return;
     const mode = lampModeFor(w.id);
     const rad = mode === "bright" || mode === "warm" ? 125 : mode === "dim" ? 60 : mode === "unicorn" ? 130 : 95;
-    const T = w.T, x = lamp.x * T + 8, y = lamp.y * T - 22, a = (0.3 + darkness * 0.8) * c[3];
+    const T = w.T, a = (0.3 + darkness * 0.8) * c[3];
     g.globalCompositeOperation = "lighter";
-    const grd = g.createRadialGradient(x, y, 0, x, y, rad);
-    grd.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${a})`); grd.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
-    g.fillStyle = grd; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    for (const lamp of lamps) {                                   // every lamp in the room shares the same setting
+      const x = lamp.x * T + 8, y = lamp.y * T - 22;
+      const grd = g.createRadialGradient(x, y, 0, x, y, rad);
+      grd.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${a})`); grd.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
+      g.fillStyle = grd; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    }
     g.globalCompositeOperation = "source-over";
     const tint = mode === "unicorn" ? 0.08 + darkness * 0.12 : mode === "christmas" || mode === "halloween" ? 0.03 + darkness * 0.07 : 0;
     if (tint) { g.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${tint * c[3]})`; g.fillRect(0, 0, w.width, w.height); }

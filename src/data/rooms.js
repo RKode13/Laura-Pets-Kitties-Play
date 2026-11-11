@@ -33,7 +33,7 @@ LPK.rooms = {
     ],
     furniture: [
       { id: "tvStand",    kind: "tvStand",         x: 1,  y: 3,  w: 4,  h: 1, solid: true },
-      { id: "floorLamp",  kind: "floorLamp",       x: 9,  y: 3,  w: 1,  h: 1, solid: true, light: true },
+      { id: "floorLamp",  kind: "moodLamp",        x: 9,  y: 3,  w: 1,  h: 1, solid: true, light: "mood" },   // synced with the lamp at the other end
       { id: "sideTable",  kind: "sideTable",       x: 10, y: 3,  w: 1,  h: 1, solid: true },
       { id: "sectional",  kind: "sectionalLong",   x: 11, y: 3,  w: 10, h: 2, solid: true },
       { id: "sectional2", kind: "sectionalReturn", x: 19, y: 5,  w: 2,  h: 5, solid: true },
@@ -69,6 +69,7 @@ LPK.rooms = {
       { id: "restCouch", kind: "rest", label: "Rest on the couch", x: 15.5, y: 5.3, seat: { x: 15.5, y: 4.4 } },
       { id: "tv",        kind: "tv",   label: "TV", x: 3, y: 4.3 },
       { id: "moodLamp",  kind: "moodLamp", label: "Lamp", x: 19.6, y: 11.4 },
+      { id: "moodLamp2", kind: "moodLamp", label: "Lamp", x: 9.4, y: 4.4 },
     ],
     toys: [
       { id: "springBlue", kind: "spring", x: 8, y: 11, colors: ["#4a8ae8", "#7fc3f0"] },
