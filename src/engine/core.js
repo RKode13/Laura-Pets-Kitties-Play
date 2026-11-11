@@ -143,6 +143,7 @@ LPK.audio = (() => {
     kiss: () => { tone(1300 + Math.random() * 300, 0.06, 0.04, "sine", 0.6); tone(700, 0.05, 0.03, "triangle", 1.4, 0.05); },
     sting: () => { tone(220, 0.6, 0.06, "sawtooth", 0.98); tone(233, 0.6, 0.05, "sawtooth", 0.98); tone(880, 0.25, 0.03, "square", 0.5, 0.05); },
     tear: () => tone(300 + Math.random() * 200, 0.04, 0.025, "sawtooth", 0.6),
+    slap: () => { tone(1800, 0.05, 0.1, "square", 0.3); tone(400, 0.08, 0.08, "sawtooth", 0.5, 0.01); },
     hiss: () => { for (let i = 0; i < 4; i++) tone(1400 + Math.random() * 900, 0.05, 0.025, "sawtooth", 0.7, i * 0.04); },
     slam: () => { tone(90, 0.35, 0.14, "square", 0.5); tone(140, 0.2, 0.08, "sawtooth", 0.4, 0.02); },
     bell: () => { tone(1568, 0.5, 0.07, "triangle", 1.0); tone(2350, 0.4, 0.03, "sine", 1.0); },

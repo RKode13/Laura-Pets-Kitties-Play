@@ -795,8 +795,15 @@ LPK.roomRenderer = (() => {
   // The mood lamp: warm, Christmas (slow fade red <-> green), Halloween
   // (flickering candle), or off. Returns [r, g, b, brightness] or null.
   function moodColor(t) {
-    const mode = (LPK.save && LPK.save.data.lampMode) || "warm";
+    let mode = (LPK.save && LPK.save.data.lampMode) || "bright";
+    if (mode === "warm") mode = "bright";
     if (mode === "off") return null;
+    if (mode === "dim") return [255, 185, 110, 0.38];
+    if (mode === "unicorn") {                                    // unicorn farts in a bottle: spazzy rainbow everything
+      const step = Math.floor(t * 14), h = ((step * 137.5) % 360 + Math.sin(t * 31) * 20 + 360) % 360, b = 0.55 + 0.45 * ((step * 7919) % 10) / 10;
+      const f = (n) => { const k = (n + h / 30) % 12; return Math.round(255 * (0.5 - 0.5 * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); };
+      return [f(0), f(8), f(4), b];
+    }
     if (mode === "christmas") {                                  // red fades in and out, then green
       const s = Math.sin(t * 1.2);
       return s >= 0 ? [255, 40, 50, 0.12 + 0.88 * s] : [40, 225, 80, 0.12 + 0.88 * -s];
@@ -805,19 +812,22 @@ LPK.roomRenderer = (() => {
       const f = 0.62 + 0.18 * Math.sin(t * 9.3) + 0.12 * Math.sin(t * 23.7 + 1.3) + 0.08 * Math.sin(t * 41 + 0.7) + (Math.random() < 0.04 ? -0.25 : 0);
       return [255, Math.round(120 + 40 * f), 30, Math.max(0.2, Math.min(1, f))];
     }
-    return [255, 210, 140, 1];
+    return [255, 236, 200, 1];                                   // bright
   }
   // its glow shows day and night (stronger at night) and tints the room a little
   function drawMoodLamps(g, w, darkness, t) {
     const lamp = w.def.furniture.find(f => f.light === "mood"); if (!lamp) return;
     const c = moodColor(t); if (!c) return;
+    const mode = LPK.save.data.lampMode || "bright";
+    const rad = mode === "bright" || mode === "warm" ? 125 : mode === "dim" ? 60 : mode === "unicorn" ? 130 : 95;
     const T = w.T, x = lamp.x * T + 8, y = lamp.y * T - 22, a = (0.3 + darkness * 0.8) * c[3];
     g.globalCompositeOperation = "lighter";
-    const grd = g.createRadialGradient(x, y, 0, x, y, 95);
+    const grd = g.createRadialGradient(x, y, 0, x, y, rad);
     grd.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${a})`); grd.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
-    g.fillStyle = grd; g.fillRect(x - 95, y - 95, 190, 190);
+    g.fillStyle = grd; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
     g.globalCompositeOperation = "source-over";
-    if ((LPK.save.data.lampMode || "warm") !== "warm") { g.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${(0.03 + darkness * 0.07) * c[3]})`; g.fillRect(0, 0, w.width, w.height); }
+    const tint = mode === "unicorn" ? 0.08 + darkness * 0.12 : mode === "christmas" || mode === "halloween" ? 0.03 + darkness * 0.07 : 0;
+    if (tint) { g.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${tint * c[3]})`; g.fillRect(0, 0, w.width, w.height); }
   }
 
   // Night lighting overlay + lamp glows.

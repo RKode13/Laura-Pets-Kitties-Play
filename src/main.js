@@ -48,7 +48,7 @@ LPK.game = (() => {
     G.joe.sync(); G.cupView = null;
     G.ro = new LPK.Ro(G);
     G.ro.sync();
-    LPK.catFight.end(G); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.tv = null; G.tvScare = null; G.debris = [];
+    LPK.catFight.end(G); LPK.sneak.end(); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.tv = null; G.tvScare = null; G.debris = [];
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -273,12 +273,14 @@ LPK.game = (() => {
       case "backyard": G.admireYard(); break;
       case "tv": G.pressTV(); break;
       case "moodLamp": {
-        const set = (mode, line) => () => { LPK.save.data.lampMode = mode; LPK.save.write(); LPK.audio.sfx.click(); if (line) L.say(line, 2); if (mode !== "warm" && mode !== "off") LPK.events.emit("lampMode", { mode }); };
+        const set = (mode, line) => () => { LPK.save.data.lampMode = mode; LPK.save.write(); LPK.audio.sfx.click(); if (line) L.say(line, 2); if (["christmas", "halloween", "unicorn"].includes(mode)) LPK.events.emit("lampMode", { mode }); };
         G.choiceMenu = { title: "The Lamp", sub: "Set the mood", sel: 0, options: [
           { label: "Christmas (red and green fade)", fn: set("christmas", "Ooh, festive!") },
           { label: "Halloween (candle flicker)", fn: set("halloween", "Spooky...") },
-          { label: "Regular warm light", fn: set("warm", "Nice and cozy.") },
-          { label: "Turn it off", fn: set("off") },
+          { label: "Unicorn Farts in a Bottle", fn: set("unicorn", "WHOA. Unicorn farts!") },
+          { label: "Bright light", fn: set("bright", "Nice and bright.") },
+          { label: "Dim light", fn: set("dim", "Ahh, cozy.") },
+          { label: "Off", fn: set("off") },
           { label: "Never mind", fn: () => {} },
         ] };
         LPK.audio.sfx.click();
@@ -689,6 +691,7 @@ LPK.game = (() => {
     updateDebris(dt);
     updateSmooches(dt);
     LPK.catFight.update(G, dt);
+    LPK.sneak.update(G, dt);
     if (G.fightText && (G.fightText.t -= dt) <= 0) G.fightText = null;
     G.shake = Math.max(0, (G.shake || 0) - dt);
     G.toys.forEach(t => {
@@ -939,7 +942,7 @@ LPK.game = (() => {
     const tb = G.owen && G.owen.ten && G.owen.ten.step === "ask" && G.owen.room === G.room ? G.owen
       : G.evan && G.evan.bonk && ["aim", "fly", "bonk"].includes(G.evan.bonk.step) && G.evan.bonk.t < 6 && G.evan.room === G.room ? G.evan : null;
     const fightCam = so ? { x: (so.a.x + so.b.x) / 2, y: (so.a.y + so.b.y) / 2 - 22 }
-      : tb ? { x: (tb.x + G.robert.x) / 2, y: (tb.y + G.robert.y) / 2 - 22 } : !stareCat && !clownCam && LPK.catFight.focus(G);
+      : tb ? { x: (tb.x + G.robert.x) / 2, y: (tb.y + G.robert.y) / 2 - 22 } : !stareCat && !clownCam && (LPK.catFight.focus(G) || LPK.sneak.focus(G));
     // zoom in on the TV for a moment after turning it on / changing the channel
     const tvDec = G.tv && G.tv.room === G.room && G.tv.t < 2.6 && !stareCat && !fightCam ? G.world.def.wallDecor.find(d => d.kind === "tv" || d.kind === "tvSmall") : null;
     const tvCam = tvDec ? { x: (tvDec.x + tvDec.w / 2) * 16, y: 52 } : null;
@@ -975,6 +978,7 @@ LPK.game = (() => {
       P.rect(g, x + 22, y - 2, 9, 10, "#d8b888"); P.rect(g, x + 22, y - 2, 9, 2, "#c8a070"); P.rect(g, x + 24, y + 3, 5, 2, "#c84a3a");
     } });
     LPK.catFight.drawItems(items, G);
+    LPK.sneak.drawItems(items, G);
     for (const p of (G.debris || [])) if (p.room === G.room) items.push({ sortY: p.z > 0 ? p.y + 20 : p.y - 6, draw: (g) => LPK.px.rect(g, Math.round(p.x), Math.round(p.y - p.z), p.w, p.h, p.c) });
     if (G.smooches && G.smooches.room === G.room) {
       const S = G.smooches;

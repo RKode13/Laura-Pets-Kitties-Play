@@ -133,7 +133,7 @@ LPK.Cat = class Cat {
   speedFor(mode) {
     const b = this.beh;
     return { walk: b.walkSpeed, run: b.runSpeed || b.walkSpeed * 2, sprint: b.sprintSpeed || b.runSpeed || b.walkSpeed * 3,
-      turbo: b.turboSpeed || b.walkSpeed, zoom: this.zoomSpeed || b.walkSpeed * 4, boss: b.bossWalkSpeed || b.walkSpeed }[mode] || b.walkSpeed;
+      turbo: b.turboSpeed || b.walkSpeed, sneak: b.walkSpeed * 0.6, zoom: this.zoomSpeed || b.walkSpeed * 4, boss: b.bossWalkSpeed || b.walkSpeed }[mode] || b.walkSpeed;
   }
 
   updateMovement(dt) {
@@ -370,6 +370,7 @@ LPK.Cat = class Cat {
       case "move": {
         const m = this.moveMode;
         if (m === "zoom") return { pose: "sprint", frame: Math.floor(t * 18) };
+        if (m === "sneak") return { pose: "prep", frame: Math.floor(t * 4), eyes: "open" };
         if (m === "sprint") return { pose: "sprint", frame: Math.floor(t * 14) };
         if (m === "turbo") return { pose: "turbo", frame: Math.floor(t * (this.beh.turboLegFps || 20)), eyes: "annoyed", jitter: Math.floor(t * 20) % 2 };
         if (m === "run") return { pose: "walk", frame: Math.floor(t * 11) };
