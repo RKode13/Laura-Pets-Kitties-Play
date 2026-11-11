@@ -108,7 +108,7 @@ LPK.Ro = class Ro extends LPK.Evan {
     R.t += dt;
     if (R.step === 0 && R.t > 2.6) { R.step = 1; this.say(D.roRootBeer[0], 4); }
     if (R.step === 1 && R.t > 6.8) {                          // Ro gets the last word
-      R.kid.fighting = false; R.kid.setState("stand", 1); this.rb = null;
+      R.kid.fighting = false; R.kid.setState("stand", 1); this.setCooldown("hi-" + R.kid.id, 150); this.rb = null;
       if (this.sameRoomAsLaura()) LPK.events.emit("rootBeer", {});
     }
   }
