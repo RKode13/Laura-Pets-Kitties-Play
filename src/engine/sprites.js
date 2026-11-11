@@ -52,6 +52,19 @@ LPK.sprites = (() => {
       r(10, -21 - b, 1, 1, L.eyes, 1); r(10, -18 - b, 2, 1 + b, L.lips, 1);   // singing
       return s;
     }
+    if (pose === "affirm") {                      // kneeling, one hand cupping his face, the other petting, looking right at him
+      const pat = frame % 2;
+      r(-6, -2, 4, 2, L.shoes); r(-5, -6, 8, 4, L.pants);
+      r(-4, -16, 7, 10, L.top);
+      r(-6, -26, 6, 15, L.hairDark);
+      r(-2, -24, 6, 8, L.skin);
+      r(-5, -27, 8, 4, L.hair); r(-5, -24, 3, 12, L.hair); r(2, -26, 3, 2, L.hair);
+      r(-6, -20, 1, 4, L.hairLight, 1);
+      r(3, -22, 1, 2, L.eyes, 1); r(4, -18, 2, 1, L.lips, 1);            // eyes straight ahead, a soft smile
+      r(1, -13, 7, 2, L.top); r(8, -14, 2, 4, L.skin);                    // the cupping hand under his chin
+      r(0, -16, 7, 2, L.topDark); r(7 + pat, -18 - pat, 3, 2, L.skin);    // the petting hand, stroking his head
+      return s;
+    }
     if (pose === "kneel") {                       // side view, kneeling, petting
       const pat = opt.pat || 0;                  // hand pat offset (0/1/2)
       r(-6, -2, 4, 2, L.shoes);                  // back foot

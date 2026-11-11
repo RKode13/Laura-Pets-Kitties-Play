@@ -48,7 +48,7 @@ LPK.game = (() => {
     G.joe.sync(); G.cupView = null;
     G.ro = new LPK.Ro(G);
     G.ro.sync();
-    LPK.catFight.end(G); LPK.sneak.end(); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.tv = null; G.tvScare = null; G.debris = []; G.dishwasher = null; G.laundry = null;
+    LPK.catFight.end(G); LPK.sneak.end(); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.affirm = null; G.affirmDay = null; G.affirmNoteDay = null; G.tv = null; G.tvScare = null; G.debris = []; G.dishwasher = null; G.laundry = null;
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -245,6 +245,8 @@ LPK.game = (() => {
       const atHerBowl = c.id !== "marshmallow" && ((c.eatingBowl === "herBowl") || (c.moving && c.tasks.some(t => t.spot && t.spot.id === "atHerBowl")));
       if (atHerBowl) return { kind: "shoo", cat: c, label: `Shoo ${c.def.nicknames[0]} away from her bowl!`, ok: true };
       if (c.state === "trash") return { kind: "trashCat", cat: c, label: "Get Popsicle out of the trash!", ok: true };
+      if (c.id === "popsicle" && !G.holding && G.affirmReady() && c.z === 0 && !c.fighting && !c.begging && !c.zoomies && !c.moving
+          && ["sit", "sleep", "box", "confused", "intrigued", "inspect", "window", "stand"].includes(c.state)) return { kind: "affirm", cat: c, label: "Daily affirmations for Orangey", ok: true };
       if (G.holding) return { kind: "feed", cat: c, label: `Give ${LPK.foods[G.holding].name} to ${c.def.nicknames && c.def.nicknames[0] || c.def.name}`, ok: c.state !== "transit" };
       return { kind: "pet", cat: c, label: `Pet ${c.def.nicknames && c.def.nicknames[0] || c.def.name}`, ok: c.available };
     }
@@ -311,6 +313,7 @@ LPK.game = (() => {
         LPK.events.emit("artViewed", {});
         break;
       }
+      case "affirm": G.startAffirm(tg.cat); break;
       case "pet": tg.cat.available ? G.petting.start(tg.cat) : G.petting.start(tg.cat); break;
       case "feed": {
         const c = tg.cat;
@@ -519,6 +522,54 @@ LPK.game = (() => {
       LPK.events.emit("smoochies", {});
     }
     if (S.t > 4.5) G.smooches = null;
+  }
+
+  // Orangey's DAILY AFFIRMATIONS (10-11 AM): Laura kneels, cups his face in one
+  // hand and pets him with the other, they look right at each other, and she
+  // tells him how orange, handsome, pretty and silky he is. Last line, always:
+  // "And everybody loves you."
+  G.affirmReady = () => { const c = G.clock; return c.minutes >= 600 && c.minutes < 660 && G.affirmDay !== c.day && !G.affirm; };
+  G.startAffirm = (cat) => {
+    const L = G.laura;
+    cat.stopMoving(); cat.tasks = []; cat.stopEating && cat.stopEating();
+    cat.fighting = true; cat.fightPose = "sit"; cat.state = "sit";
+    // kneel right beside him, nose to nose
+    let side = L.x <= cat.x ? -1 : 1;
+    if (!G.world.boxFree(cat.x + side * 13 - 4, cat.y - 3, 8, 4)) side = -side;
+    L.x = cat.x + side * 13; L.y = cat.y; L.dir = "side"; L.flip = side > 0; L.state = "affirm";
+    cat.flip = side < 0;
+    G.holdingToy = null;
+    G.affirm = { cat, t: 0, i: -1, next: 0.2 };
+    G.affirmDay = G.clock.day;
+    LPK.audio.purr(0.6);
+  };
+  function updateAffirm(dt) {
+    const A = G.affirm; if (!A) return;
+    const L = G.laura, c = A.cat, lines = D().lauraAffirm;
+    A.t += dt;
+    if (c.room !== G.room && A.i < lines.length - 1) { endAffirm(false); return; }
+    if (A.t >= A.next) {
+      A.i++;
+      if (A.i < lines.length) {
+        L.say(lines[A.i], A.i === lines.length - 1 ? 3.2 : 2.4);
+        if (A.i > 0 && A.i < lines.length - 1) setTimeout(() => G.affirm === A && c.say(D().popAffirm[(A.i - 1) % D().popAffirm.length], 1.2), 1500);
+        A.next = A.t + (A.i === lines.length - 1 ? 3.6 : 2.7);
+      } else endAffirm(true);
+    }
+  }
+  function endAffirm(done) {
+    const A = G.affirm; if (!A) return;
+    const L = G.laura, c = A.cat;
+    G.affirm = null;
+    c.fighting = false; c.fightPose = null; c.setState("sit", 5);
+    if (L.state === "affirm") L.state = "idle";
+    LPK.audio.purr(0);
+    if (done) {
+      c.say("*the happiest purr*", 2.2);
+      G.progression.addPoints(10); G.notify("Daily affirmations: done!", "Orangey feels very orange. +10 Kitty Happiness Points");
+      LPK.audio.sfx.found();
+      LPK.events.emit("dailyAffirmations", {});
+    }
   }
 
   G.blindsOpen = () => { const Y = G.yard; if (!Y) return 0; return Y.t < 0.7 ? Y.t / 0.7 : Y.t > 9.5 ? Math.max(0, (10.3 - Y.t) / 0.8) : 1; };
@@ -775,6 +826,10 @@ LPK.game = (() => {
     updateDishwasher(dt);
     updateLaundry(dt);
     updateSmooches(dt);
+    updateAffirm(dt);
+    if (G.clock.minutes >= 600 && G.clock.minutes < 660 && G.affirmNoteDay !== G.clock.day && G.affirmDay !== G.clock.day) {
+      G.affirmNoteDay = G.clock.day; G.notify("10 AM: Daily affirmations!", "Find Orangey and remind him how handsome he is.");
+    }
     LPK.catFight.update(G, dt);
     LPK.sneak.update(G, dt);
     if (G.fightText && (G.fightText.t -= dt) <= 0) G.fightText = null;
@@ -1032,7 +1087,8 @@ LPK.game = (() => {
     const so = G.stareOff && G.room === "kitchen" ? G.stareOff : null;
     const tb = G.owen && G.owen.ten && G.owen.ten.step === "ask" && G.owen.room === G.room ? G.owen
       : G.evan && G.evan.bonk && ["aim", "fly", "bonk"].includes(G.evan.bonk.step) && G.evan.bonk.t < 6 && G.evan.room === G.room ? G.evan : null;
-    const fightCam = so ? { x: (so.a.x + so.b.x) / 2, y: (so.a.y + so.b.y) / 2 - 22 }
+    const af = G.affirm && G.affirm.cat.room === G.room ? G.affirm : null;
+    const fightCam = af ? { x: (af.cat.x + G.laura.x) / 2, y: G.laura.y - 16 } : so ? { x: (so.a.x + so.b.x) / 2, y: (so.a.y + so.b.y) / 2 - 22 }
       : tb ? { x: (tb.x + G.robert.x) / 2, y: (tb.y + G.robert.y) / 2 - 22 } : !stareCat && !clownCam && (LPK.catFight.focus(G) || LPK.sneak.focus(G));
     const tvCam = null;                                         // the TV no longer zooms; the view stays put
     const yardCam = !stareCat && !fightCam && !tvCam && G.yard && G.room === "kitchen" && G.yard.t < 2.0 ? { x: 17.25 * 16, y: 3 * 16 + 4 } : null;
