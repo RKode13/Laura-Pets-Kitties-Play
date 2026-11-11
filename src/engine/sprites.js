@@ -7,8 +7,10 @@ LPK.sprites = (() => {
   // ------------------------------------------------------------ LAURA
   // dir: "down" | "up" | "side" (side faces right; flip for left)
   function laura(pose, dir, frame = 0, opt = {}) {
-    const C = LPK.characters.laura, outfit = C.outfits && C.outfits[(LPK.save && LPK.save.data.outfit) || "cozy"];
-    const L = Object.assign({}, C.look, outfit ? { top: outfit.top, topDark: outfit.topDark, pants: outfit.pants, shoes: outfit.shoes } : {}), s = [];
+    // (also draws Ro Pino: opt.who = "ro", opt.outfitDef = one of her outfits)
+    const C = LPK.characters[opt.who || "laura"], outfit = opt.outfitDef || (C.outfits && C.outfits[(LPK.save && LPK.save.data.outfit) || "cozy"]);
+    const L = Object.assign({}, C.look, outfit || {}), s = [];
+    const hl = L.shortHair ? 5 : 0;                // shoulder-length hair is 5px shorter
     const r = (x, y, w, h, c, n) => s.push(["r", x, y, w, h, c, n]);
     const step = (pose === "walk" || pose === "run") ? frame % 4 : -1;
     const lift = step === 1 ? [1, 0] : step === 3 ? [0, 1] : [0, 0];
@@ -54,7 +56,7 @@ LPK.sprites = (() => {
 
     if (dir === "side") {
       const swing = step === 1 ? 1 : step === 3 ? -1 : 0;
-      r(-4, -27, 6, 16, L.hairDark);
+      r(-4, -27, 6, 16 - hl, L.hairDark);
       r(-3, -15, 6, 9, L.top);
       if (step === 1 || step === 3) {
         r(-3 + swing, -6, 2, 5, L.pants); r(1 - swing, -6, 2, 5, L.pants);
@@ -65,8 +67,9 @@ LPK.sprites = (() => {
       }
       r(-1, -25, 6, 8, L.skin);
       r(-4, -28, 8, 4, L.hair);
-      r(-5, -26, 4, 14, L.hair);
+      r(-5, -26, 4, 14 - hl, L.hair);
       r(2, -26, 3, 2, L.hair);
+      if (L.stripes) for (let i = 0; i < 4; i++) r(-3, -14 + i * 2, 6, 1, L.stripes, 1);
       if (pose === "reach") { r(1, -16, 7, 2, L.topDark); r(8, -16, 2, 2, L.skin); }
       else { r(-1 + swing, -15, 2, 8, L.topDark); r(-1 + swing, -7, 2, 2, L.skin); }
       r(3, -21, 1, 2, L.eyes, 1); r(4, -18, 1, 1, L.lips, 1); r(5, -22, 1, 1, L.skinShade, 1);
@@ -76,15 +79,17 @@ LPK.sprites = (() => {
 
     // front ("down") and back ("up")
     const celebrate = pose === "celebrate";
-    r(-6, -27, 12, 16, L.hairDark);                       // long hair behind
+    r(-6, -27, 12, 16 - hl, L.hairDark);                  // long hair behind
     r(-4, -15, 8, 9, L.top);                               // torso
+    if (L.inner && dir !== "up") r(-2, -15, 4, 9, L.inner, 1);                         // open hoodie over a tee
+    if (L.stripes) for (let i = 0; i < 4; i++) r(-4, -14 + i * 2, 8, 1, L.stripes, 1);
     if (celebrate) { r(-7, -23, 2, 8, L.top); r(5, -23, 2, 8, L.top); r(-7, -25, 2, 2, L.skin); r(5, -25, 2, 2, L.skin); }
     else { r(-6, -15, 2, 8, L.top); r(4, -15, 2, 8, L.top); r(-6, -7, 2, 2, L.skin); r(4, -7, 2, 2, L.skin); }
     r(-3, -6 + 0, 3, 5 - lift[0], L.pants); r(0, -6, 3, 5 - lift[1], L.pants);
     r(-3, -1 - lift[0], 3, 1, L.shoes); r(0, -1 - lift[1], 3, 1, L.shoes);
     if (dir === "up") {
-      r(-5, -28, 10, 18, L.hair);
-      r(-6, -24, 12, 12, L.hair);
+      r(-5, -28, 10, 18 - hl, L.hair);
+      r(-6, -24, 12, 12 - hl, L.hair);
       r(-3, -27, 2, 12, L.hairLight, 1); r(2, -25, 1, 10, L.hairLight, 1);
       r(-5, -14, 1, 3, L.hairDark, 1); r(4, -13, 1, 3, L.hairDark, 1);
       return s;
@@ -93,14 +98,16 @@ LPK.sprites = (() => {
     r(-4, -25, 8, 8, L.skin);                             // face
     r(-5, -28, 10, 3, L.hair);
     r(-4, -26, 8, 2, L.hair); r(-4, -24, 2, 2, L.hair);   // side-swept bangs
-    r(-6, -25, 2, 12, L.hair); r(4, -25, 2, 12, L.hair);  // locks over shoulders
+    r(-6, -25, 2, 12 - hl, L.hair); r(4, -25, 2, 12 - hl, L.hair);  // locks over shoulders
+    if (L.bangs) r(-4, -25, 8, 1, L.hair, 1);                        // straight bangs
     r(-2, -28, 3, 1, L.hairLight, 1); r(-6, -21, 1, 5, L.hairLight, 1); r(5, -19, 1, 5, L.hairLight, 1);
     if (opt.blink) { r(-2, -21, 1, 1, L.eyes, 1); r(1, -21, 1, 1, L.eyes, 1); }
     else { r(-2, -22, 1, 2, L.eyes, 1); r(1, -22, 1, 2, L.eyes, 1); }
     r(-1, -19, 2, 1, celebrate ? "#a03a40" : L.lips, 1);
     if (celebrate) r(-1, -18, 2, 1, "#a03a40", 1);
     r(-3, -20, 1, 1, "#eaa0a0", 1); r(2, -20, 1, 1, "#eaa0a0", 1);
-    r(0, -14, 1, 1, L.buttons, 1); r(0, -12, 1, 1, L.buttons, 1);
+    if (L.necklace) { r(0, -15, 1, 3, L.necklace, 1); r(0, -12, 1, 1, "#d8d8e0", 1); }
+    else { r(0, -14, 1, 1, L.buttons, 1); r(0, -12, 1, 1, L.buttons, 1); }
     return s;
   }
 

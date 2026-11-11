@@ -269,6 +269,36 @@ LPK.characters = {
       pants: "#cbb894", belt: "#1c1c20", shoes: "#4a3424",
     },
   },
+  // ------------------------------------------------------------ RO PINO
+  // (her first name is Ro — R-O.) From her photos: auburn shoulder-length
+  // hair with bangs, blue eyes, a big smile, a little gold necklace.
+  ro: {
+    name: "Ro Pino",
+    nicknames: ["Grandma"],
+    title: "The Kitty Whisperer (She Wishes)",
+    role: "Visiting character (not playable)",
+    relationship: "Laura's mom · Joe's wife",
+    gender: "Female",
+    description: "Joe's wife. Comes over with Joe, and the first thing she does is try to pet the kitties... and somehow it's mayhem every time. Never accepts a diet root beer from the boys. She's driving. And she's going bowling.",
+    // (stats are a first guess; edit freely)
+    attributes: { kindness: 10, catLuck: 1, bowling: 8, smile: 10 },
+    favorites: ["The kitties (they're not so sure)", "Bowling", "Her grandsons"],
+    joinsInBuild: 4,
+    behavior: { walkSpeed: 28, runSpeed: 44, hopSeconds: 0.5, activitySeconds: [15, 30] },
+    look: {
+      hair: "#a8642e", hairDark: "#7e4520", hairLight: "#c88450",
+      skin: "#f0c6a8", skinShade: "#d8a888", eyes: "#4a7ab0", lips: "#c86a6a",
+      buttons: "#e8c86a", necklace: "#e8c86a", shortHair: true, bangs: true,
+    },
+    // outfits from her photos (one is picked for each visit)
+    outfits: {
+      hoodie:  { name: "Pink hoodie",            top: "#f2a2bc", topDark: "#d8869e", inner: "#c0306a", pants: "#2a3550", shoes: "#5a7ac8" },
+      coral:   { name: "Coral top",              top: "#e8504a", topDark: "#c83c38", pants: "#2a2a30", shoes: "#3a3a40" },
+      stripes: { name: "Magenta stripes",        top: "#c8287a", topDark: "#a81e64", stripes: "#f4e8f0", pants: "#f4f2ee", shoes: "#e8d8c0" },
+      blueTee: { name: "Light blue tee",         top: "#9cc0e8", topDark: "#7ea4d0", pants: "#2e3c5e", shoes: "#e8e8e8" },
+      gray:    { name: "Gray striped tee",       top: "#a8acb8", topDark: "#8e92a0", stripes: "#ffffff", pants: "#1e1e24", shoes: "#3a3a40" },
+    },
+  },
 };
 
 // Friendly display names for attributes (used by Character Profiles).
@@ -280,5 +310,6 @@ LPK.attributeLabels = {
   coolness: "Coolness", awesomeness: "Awesomeness", legendaryStatus: "Legendary status",
   creativity: "Creativity", artistry: "Drawing", energy: "Energy", mischief: "Gets into things",
   gaming: "Gaming", competitiveness: "Competitive", bigBrother: "Big brother", athleticism: "Athleticism",
+  kindness: "Kindness", catLuck: "Luck with cats", bowling: "Bowling", smile: "Smile",
   intelligence: "Intelligence", graciousness: "Gracious", cappuccino: "Cappuccino", quietConfidence: "Quiet confidence", sneakyHumor: "Sneaky humor", inquisitive: "Inquisitive",
 };

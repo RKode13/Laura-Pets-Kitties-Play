@@ -78,6 +78,9 @@ LPK.rooms = {
     evanSpots: {
       couch:       { x: 13, y: 4.8, z: 6, approach: [13, 5], sit: true },
     },
+    roSpots: {
+      roCouch:     { x: 18.2, y: 6.6, approach: [18, 6] },                       // by the sectional
+    },
     owenSpots: {
       owenCouch:   { x: 11.9, y: 4.8, z: 6, approach: [12, 5], sit: true },
     },
@@ -149,6 +152,9 @@ LPK.rooms = {
     },
     evanSpots: {
       table:   { x: 14.2, y: 10.6, approach: [14, 10] },                       // by the dining table, asking for a snack
+    },
+    roSpots: {
+      roTable:    { x: 19.6, y: 9.4, approach: [19, 9] },                        // by the dining table
     },
     joeSpots: {
       joeSeat:    { x: 14.4, y: 9.4, approach: [14, 9], sit: true },             // his seat at the dining table

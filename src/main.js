@@ -46,6 +46,8 @@ LPK.game = (() => {
     G.owen.sync();
     G.joe = new LPK.Joe(G);
     G.joe.sync(); G.cupView = null;
+    G.ro = new LPK.Ro(G);
+    G.ro.sync();
     LPK.catFight.end(G); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60;
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
@@ -397,7 +399,7 @@ LPK.game = (() => {
     if (minutes <= c.minutes) { c.day = (c.day + 1) % 7; }
     if (weekdayOnly) while (c.day === 0 || c.day === 6) c.day = (c.day + 1) % 7;
     c.minutes = minutes;
-    G.robert.sync(); G.evan.sync(); G.owen.sync(); G.joe.sync(); LPK.catFight.end(G);
+    G.robert.sync(); G.evan.sync(); G.owen.sync(); G.joe.sync(); G.ro.sync(); LPK.catFight.end(G);
     G.cats.forEach(cat => { if (cat.state === "headSleep") cat.setState("sleep", 10); });
     G.banner = { title: c.label(), text: "Time flies...", t: 2.5 };
   };
@@ -556,6 +558,7 @@ LPK.game = (() => {
     G.evan.update(dt);
     G.owen.update(dt);
     G.joe.update(dt);
+    G.ro.update(dt);
     if (G.cupView && (G.cupView.t += dt) > G.cupView.total) G.cupView = null;
     updateYard(dt);
     updateHungry(dt);
@@ -832,6 +835,7 @@ LPK.game = (() => {
     if (G.evan && G.evan.room === G.room) items.push({ sortY: G.evan.sortY, draw: (g) => G.evan.draw(g) });
     if (G.owen && G.owen.room === G.room) items.push({ sortY: G.owen.sortY, draw: (g) => G.owen.draw(g) });
     if (G.joe && G.joe.present && G.joe.room === G.room) items.push({ sortY: G.joe.sortY, draw: (g) => G.joe.draw(g) });
+    if (G.ro && G.ro.present && G.ro.room === G.room) items.push({ sortY: G.ro.sortY, draw: (g) => G.ro.draw(g) });
     if (G.joeTreats && G.room === "kitchen") items.push({ sortY: 10 * 16 + 1, draw: (g) => {     // Tim Shortons on the dining table
       const P = LPK.px, x = 16.2 * 16, y = 7.6 * 16;
       P.rect(g, x, y, 18, 8, "#f6a8c4"); P.rect(g, x, y, 18, 2, "#e07aa0"); P.rect(g, x + 2, y + 3, 14, 3, "#c87850");

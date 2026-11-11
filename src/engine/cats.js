@@ -214,7 +214,7 @@ LPK.Marshmallow = class Marshmallow extends LPK.Cat {
   beginStare() {
     this.setState("stare", 3.0);
     const lines = this.stareSource === "boys" ? D().marshmallowStareBoys : this.stareSource === "clown" ? D().marshmallowStareClown
-      : this.stareSource === "throne" ? D().marshmallowStareThrone : D().marshmallowStareLaura;
+      : this.stareSource === "throne" ? D().marshmallowStareThrone : this.stareSource === "ro" ? D().marshmallowStareRo : D().marshmallowStareLaura;
     this.say(LPK.save.data.settings.familyFriendly ? lines.family : lines.normal, 3.0, "thought");
     LPK.audio.sfx.stare();
     if (this.sameRoomAsLaura()) LPK.events.emit("catStare", { cat: this.id, source: this.stareSource });

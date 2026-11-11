@@ -174,14 +174,14 @@ LPK.ui = (() => {
 
   function drawProfiles() {
     overlay(0.82);
-    const ids = ["laura", "marshmallow", "cc", "popsicle", "robert", "evan", "owen", "joe"];
+    const ids = ["laura", "marshmallow", "cc", "popsicle", "robert", "evan", "owen", "joe", "ro"];
     const tabW = Math.min(170, (W - 40) / ids.length - 6), tabH = Math.min(40, H / 12);
     ids.forEach((id, i) => {
       const ch = LPK.characters[id];
       const short = ch.nicknames && ch.nicknames.length ? ch.nicknames[0] : ch.name;
       const sel = G.ui.profile === id;
       rr(20 + i * (tabW + 6), 12, tabW, tabH, 10, sel ? C.pink : "#5a3f8a", sel ? C.gold : null, 2);
-      text(short, 20 + i * (tabW + 6) + tabW / 2, 12 + tabH / 2, Math.min(u, tabH * 0.4), "#fff", "center");
+      text(short, 20 + i * (tabW + 6) + tabW / 2, 12 + tabH / 2, Math.min(u, tabH * 0.4, (tabW - 8) / (short.length * 0.56)), "#fff", "center");
       G.ui.buttons.push({ x: 20 + i * (tabW + 6), y: 12, w: tabW, h: tabH, action: () => { G.ui.profile = id; } });
     });
     G.ui.keyLeftRight = (d) => { const i = ids.indexOf(G.ui.profile); G.ui.profile = ids[(i + d + ids.length) % ids.length]; };
@@ -194,10 +194,11 @@ LPK.ui = (() => {
     const scale = Math.max(2, Math.floor(pw / 46));
     const shapes = id === "laura" ? LPK.sprites.laura("stand", "down", 0)
       : id === "robert" ? LPK.sprites.robert("down", 0, { shades: Math.floor(G.time / 2) % 2 === 0, casual: Math.floor(G.time / 4) % 2 === 1 })
+      : id === "ro" ? LPK.sprites.laura("stand", "down", 0, { who: "ro", outfitDef: Object.values(ch.outfits)[Math.floor(G.time / 2.5) % Object.keys(ch.outfits).length] })
       : id === "joe" ? LPK.sprites.joe("down", 0, { hold: Math.floor(G.time / 3) % 2 ? "cup" : null })
       : id === "evan" || id === "owen" ? LPK.sprites.kid(id, "down", 0, { outfit: Object.keys(ch.outfits)[Math.floor(G.time / 2.5) % Object.keys(ch.outfits).length] })
       : LPK.sprites.cat(ch.look, Math.floor(G.time / 3) % 2 ? "sit" : "front", 0, { eyes: id === "marshmallow" ? "stare" : "open" });
-    sprite(shapes, 30 + pw / 2, top + 14 + pw * 0.86, id === "robert" || id === "joe" ? scale * 0.8 : id === "laura" ? scale * 0.95 : id === "evan" || id === "owen" ? scale * 1.05 : scale * 1.4);
+    sprite(shapes, 30 + pw / 2, top + 14 + pw * 0.86, id === "robert" || id === "joe" ? scale * 0.8 : id === "laura" || id === "ro" ? scale * 0.95 : id === "evan" || id === "owen" ? scale * 1.05 : scale * 1.4);
     // details
     const x = 30 + pw + 20, maxW = W - x - 36;
     let y = top + 30;
@@ -219,13 +220,14 @@ LPK.ui = (() => {
       text(`Weekdays: up ${S.weekday.wake}, work ${S.weekday.leave}–${S.weekday.home}, dinner guard ${S.weekday.dinner}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.05;
       text(`Weekends: home · dinner guard ${S.weekend.dinner} · Tiny Snore after ${S.weekend.sleep}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
     }
+    if (id === "ro") {
+      text("Comes over with Joe some weekend mornings", x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
+    }
     if (id === "joe") {
-      text(`Loves: ${ch.favorites.join(" · ")}`, x, y, u * 0.75, C.pink, "left", "normal"); y += u * 1.05;
       text(`Visits some weekend mornings (${ch.schedule.arrive}–${ch.schedule.leave})`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
     }
     if (id === "evan" || id === "owen") {
       const S = ch.schedule;
-      text(`Loves: ${ch.favorites.join(" · ")}`, x, y, u * 0.75, C.pink, "left", "normal"); y += u * 1.05;
       if (id === "evan") text(`Bedtime: tuck him in ${S.bedWindow}–${S.bed} for +${ch.bedtimePoints} points`, x, y, u * 0.75, C.green, "left", "normal");
       else text(`Streaks: remind him ${S.streakStart}–${S.streakBy} for +${ch.streakPoints} points`, x, y, u * 0.75, C.green, "left", "normal");
       y += u * 1.2;
@@ -330,7 +332,7 @@ LPK.ui = (() => {
     // speech bubbles
     const bubbles = [];
     if (L.speech && !(G.yard && G.yard.t < 2)) { const p = G.worldToScreen(L.x, L.y - (L.state === "kneel" ? 26 : 32)), f = G.worldToScreen(L.x, L.y); bubbles.push([L.speech.text, p.x, p.y, "speech", f.y]); }
-    for (const c of [...G.cats, G.robert, G.evan, G.owen, G.joe]) if (c && c.bubble && c.room === G.room && !c.concealed && c.state !== "transit" && c.present !== false) {
+    for (const c of [...G.cats, G.robert, G.evan, G.owen, G.joe, G.ro]) if (c && c.bubble && c.room === G.room && !c.concealed && c.state !== "transit" && c.present !== false) {
       const h = c.headPos(), p = G.worldToScreen(h.x, h.y), f = G.worldToScreen(c.x, c.y - c.z);
       bubbles.push([c.bubble.text, p.x, p.y, c.bubble.kind, f.y]);
     }

@@ -36,6 +36,7 @@ LPK.Joe = class Joe extends LPK.Evan {
     if (this.mode === "visit" && m >= this.at(S.leave) && !this.moving) {
       this.mode = "leaving"; this.holding = null;
       this.say(D.joeBye[0], 2.4);
+      G.ro && G.ro.leave();
       this.goTo("livingRoom.frontDoorIn", "walk", () => { this.present = false; this.mode = "away"; this.state = "away"; G.joeTreats = false; G.notify("Ciao!", "Joe Pino headed home."); });
       return;
     }
@@ -65,7 +66,8 @@ LPK.Joe = class Joe extends LPK.Evan {
     this.present = true; this.mode = "arriving"; this.holding = "donuts";
     LPK.save.data.joeSeen = true; LPK.save.write();
     this.say(this.D.joeHello[0], 2.4);
-    G.notify("Joe Pino is here!", "He brought Tim Shortons: donuts, donut holes and bagels!");
+    G.notify("Joe & Ro Pino are here!", "Joe brought Tim Shortons: donuts, donut holes and bagels!");
+    G.ro && G.ro.arrive();
     for (const k of [G.evan, G.owen]) if (k && k.mode === "day" && k.room === "livingRoom") k.say("Grandpa! DONUTS!", 2);
     this.goTo("kitchen.joeSeat", "walk", () => { this.holding = null; G.joeTreats = true; this.mode = "visit"; this.visitT = 0; this.setState("sit", 999); });
   }
