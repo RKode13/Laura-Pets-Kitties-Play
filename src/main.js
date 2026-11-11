@@ -260,6 +260,7 @@ LPK.game = (() => {
     if (o.kind === "rest") return { kind: "rest", obj: o, label: G.clock.phase === "night" ? "Rest on the couch (time flies)" : "Rest on the couch", ok: true };
     if (o.kind === "bowl") return { kind: "bowl", obj: o, label: G.holding ? `Fill ${o.label} with ${LPK.foods[G.holding].name}` : `${o.label} (empty-handed)`, ok: true };
     if (o.kind === "trash") return { kind: "trash", obj: o, label: "Check the trash can", ok: true };
+    if (o.kind === "moodLamp") return { kind: "moodLamp", obj: o, label: "Change the lamp", ok: true };
     if (o.kind === "tv") { const on = G.tv && G.tv.room === G.room; return { kind: "tv", obj: o, label: !on ? "Turn on the TV" : G.tv.ch < 3 ? "Change the channel" : "Turn off the TV", ok: true }; }
     if (o.kind === "backyard") return { kind: "backyard", obj: o, label: G.yard ? "(admiring the yard...)" : "Look out at the backyard", ok: !G.yard };
     return { kind: "hide", obj: o, label: o.label, ok: true };
@@ -271,6 +272,18 @@ LPK.game = (() => {
       case "evanBed": L.say(D().lauraBedtime[0], 1.6); G.evan.tuckIn(); break;
       case "backyard": G.admireYard(); break;
       case "tv": G.pressTV(); break;
+      case "moodLamp": {
+        const set = (mode, line) => () => { LPK.save.data.lampMode = mode; LPK.save.write(); LPK.audio.sfx.click(); if (line) L.say(line, 2); if (mode !== "warm" && mode !== "off") LPK.events.emit("lampMode", { mode }); };
+        G.choiceMenu = { title: "The Lamp", sub: "Set the mood", sel: 0, options: [
+          { label: "Christmas (red and green fade)", fn: set("christmas", "Ooh, festive!") },
+          { label: "Halloween (candle flicker)", fn: set("halloween", "Spooky...") },
+          { label: "Regular warm light", fn: set("warm", "Nice and cozy.") },
+          { label: "Turn it off", fn: set("off") },
+          { label: "Never mind", fn: () => {} },
+        ] };
+        LPK.audio.sfx.click();
+        break;
+      }
       case "sweep": G.sweepCardboard(); break;
       case "smooch": G.giveSmooches(); break;
       case "joeCup": G.joe.giveLauraCup(); break;
@@ -983,6 +996,7 @@ LPK.game = (() => {
     items.sort((a, b) => a.sortY - b.sortY).forEach(i => i.draw(g));
     if (w.def.ambient) { g.fillStyle = w.def.ambient; g.fillRect(0, 0, w.width, w.height); }   // fairy-light / LED room glow
     R.drawLighting(g, w, Math.max(G.clock.darkness(), w.def.dim || 0), t);
+    R.drawMoodLamps(g, w, Math.max(G.clock.darkness(), w.def.dim || 0), t);
     const O = G.olympics;
     if (O && O.event === "cc" && G.room === "livingRoom") O.rings.forEach((r, i) => {
       const done = i < O.ring, next = i === O.ring, pulse = next ? Math.round(Math.sin(t * 6)) : 0;

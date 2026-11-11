@@ -37,6 +37,7 @@ LPK.rooms = {
       { id: "sideTable",  kind: "sideTable",       x: 10, y: 3,  w: 1,  h: 1, solid: true },
       { id: "sectional",  kind: "sectionalLong",   x: 11, y: 3,  w: 10, h: 2, solid: true },
       { id: "sectional2", kind: "sectionalReturn", x: 19, y: 5,  w: 2,  h: 5, solid: true },
+      { id: "moodLamp",   kind: "moodLamp",        x: 20, y: 10, w: 1,  h: 1, solid: true, light: "mood" },   // the other end of the sectional
       { id: "catTree",    kind: "catTree",         x: 1,  y: 6,  w: 2,  h: 2, solid: true },
       { id: "bench",      kind: "shoeBench",       x: 1,  y: 10, w: 1,  h: 3, solid: true },
       { id: "rug",        kind: "rug",             x: 5,  y: 6,  w: 12, h: 6, solid: false },
@@ -67,6 +68,7 @@ LPK.rooms = {
     interactables: [
       { id: "restCouch", kind: "rest", label: "Rest on the couch", x: 15.5, y: 5.3, seat: { x: 15.5, y: 4.4 } },
       { id: "tv",        kind: "tv",   label: "TV", x: 3, y: 4.3 },
+      { id: "moodLamp",  kind: "moodLamp", label: "Lamp", x: 19.6, y: 11.4 },
     ],
     toys: [
       { id: "springBlue", kind: "spring", x: 8, y: 11, colors: ["#4a8ae8", "#7fc3f0"] },

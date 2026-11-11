@@ -67,5 +67,6 @@ LPK.achievements = [
   { id: "channelSurfer",   name: "Channel Surfer",             desc: "Flip through all three scary channels, then turn the TV off.", event: "tvSurfed", build: 4 },
   { id: "whatIsThat",      name: "What Is That?!",             desc: "One of the boys catches the scary movie on TV.", event: "tvScare", build: 4 },
   { id: "cardboardCleanup",name: "Cardboard Cleanup",          desc: "Sweep up the cardboard Orangey flicked all over the floor.", event: "sweep", build: 4 },
+  { id: "setTheMood",      name: "Set the Mood",               desc: "Switch the living-room lamp to Christmas or Halloween.", event: "lampMode", build: 4 },
   { id: "purrfection",     name: "PURRFECTION!",               desc: "Complete the main story: the Ultimate Kitty Cuddle.", event: "missionComplete", match: { mission: "ultimateCuddle" }, build: 4 },
 ];

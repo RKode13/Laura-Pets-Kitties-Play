@@ -417,6 +417,16 @@ LPK.roomRenderer = (() => {
         R(g, x + 7, y - 26, 2, 40, "#8a8580");
         R(g, x + 1, y - 34, 14, 10, "#f4efe4"); R(g, x + 1, y - 26, 14, 2, "#d8d1c2");
       } };
+      case "moodLamp": return { sortY: y + fh, draw: (g) => {
+        // the lamp at the end of the sectional: its shade glows in the chosen mode
+        const c = moodColor(t);
+        R(g, x + 3, y + fh - 2, 2, 2, "#3a3330"); R(g, x + 11, y + fh - 2, 2, 2, "#3a3330"); R(g, x + 7, y + fh - 1, 2, 1, "#3a3330");
+        R(g, x + 7, y - 26, 2, 40, "#8a8580");
+        const k = c ? 0.35 + 0.55 * c[3] : 0;                         // how strongly the shade takes the light's color
+        R(g, x + 1, y - 34, 14, 10, c ? `rgb(${Math.round(232 * (1 - k) + c[0] * k)},${Math.round(226 * (1 - k) + c[1] * k)},${Math.round(214 * (1 - k) + c[2] * k)})` : "#e8e2d6");
+        R(g, x + 1, y - 26, 14, 2, c ? `rgba(${c[0]},${c[1]},${c[2]},0.9)` : "#d0c9ba");
+        if (c) R(g, x + 5, y - 24, 6, 2, `rgba(${c[0]},${c[1]},${c[2]},${0.5 + 0.5 * c[3]})`);       // the bulb peeking out
+      } };
       case "sideTable": return { sortY: y + fh, draw: (g) => {
         R(g, x + 1, y - 6, 14, 18, "#2a2628"); R(g, x + 1, y - 6, 14, 3, "#3b3638");
         R(g, x + 4, y - 1, 8, 6, "#3d5a9a"); R(g, x + 5, y, 6, 1, "#7fb0ff");
@@ -782,6 +792,34 @@ LPK.roomRenderer = (() => {
     }
   }
 
+  // The mood lamp: warm, Christmas (slow fade red <-> green), Halloween
+  // (flickering candle), or off. Returns [r, g, b, brightness] or null.
+  function moodColor(t) {
+    const mode = (LPK.save && LPK.save.data.lampMode) || "warm";
+    if (mode === "off") return null;
+    if (mode === "christmas") {                                  // red fades in and out, then green
+      const s = Math.sin(t * 1.2);
+      return s >= 0 ? [255, 40, 50, 0.12 + 0.88 * s] : [40, 225, 80, 0.12 + 0.88 * -s];
+    }
+    if (mode === "halloween") {
+      const f = 0.62 + 0.18 * Math.sin(t * 9.3) + 0.12 * Math.sin(t * 23.7 + 1.3) + 0.08 * Math.sin(t * 41 + 0.7) + (Math.random() < 0.04 ? -0.25 : 0);
+      return [255, Math.round(120 + 40 * f), 30, Math.max(0.2, Math.min(1, f))];
+    }
+    return [255, 210, 140, 1];
+  }
+  // its glow shows day and night (stronger at night) and tints the room a little
+  function drawMoodLamps(g, w, darkness, t) {
+    const lamp = w.def.furniture.find(f => f.light === "mood"); if (!lamp) return;
+    const c = moodColor(t); if (!c) return;
+    const T = w.T, x = lamp.x * T + 8, y = lamp.y * T - 22, a = (0.3 + darkness * 0.8) * c[3];
+    g.globalCompositeOperation = "lighter";
+    const grd = g.createRadialGradient(x, y, 0, x, y, 95);
+    grd.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${a})`); grd.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
+    g.fillStyle = grd; g.fillRect(x - 95, y - 95, 190, 190);
+    g.globalCompositeOperation = "source-over";
+    if ((LPK.save.data.lampMode || "warm") !== "warm") { g.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${(0.03 + darkness * 0.07) * c[3]})`; g.fillRect(0, 0, w.width, w.height); }
+  }
+
   // Night lighting overlay + lamp glows.
   function drawLighting(g, w, darkness, t) {
     if (darkness <= 0.01) return;
@@ -795,6 +833,7 @@ LPK.roomRenderer = (() => {
     };
     const T = w.T;
     for (const f of w.def.furniture) if (f.light) {
+      if (f.light === "mood") continue;                     // drawn by drawMoodLamps
       if (f.light === "led") { glow(f.x * T + f.w * 8, (f.y + f.h) * T, 70, "rgba(80,190,255,A)", 0.4 + darkness * 0.5); continue; }
       const ceiling = f.kind === "ceilingLight" || f.kind === "hangingBulb";
       glow(f.x * T + 8, ceiling ? f.y * T : f.y * T - 20, ceiling ? 120 : 70, "rgba(255,210,140,A)", darkness * (f.kind === "hangingBulb" ? 1.2 : 0.8));
@@ -818,5 +857,5 @@ LPK.roomRenderer = (() => {
     R(g, x - 4, by - 1, 9, 1, "rgba(0,0,0,0.2)");
   }
 
-  return { drawFloor, drawWalls, furnitureDraw, drawLighting, drawSpring };
+  return { drawFloor, drawWalls, furnitureDraw, drawLighting, drawMoodLamps, drawSpring };
 })();
