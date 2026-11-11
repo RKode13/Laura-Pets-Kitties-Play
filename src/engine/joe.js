@@ -24,11 +24,14 @@ LPK.Joe = class Joe extends LPK.Evan {
     if (c.day !== this.lastDay) { this.lastDay = c.day; this.decided = false; this.sceneDone = false; this.donutTaken = false; }
     // ---- should he come over today?
     if (!this.present) {
+      // decide once each weekend morning whether they're coming, and when (8:00-9:30)
       if (!this.decided && c.isWeekend && m >= this.at(S.arrive) && m < this.at(S.leave) - 60) {
         this.decided = true;
         const sv = LPK.save.data;
-        if (!sv.joeSeen || Math.random() < S.visitChance) this.arrive();
+        const a = this.at(S.arrive), b = this.at(S.arriveLatest || S.arrive);
+        this.arriveAt = (!sv.joeSeen || Math.random() < S.visitChance) ? Math.max(m, Math.round(a + Math.random() * (b - a))) : null;
       }
+      if (this.decided && this.arriveAt != null && m >= this.arriveAt && m < this.at(S.leave) - 60) { this.arriveAt = null; this.arrive(); }
       return;
     }
     if (this.sc) return this.scene(dt);

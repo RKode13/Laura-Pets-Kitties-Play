@@ -217,18 +217,18 @@ LPK.ui = (() => {
     if (ch.joinsInBuild > LPK.config.build) { text(`Joins the game in Build ${ch.joinsInBuild}`, x, y, u * 0.8, C.gold); y += u * 1.2; }
     if (id === "robert") {
       const S = ch.schedule;
-      text(`Weekdays: up ${S.weekday.wake}, work ${S.weekday.leave}–${S.weekday.home}, dinner guard ${S.weekday.dinner}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.05;
+      text(`Weekdays: up ${S.weekday.wake}, work ${S.weekday.leave}, home ${S.weekday.homeEarliest}–${S.weekday.homeLatest} (usually ${S.weekday.home}), dinner guard ${S.weekday.dinner}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.05;
       text(`Weekends: home · dinner guard ${S.weekend.dinner} · Tiny Snore after ${S.weekend.sleep}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
     }
     if (id === "ro") {
       text("Comes over with Joe some weekend mornings", x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
     }
     if (id === "joe") {
-      text(`Visits some weekend mornings (${ch.schedule.arrive}–${ch.schedule.leave})`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
+      text(`Visits some weekend mornings: arrives ${ch.schedule.arrive}–${ch.schedule.arriveLatest}, leaves ${ch.schedule.leave}`, x, y, u * 0.75, C.green, "left", "normal"); y += u * 1.2;
     }
     if (id === "evan" || id === "owen") {
       const S = ch.schedule;
-      if (id === "evan") text(`Bedtime: tuck him in ${S.bedWindow}–${S.bed} for +${ch.bedtimePoints} points`, x, y, u * 0.75, C.green, "left", "normal");
+      if (id === "evan") text(`Up by ${S.wakeLatest} · Bedtime: tuck him in ${S.bedWindow}–${S.bed} for +${ch.bedtimePoints} points`, x, y, u * 0.75, C.green, "left", "normal");
       else text(`Streaks: remind him ${S.streakStart}–${S.streakBy} for +${ch.streakPoints} points`, x, y, u * 0.75, C.green, "left", "normal");
       y += u * 1.2;
     }

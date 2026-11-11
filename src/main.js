@@ -48,7 +48,7 @@ LPK.game = (() => {
     G.joe.sync(); G.cupView = null;
     G.ro = new LPK.Ro(G);
     G.ro.sync();
-    LPK.catFight.end(G); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60;
+    LPK.catFight.end(G); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null;
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -213,6 +213,8 @@ LPK.game = (() => {
     if (G.joeTreats && G.room === "kitchen" && !jo.donutTaken && Math.hypot(L.x - 17 * T, L.y - 10.8 * T) < 26) return { kind: "donut", label: "Grab a donut", ok: true };
     const ow = G.owen;
     if (ow && ow.room === G.room && ow.distTo(L) < 36 && ow.state !== "sleep" && ow.state !== "streaks" && ow.streakWindow()) return { kind: "owenStreak", label: "Owen, do your streaks!", ok: true };
+    const Rb = G.robert;
+    if (G.smoochOwed && Rb.present && Rb.room === G.room && Rb.state !== "sleep" && Rb.distTo(L) < 36 && !G.smooches) return { kind: "smooch", label: "Give Robert 10 smoochies", ok: true };
     // standing right at the sliding door: the backyard view wins over nearby cats
     if (G.room === "kitchen" && Math.hypot(L.x - 17.25 * T, L.y - 4.2 * T) < 20) return { kind: "backyard", label: G.yard ? "(admiring the yard...)" : "Look out at the backyard", ok: !G.yard };
     const art = LPK.save.data.evanDrawings || [];
@@ -265,6 +267,7 @@ LPK.game = (() => {
     switch (tg.kind) {
       case "evanBed": L.say(D().lauraBedtime[0], 1.6); G.evan.tuckIn(); break;
       case "backyard": G.admireYard(); break;
+      case "smooch": G.giveSmooches(); break;
       case "joeCup": G.joe.giveLauraCup(); break;
       case "donut": G.joe.donutTaken = true; L.sayRandom(D().lauraDonut, 2.2); G.progression.addPoints(3); LPK.audio.sfx.crunch(); break;
       case "evanSnack": G.evan.giveSnack(); break;
@@ -441,14 +444,36 @@ LPK.game = (() => {
     if (Y.t > 4.9 && Y.said === 1) {
       Y.said = 2;
       L.say(R.present ? D().lauraSmooch[0] : D().lauraSmoochAway[0], 2.6);
-      G.smooches = { t: 0, x: L.x, y: L.y - 34, to: here ? R : null };
-      const key = G.clock.day;
-      if (G.yardDay !== key) { G.yardDay = key; G.progression.addPoints(10); G.notify("10 smoochies!", "+10 Kitty Happiness Points"); }
+      if (!G.smoochOwed) { G.smoochOwed = true; G.notify("Smoochie award!", here ? "Robert's right here. Give him his 10 smoochies!" : R.present ? "Go find Robert and give him his 10 smoochies!" : "Save them for when Robert gets home!"); }
       LPK.events.emit("yardPraise", {});
     }
-    if (Y.t > 7.7 && Y.said === 2) { Y.said = 3; if (here) { R.say(R.pick(D().robertSmooch), 2.4); R.flip = L.x < R.x; } }
     if (Y.t > 10.3) G.yard = null;
   }
+  // The smoochie award: Laura finds Robert and gives him all 10 (with the
+  // foot pop: knee bent, foot up off the ground).
+  G.giveSmooches = () => {
+    const L = G.laura, R = G.robert;
+    G.smoochOwed = false;
+    L.state = "smooch"; L.dir = "side"; L.flip = R.x < L.x; L.smoochT = 0;
+    R.flip = L.x < R.x;
+    G.smooches = { t: 0, x: L.x + (L.flip ? -6 : 6), y: L.y - 26, to: R, room: G.room, n: 0, give: true };
+  };
+  function updateSmooches(dt) {
+    const S = G.smooches; if (!S) return;
+    S.t += dt;
+    const n = Math.min(10, Math.floor(S.t / 0.22) + 1);
+    if (n > S.n) { S.n = n; LPK.audio.sfx.kiss(); }
+    if (S.give && S.t > 2.8 && !S.done) {
+      S.done = true;
+      const L = G.laura, R = G.robert;
+      if (L.state === "smooch") L.state = "idle";
+      R.say(R.pick(D().robertSmooch), 2.4);
+      G.progression.addPoints(10); G.notify("10 smoochies!", "+10 Kitty Happiness Points");
+      LPK.events.emit("smoochies", {});
+    }
+    if (S.t > 4.5) G.smooches = null;
+  }
+
   G.blindsOpen = () => { const Y = G.yard; if (!Y) return 0; return Y.t < 0.7 ? Y.t / 0.7 : Y.t > 9.5 ? Math.max(0, (10.3 - Y.t) / 0.8) : 1; };
 
   // "Mom, I'm hungry!" — every so often one of the boys says it, Laura does
@@ -562,7 +587,7 @@ LPK.game = (() => {
     if (G.cupView && (G.cupView.t += dt) > G.cupView.total) G.cupView = null;
     updateYard(dt);
     updateHungry(dt);
-    if (G.smooches && (G.smooches.t += dt) > 4.5) G.smooches = null;
+    updateSmooches(dt);
     LPK.catFight.update(G, dt);
     if (G.fightText && (G.fightText.t -= dt) <= 0) G.fightText = null;
     G.shake = Math.max(0, (G.shake || 0) - dt);
@@ -847,7 +872,7 @@ LPK.game = (() => {
       P.rect(g, x + 22, y - 2, 9, 10, "#d8b888"); P.rect(g, x + 22, y - 2, 9, 2, "#c8a070"); P.rect(g, x + 24, y + 3, 5, 2, "#c84a3a");
     } });
     LPK.catFight.drawItems(items, G);
-    if (G.smooches && G.room === "kitchen") {
+    if (G.smooches && G.smooches.room === G.room) {
       const S = G.smooches;
       items.push({ sortY: 9999, draw: (g) => {
         const n = Math.min(10, Math.floor(S.t / 0.22) + 1);

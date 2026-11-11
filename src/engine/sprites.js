@@ -22,6 +22,21 @@ LPK.sprites = (() => {
       r(-3, -10, 6, 2, L.topDark);
       return s;
     }
+    if (pose === "smooch") {                      // leaning in for smoochies, one knee bent, foot popped up behind her
+      const p = frame % 2;                        // little pucker bounce
+      r(1, -6, 2, 5, L.pants); r(1, -1, 3, 1, L.shoes);                 // standing leg
+      r(-2, -6, 2, 3, L.pants);                                          // thigh of the popped leg...
+      r(-6, -4, 4, 2, L.pants); r(-8, -6, 2, 3, L.shoes);               // ...shin straight back, foot up
+      r(-3, -27, 6, 15, L.hairDark);
+      r(-2, -15, 6, 9, L.top);
+      r(2, -15, 6, 2, L.topDark); r(7, -15, 2, 2, L.skin);              // arm reaching toward him
+      r(0, -25, 6, 8, L.skin);
+      r(-3, -28, 8, 4, L.hair); r(-4, -26, 4, 13, L.hair); r(3, -26, 3, 2, L.hair);
+      r(-4, -22, 1, 5, L.hairLight, 1);
+      r(4, -22, 1, 1, L.eyes, 1); r(3, -23, 2, 1, L.hairDark, 1);       // happy closed-ish eyes
+      r(6, -19 - p, 2, 2, L.lips, 1);                                    // puckered lips
+      return s;
+    }
     if (pose === "dance") {                       // side view, bent over, hands on knees, butt bouncing
       const b = frame % 2;                        // the bounce
       r(0, -7, 2, 6, L.pants); r(3, -7, 2, 6, L.pants);                 // legs, knees forward

@@ -56,7 +56,7 @@ LPK.achievements = [
   { id: "victoryEvening",  name: "Victory Evening",            desc: "Catch Owen playing Fortress Evening on his Pretendo Stitch.", event: "owenGaming", build: 4 },
   { id: "stillChampion",   name: "And STILL Champion",         desc: "Witness Blacky win a wrestling match against Orangey.", event: "catFight", build: 4 },
   { id: "topRope",         name: "From the Top Rope",          desc: "See Blacky's flying elbow drop.", event: "catFight", match: { move: "elbow" }, build: 4 },
-  { id: "tenSmoochies",    name: "10 Smoochies",               desc: "Admire the backyard Robert worked on, and reward him properly.", event: "yardPraise", build: 4 },
+  { id: "tenSmoochies",    name: "10 Smoochies",               desc: "Admire the backyard Robert worked on, then find him and give him all 10 smoochies.", event: "smoochies", build: 4 },
   { id: "momImHungry",     name: "Mom, I'm Hungry",            desc: "Do the hungry dance for one of the boys.", event: "momHungry", build: 4 },
   { id: "joeStareDown",    name: "The Stare-Down",             desc: "Survive Joe Pino's cappuccino comment... and the stare that followed.", event: "joeStare", build: 4 },
   { id: "bestCappuccino",  name: "Best Cappuccino on the Planet", desc: "Get your own cappuccino from Joe Pino.", event: "joeCappuccino", build: 4 },

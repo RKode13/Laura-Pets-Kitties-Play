@@ -15,7 +15,7 @@ LPK.Laura = class Laura {
   say(text, secs = 2.6) { this.speech = { text, t: secs }; }
   sayRandom(list, secs) { this.say(list[Math.floor(Math.random() * list.length)], secs); }
 
-  get busy() { return ["kneel", "reach", "celebrate", "rest", "work", "dance", "stare"].includes(this.state); }
+  get busy() { return ["kneel", "reach", "celebrate", "rest", "work", "dance", "stare", "smooch"].includes(this.state); }
   get sortY() { return this.state === "rest" ? this.y + 14 : this.y; }
 
   update(dt, input) {
@@ -50,6 +50,11 @@ LPK.Laura = class Laura {
 
   draw(g) {
     if (this.state === "rest") { LPK.px.draw(g, LPK.sprites.laura("lie", "side", 0), this.x, this.y, false); return; }
+    if (this.state === "smooch") {
+      LPK.px.rect(g, this.x - 6, this.y - 1, 12, 2, "rgba(0,0,0,0.22)");
+      LPK.px.draw(g, LPK.sprites.laura("smooch", "side", Math.floor(this.t * 4)), this.x, this.y, this.flip);
+      return;
+    }
     if (this.state === "dance") {
       LPK.px.rect(g, this.x - 6, this.y - 1, 12, 2, "rgba(0,0,0,0.22)");
       LPK.px.draw(g, LPK.sprites.laura("dance", "side", Math.floor(this.t * 6)), this.x, this.y, this.flip);

@@ -22,7 +22,14 @@ LPK.Evan = class Evan extends LPK.Cat {
   mins() { return this.game.clock.minutes; }
   at(str) { return LPK.Clock.parse(str); }
   get S() { return this.def.schedule; }
-  bedtime() { const m = this.mins(); return this.tucked || m >= this.at(this.S.bed) || m < this.at(this.S.wake); }
+  bedtime() { const m = this.mins(); return this.tucked || m >= this.at(this.S.bed) || m < this.wakeMins(); }
+  // wake-up time: a set time, or (with wakeLatest) a random time each morning between wake and wakeLatest
+  wakeMins() {
+    const S = this.S, c = this.game.clock;
+    if (!S.wakeLatest) return this.at(S.wake);
+    if (this.wakeDay !== c.day) { this.wakeDay = c.day; const a = this.at(S.wake), b = this.at(S.wakeLatest); this.wakeAt = Math.round(a + Math.random() * (b - a)); }
+    return this.wakeAt;
+  }
   inBedtimeWindow() { const m = this.mins(); return !this.tucked && m >= this.at(this.S.bedWindow) && m < this.at(this.S.bed); }
   outfit() {
     if (this.bedtime() || this.state === "sleep") return "pajamas";

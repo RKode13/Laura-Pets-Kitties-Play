@@ -167,7 +167,8 @@ LPK.characters = {
     joinsInBuild: 3,
     // Times of day for his routine. Edit freely.
     schedule: {
-      weekday: { wake: "4:45 AM", leave: "5:30 AM", home: "7:30 PM", dinner: "7:45 PM", sleep: "11:00 PM" },
+      // home from work somewhere between homeEarliest and homeLatest, usually around 6:30
+      weekday: { wake: "4:45 AM", leave: "5:30 AM", home: "6:30 PM", homeEarliest: "6:00 PM", homeLatest: "7:00 PM", dinner: "7:45 PM", sleep: "11:00 PM" },
       weekend: { wake: "8:00 AM", dinner: "5:30 PM", sleep: "11:30 PM" },
     },
     behavior: { walkSpeed: 34, runSpeed: 70, hopSeconds: 0.4, activitySeconds: [35, 80], blockCooldown: 2.5 },
@@ -193,7 +194,7 @@ LPK.characters = {
     // Times of day for his routine. Edit freely.
     // Bedtime window: tuck him in between bedWindow and bed for bonus points;
     // after "bed" he takes himself to bed (no bonus).
-    schedule: { wake: "7:00 AM", bedWindow: "7:30 PM", bed: "8:15 PM" },
+    schedule: { wake: "6:30 AM", wakeLatest: "7:00 AM", bedWindow: "7:30 PM", bed: "8:15 PM" },   // early riser: up by 7 every day
     bedtimePoints: 25, snackPoints: 5,
     behavior: { walkSpeed: 34, runSpeed: 66, hopSeconds: 0.35, activitySeconds: [6, 15] },
     look: {
@@ -261,7 +262,7 @@ LPK.characters = {
     favorites: ["Making cappuccino", "Tim Shortons donuts, donut holes and bagels", "Asking good questions"],
     joinsInBuild: 4,
     // Visits some weekend mornings (always the first weekend): arrives, stays, leaves
-    schedule: { arrive: "9:00 AM", leave: "1:00 PM", visitChance: 0.5 },
+    schedule: { arrive: "8:00 AM", arriveLatest: "9:30 AM", leave: "1:00 PM", visitChance: 0.5 },
     behavior: { walkSpeed: 30, runSpeed: 46, hopSeconds: 0.5, activitySeconds: [20, 40] },   // Speed 6
     look: {
       skin: "#d9a882", skinShade: "#c08e6a", hair: "#c9c6c2", hairDark: "#9a9692", mustache: "#6e6a66",

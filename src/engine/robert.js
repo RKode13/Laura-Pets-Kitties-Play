@@ -27,7 +27,7 @@ LPK.Robert = class Robert extends LPK.Cat {
     if (!c.isWeekend) {
       if (m < this.T2(day.wake)) want = "sleep";
       else if (m < this.T2(day.leave)) want = "morning";
-      else if (m < this.T2(day.home)) want = "away";
+      else if (m < this.homeMins()) want = "away";
       else if (m < this.T2(day.sleep)) want = "home";
       else want = "sleep";
     } else {
@@ -38,6 +38,19 @@ LPK.Robert = class Robert extends LPK.Cat {
     if (want === "home" && this.mode === "dinner") want = "dinner";     // stays on guard until she's done
     if (this.mode === "chicken" && want !== "sleep") want = "chicken";  // finishes sharing his chicken first
     return want;
+  }
+
+  // Today's time home from work: between homeEarliest and homeLatest, most
+  // often right around the middle (6:30).
+  homeMins() {
+    const c = this.game.clock, d = this.def.schedule.weekday;
+    if (!d.homeEarliest) return this.T2(d.home);
+    if (this.homeDay !== c.day) {
+      this.homeDay = c.day;
+      const a = this.T2(d.homeEarliest), b = this.T2(d.homeLatest), k = (Math.random() + Math.random()) / 2;
+      this.homeAt = Math.round(a + (b - a) * k);
+    }
+    return this.homeAt;
   }
 
   // Put him where he should be instantly (new game, Continue, time skip)

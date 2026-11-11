@@ -105,7 +105,7 @@ LPK.dialogue = {
   fightPop:      ["!!", "MEOW!!", "*runs away*"],
   lauraFight:    ["Boys! No fighting!", "Oh no, not again...", "BLACKY!"],
   lauraYard:     ["Oh, thank you, Robert. The yard looks AMAZING.", "Look at those stripes in the grass! Robert, you are a lawn ARTIST.", "Best yard on the whole block. Thank you, babe!", "Robert, this yard belongs on a magazine cover.", "Wow. Just... wow. That is one GQ lawn, Robert."],
-  lauraSmooch:   ["That deserves 10 smoochies!"],
+  lauraSmooch:   ["That deserves 10 smoochies! Where's Robert?"],
   lauraSmoochAway: ["I'm saving 10 smoochies for when he gets home!"],
   robertSmooch:  ["Anything for you, Laura.", "*blushes... stylishly*", "I'll take all 10."],
   kidHungry:     ["Mom, I'm hungry!"],
