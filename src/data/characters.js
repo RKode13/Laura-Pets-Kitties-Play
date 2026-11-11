@@ -257,12 +257,12 @@ LPK.characters = {
     relationship: "Laura's dad",
     gender: "Male",
     description: "The quiet, confident boss of the Italian family. Gracious and caring, extremely intelligent, with great work-world experience and a sense of humor you never see coming. Brings donuts and bagels, and makes the best cappuccino on the planet.",
-    attributes: { intelligence: 10, graciousness: 10, cappuccino: 10, quietConfidence: 10, sneakyHumor: 10, inquisitive: 9 },
+    attributes: { intelligence: 10, graciousness: 10, cappuccino: 10, quietConfidence: 10, sneakyHumor: 10, inquisitive: 9, speed: 4 },
     favorites: ["Making cappuccino", "Tim Shortons donuts, donut holes and bagels", "Asking good questions"],
     joinsInBuild: 4,
     // Visits some weekend mornings (always the first weekend): arrives, stays, leaves
     schedule: { arrive: "9:00 AM", leave: "1:00 PM", visitChance: 0.5 },
-    behavior: { walkSpeed: 30, runSpeed: 50, hopSeconds: 0.5, activitySeconds: [20, 40] },
+    behavior: { walkSpeed: 24, runSpeed: 36, hopSeconds: 0.6, activitySeconds: [20, 40] },   // Speed 4: takes his time
     look: {
       skin: "#d9a882", skinShade: "#c08e6a", hair: "#c9c6c2", hairDark: "#9a9692", mustache: "#6e6a66",
       blazer: "#1f2a4a", blazerLight: "#2c3a62", shirt: "#f4f2ee", tie: "#a8927a", tieDots: "#6a7a9a",
