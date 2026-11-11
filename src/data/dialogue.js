@@ -148,6 +148,7 @@ LPK.dialogue = {
   lauraTvOff:    ["Sheesh, that's scawy. That's very scawy."],
   kidWhatIsThat: ["What is that?"],
   kidTvScream:   ["AAAAAAAHHHHHHHHHHHH!"],
+  lauraSweep:    ["Orangey... really?", "Cardboard. EVERYWHERE.", "That box isn't food, buddy!"],
   zoomieNoises:            ["!!!", "*ZOOM*", "brrrrt!", "*wiggle wiggle*", "!!", "*skrrrt*"],
   afterCatnip:             ["*blinks slowly*", "...what just happened?", "*flops over*"],
   begMeow:                 ["Meow?", "MEOW!", "mrrp?", "Meow meow!", "*more?*", "Mew!"],

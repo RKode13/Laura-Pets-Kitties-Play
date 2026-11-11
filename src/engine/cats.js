@@ -535,6 +535,8 @@ LPK.Popsicle = class Popsicle extends LPK.Cat {
         return;
       case "box":
         if (Math.random() < 0.03) this.say(this.pick(D().popChomp), 1.2);
+        // chomp chomp... flicking little pieces of cardboard everywhere
+        if ((this.flickT = (this.flickT || 0) - (dt || 1 / 60)) <= 0) { this.flickT = 0.2 + Math.random() * 0.4; this.game.flickCardboard(this); }
         this.witness("boxChompSpotted");
         if (this.timer <= 0) { this.say(this.pick(D().popWander), 2); this.setState("sit", 1); }
         return;

@@ -48,7 +48,7 @@ LPK.game = (() => {
     G.joe.sync(); G.cupView = null;
     G.ro = new LPK.Ro(G);
     G.ro.sync();
-    LPK.catFight.end(G); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.tv = null; G.tvScare = null;
+    LPK.catFight.end(G); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.tv = null; G.tvScare = null; G.debris = [];
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -213,6 +213,8 @@ LPK.game = (() => {
     if (G.joeTreats && G.room === "kitchen" && !jo.donutTaken && Math.hypot(L.x - 17 * T, L.y - 10.8 * T) < 26) return { kind: "donut", label: "Grab a donut", ok: true };
     const ow = G.owen;
     if (ow && ow.room === G.room && ow.distTo(L) < 36 && ow.state !== "sleep" && ow.state !== "streaks" && ow.streakWindow()) return { kind: "owenStreak", label: "Owen, do your streaks!", ok: true };
+    const mess = (G.debris || []).filter(p => p.room === G.room && p.z === 0 && Math.hypot(p.x - L.x, p.y - L.y) < 30).length;
+    if (mess >= 4) return { kind: "sweep", label: "Sweep up the cardboard", ok: true };
     const Rb = G.robert;
     if (G.smoochOwed && Rb.present && Rb.room === G.room && Rb.state !== "sleep" && Rb.distTo(L) < 36 && !G.smooches) return { kind: "smooch", label: "Give Robert 10 smoochies", ok: true };
     // standing right at the sliding door: the backyard view wins over nearby cats
@@ -269,6 +271,7 @@ LPK.game = (() => {
       case "evanBed": L.say(D().lauraBedtime[0], 1.6); G.evan.tuckIn(); break;
       case "backyard": G.admireYard(); break;
       case "tv": G.pressTV(); break;
+      case "sweep": G.sweepCardboard(); break;
       case "smooch": G.giveSmooches(); break;
       case "joeCup": G.joe.giveLauraCup(); break;
       case "donut": G.joe.donutTaken = true; L.sayRandom(D().lauraDonut, 2.2); G.progression.addPoints(3); LPK.audio.sfx.crunch(); break;
@@ -560,6 +563,38 @@ LPK.game = (() => {
     }
   }
 
+  // Orangey chomping his box flings bits of cardboard all over the floor;
+  // they pile up until Laura sweeps them.
+  G.flickCardboard = (cat) => {
+    const d = G.debris = G.debris || [];
+    const a = Math.random() * Math.PI * 2, sp = 30 + Math.random() * 55;
+    d.push({ room: cat.room, x: cat.x + (cat.flip ? -4 : 4), y: cat.y - 1, z: 10, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6, vz: 35 + Math.random() * 45,
+      c: ["#b8885a", "#a87848", "#c89a68", "#9a6a3e"][Math.floor(Math.random() * 4)], w: 1 + Math.floor(Math.random() * 2), h: 1 + Math.floor(Math.random() * 2), t: 0 });
+    const inRoom = d.filter(p => p.room === cat.room);
+    if (inRoom.length > 45) d.splice(d.indexOf(inRoom[0]), 1);
+    if (cat.room === G.room && Math.random() < 0.3) LPK.audio.sfx.tear();
+  };
+  function updateDebris(dt) {
+    const d = G.debris; if (!d || !d.length) return;
+    for (const p of d) {
+      p.t += dt;
+      if (p.z > 0 || p.vz > 0) {
+        const w = G.worlds[p.room], nx = p.x + p.vx * dt, ny = p.y + p.vy * dt;
+        if (w && w.pointOpen(nx, ny)) { p.x = nx; p.y = ny; } else { p.vx *= -0.3; p.vy *= -0.3; }
+        p.vz -= 220 * dt; p.z += p.vz * dt;
+        if (p.z <= 0) { p.z = 0; p.vz = 0; p.vx = p.vy = 0; }
+      }
+    }
+    G.debris = d.filter(p => p.t < 600);                      // they stick around about 10 minutes
+  }
+  G.sweepCardboard = () => {
+    const L = G.laura, before = G.debris.length;
+    G.debris = G.debris.filter(p => !(p.room === G.room && Math.hypot(p.x - L.x, p.y - L.y) < 48));
+    const n = before - G.debris.length;
+    L.sayRandom(D().lauraSweep, 2.2); LPK.audio.sfx.click();
+    if (n >= 5) { G.progression.addPoints(2); LPK.events.emit("sweep", { n }); }
+  };
+
   G.pickFood = (food) => {
     G.foodMenu = null;
     if (!food) { G.holding = null; G.laura.say("Put it away.", 1.2); return; }
@@ -638,6 +673,7 @@ LPK.game = (() => {
     updateYard(dt);
     updateHungry(dt);
     updateTV(dt);
+    updateDebris(dt);
     updateSmooches(dt);
     LPK.catFight.update(G, dt);
     if (G.fightText && (G.fightText.t -= dt) <= 0) G.fightText = null;
@@ -926,6 +962,7 @@ LPK.game = (() => {
       P.rect(g, x + 22, y - 2, 9, 10, "#d8b888"); P.rect(g, x + 22, y - 2, 9, 2, "#c8a070"); P.rect(g, x + 24, y + 3, 5, 2, "#c84a3a");
     } });
     LPK.catFight.drawItems(items, G);
+    for (const p of (G.debris || [])) if (p.room === G.room) items.push({ sortY: p.z > 0 ? p.y + 20 : p.y - 6, draw: (g) => LPK.px.rect(g, Math.round(p.x), Math.round(p.y - p.z), p.w, p.h, p.c) });
     if (G.smooches && G.smooches.room === G.room) {
       const S = G.smooches;
       items.push({ sortY: 9999, draw: (g) => {
