@@ -441,6 +441,19 @@ LPK.game = (() => {
     G.banner = { title: c.label(), text: "Time flies...", t: 2.5 };
   };
 
+  // While Laura rests: step the clock one hour back or ahead (left/right arrows or the on-screen buttons)
+  G.shiftHour = (n) => {
+    const c = G.clock;
+    c.minutes += n * 60;
+    while (c.minutes < 0) { c.minutes += 1440; c.day = (c.day + 6) % 7; }
+    while (c.minutes >= 1440) { c.minutes -= 1440; c.day = (c.day + 1) % 7; }
+    G.robert.sync(); G.evan.sync(); G.owen.sync(); G.joe.sync(); G.ro.sync(); LPK.catFight.end(G);
+    G.tv = null; G.tvScare = null; G.hungry = null; G.cupView = null; G.stareOff = null;
+    G.cats.forEach(cat => { if (cat.state === "headSleep") cat.setState("sleep", 10); });
+    LPK.audio.sfx.click();
+    G.restSkip = { text: (n < 0 ? "◀ 1 hour back: " : "1 hour ahead ▶: ") + c.label(), t: 1.6 };
+  };
+
   // Simulate a thrown spring bouncing around the room. Returns the path
   // (one point per frame at 60 fps), the frames where it hit something, and
   // where it ends up.
@@ -832,6 +845,11 @@ LPK.game = (() => {
     G.prompt = null;
     const cheering = G.olympics && G.olympics.phase === "cheer";
     if (!G.petting.active && !cheering && (!L.busy || L.state === "rest")) {
+      if (L.state === "rest" && !G.choiceMenu) {
+        if (input.pressed("left")) G.shiftHour(-1);
+        else if (input.pressed("right")) G.shiftHour(1);
+      }
+      if (G.restSkip && (G.restSkip.t -= dt) <= 0) G.restSkip = null;
       G.prompt = findTarget();
       if (G.prompt && input.pressed("act")) useTarget(G.prompt);
       else if (G.holding && input.pressed("stop")) G.pickFood(null);

@@ -460,10 +460,14 @@ LPK.ui = (() => {
     if (G.artView) drawArtView();
     if (G.choiceMenu) drawChoiceMenu();
     if (G.laura.state === "rest") {
-      const w = Math.min(380, W - 40);
-      panel(W / 2 - w / 2, H * 0.62, w, sz * 2.6);
-      text("Resting... time flies ⏩", W / 2, H * 0.62 + sz * 0.95, sz, C.gold, "center");
-      text(kb ? "SPACE to get up" : "Tap GET UP", W / 2, H * 0.62 + sz * 1.9, sz * 0.8, C.dim, "center", "normal");
+      const w = Math.min(420, W - 40), py = H * 0.58, ph = sz * 4.6;
+      panel(W / 2 - w / 2, py, w, ph);
+      text(G.restSkip ? G.restSkip.text : "Resting... time flies ⏩", W / 2, py + sz * 0.95, sz, C.gold, "center");
+      const bw = w * 0.3, bh = sz * 1.6, by = py + sz * 1.7;
+      button("◀ 1 hr", W / 2 - w / 2 + 14, by, bw, bh, () => G.shiftHour(-1), { nav: false, size: sz * 0.8 });
+      button("1 hr ▶", W / 2 + w / 2 - 14 - bw, by, bw, bh, () => G.shiftHour(1), { nav: false, size: sz * 0.8 });
+      text(kb ? "or ◀ ▶ keys" : "", W / 2, by + bh / 2, sz * 0.6, C.dim, "center", "normal");
+      text(kb ? "SPACE to get up" : "Tap GET UP", W / 2, py + sz * 3.95, sz * 0.8, C.dim, "center", "normal");
     }
     if (G.bellyGame) drawBellyGame();
 
