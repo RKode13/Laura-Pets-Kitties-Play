@@ -146,7 +146,7 @@ LPK.dialogue = {
   tvShows:       ["", "SHRIEK", "Saturday the 14th", "Terrorfied"],
   tvBlurbs:      ["", "A masked killer in a black hooded robe...", "A big guy in a hockey mask at summer camp...", "A creepy mime clown with a tiny hat..."],
   lauraAffirm:   ["It's time for your daily affirmations.", "You're very orange.", "You're very handsome.", "You're so silky.", "You're very pretty.",
-                  "You're the orangiest, most handsome boy in the whole house.", "Look at that silky orange fur.", "And everybody loves you."],
+                  "You're very sweet.", "And you're very smart.", "And everybody loves you."],
   popAffirm:     ["*slow blink*", "*purrrr*", "mrrp.", "*purrrrrr*", "*slow blink*"],
   lauraTvOff:    ["Sheesh, that's scawy. That's very scawy."],
   kidWhatIsThat: ["What is that?"],

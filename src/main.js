@@ -1110,8 +1110,7 @@ LPK.game = (() => {
     const so = G.stareOff && G.room === "kitchen" ? G.stareOff : null;
     const tb = G.owen && G.owen.ten && G.owen.ten.step === "ask" && G.owen.room === G.room ? G.owen
       : G.evan && G.evan.bonk && ["aim", "fly", "bonk"].includes(G.evan.bonk.step) && G.evan.bonk.t < 6 && G.evan.room === G.room ? G.evan : null;
-    const af = G.affirm && G.affirm.cat.room === G.room ? G.affirm : null;
-    const fightCam = af ? { x: (af.cat.x + G.laura.x) / 2, y: G.laura.y - 16 } : so ? { x: (so.a.x + so.b.x) / 2, y: (so.a.y + so.b.y) / 2 - 22 }
+    const fightCam = so ? { x: (so.a.x + so.b.x) / 2, y: (so.a.y + so.b.y) / 2 - 22 }
       : tb ? { x: (tb.x + G.robert.x) / 2, y: (tb.y + G.robert.y) / 2 - 22 } : !stareCat && !clownCam && (LPK.catFight.focus(G) || LPK.sneak.focus(G));
     const tvCam = null;                                         // the TV no longer zooms; the view stays put
     const yardCam = !stareCat && !fightCam && !tvCam && G.yard && G.room === "kitchen" && G.yard.t < 2.0 ? { x: 17.25 * 16, y: 3 * 16 + 4 } : null;
