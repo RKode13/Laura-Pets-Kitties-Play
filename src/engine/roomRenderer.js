@@ -645,11 +645,16 @@ LPK.roomRenderer = (() => {
         for (let i = 0; i < 2; i++) {
           const mx = x + 14 + i * 22;
           R(g, mx, y - 28, 20, 14, "#141418");
-          const scr = sc === "idle" ? "#1a1a24" : sc === "nonsense" ? "#f2f2f2" : sc === "call" ? "#2a4a6a" : "#e8eef4";
+          const scr = sc === "idle" ? "#1a1a24" : sc === "nonsense" ? "#f2f2f2" : sc === "call" ? "#2a4a6a" : sc === "meeting" ? "#20242e" : "#e8eef4";
           R(g, mx + 1, y - 27, 18, 12, scr);
           if (sc === "email") for (let k = 0; k < 4; k++) R(g, mx + 3, y - 25 + k * 3, 6 + ((k * 5 + Math.floor(tt * 4)) % 10), 1, "#6a7a8a");
           if (sc === "nonsense") for (let k = 0; k < 5; k++) R(g, mx + 2, y - 26 + k * 2, 16, 1, k % 2 ? "#2a2a2a" : "#5a5a5a");
           if (sc === "call") { E(g, mx + 9, y - 22, 3, 3, "#f2c8a6"); R(g, mx + 5, y - 18, 8, 3, "#3a6a9a"); }
+          if (sc === "meeting" && i === 0) for (let k = 0; k < 6; k++) {                    // little video tiles
+            const tx = mx + 2 + (k % 3) * 6, ty = y - 26 + Math.floor(k / 3) * 5;
+            R(g, tx, ty, 5, 4, ["#4a6a9a", "#7a5a8a", "#5a8a6a", "#9a6a4a", "#4a7a8a", "#8a4a5a"][k]); R(g, tx + 2, ty + 1, 1, 2, "#f2c8a6");
+          }
+          if (sc === "meeting" && i === 1) { R(g, mx + 2, y - 26, 16, 3, "#d8343c"); for (let k = 0; k < 3; k++) R(g, mx + 3, y - 21 + k * 2, 8 + (k * 3) % 6, 1, "#c8ccd4"); }
           R(g, mx + 9, y - 14, 2, 4, "#2a2a2e");
         }
         R(g, x + 22, y - 3, 22, 4, "#f4c8a8"); for (let k = 0; k < 6; k++) R(g, x + 23 + k * 3, y - 2, 2, 1, "#e89a7a");   // pastel keyboard

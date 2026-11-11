@@ -449,6 +449,7 @@ LPK.ui = (() => {
       ctx.restore();
     }
     if (G.cupView) drawCupView();
+    if (G.desk && G.desk.session && G.desk.session.kind === "meeting" && G.room === "masterBedroom") drawMeeting();
     if (G.stareOff) {                                          // the stare-down: the world holds its breath
       const k = Math.min(1, G.stareOff.t / 0.6) * 0.45;
       const gr = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.2, W / 2, H / 2, Math.max(W, H) * 0.7);
@@ -520,6 +521,61 @@ LPK.ui = (() => {
     }
     button("Back on the fridge", W / 2 - 110, H - bh - 10, 220, bh, () => { G.artView = null; }, { nav: false, color: "#8a5fb8" });
   }
+
+  // The Zoom meeting at Laura's desk: video tiles + the IMPORTANT HR STUFF slide
+  function drawMeeting() {
+    const s = G.desk.session, tt = s.t, a = Math.min(1, tt / 0.3);
+    const pw = Math.min(W * 0.42, 340), ph = pw * 0.86, px = W - pw - 14, py = Math.max(70, H * 0.12);
+    ctx.save(); ctx.globalAlpha = a;
+    rr(px, py, pw, ph, 12, "#1c1f28", "#3a3f4e", 2);
+    ctx.fillStyle = "#2a2e3a"; ctx.fillRect(px + 2, py + 2, pw - 4, u * 1.4);
+    text("Meeting: IMPORTANT HR STUFF", px + pw / 2, py + u * 0.75, u * 0.75, "#e8ecf4", "center");
+    ctx.fillStyle = "#d8343c"; ctx.beginPath(); ctx.arc(px + 12, py + u * 0.72, 3, 0, 7); ctx.fill();          // recording dot
+    const m = G.cat("marshmallow"), catJoined = m && m.room === "masterBedroom" && ["keyWalk", "sip"].includes(m.state);
+    const people = [
+      { n: "Laura (you)", bg: "#4a6a9a", skin: "#f2c8a6", hair: "#b8894f", long: true },
+      { n: "Diane (HR)", bg: "#7a5a8a", skin: "#e2b08e", hair: "#5a3a2a", long: true, glasses: true },
+      { n: "Brenda (muted)", bg: "#5a8a6a", skin: "#f0c6a8", hair: "#d8b060", long: true, muted: true },
+      { n: "Gary", bg: "#9a6a4a", skin: "#d9a882", hair: "#3a2a20", bald: true },
+      { n: "Kevin", bg: "#4a7a8a", skin: "#f2c8a6", hair: "#2a2a30" },
+      catJoined ? { n: "Marshmallow", bg: "#3a3a48", cat: true } : { n: "Steve (camera off)", bg: "#2a2c34", off: true },
+    ];
+    const gx = px + 8, gy = py + u * 1.7, tw = (pw - 16 - 8) / 3, th = tw * 0.66;
+    const talker = s.idx >= 0 && L_talking() ? 0 : 1 + Math.floor(tt / 1.6) % 4;
+    people.forEach((p, i) => {
+      const x = gx + (i % 3) * (tw + 4), y = gy + Math.floor(i / 3) * (th + 4);
+      ctx.fillStyle = p.bg; ctx.fillRect(x, y, tw, th);
+      const cx = x + tw / 2, cy = y + th * 0.52, r = th * 0.2;
+      if (p.off) { text("camera off", cx, cy, u * 0.6, "#8a8e9a", "center", "normal"); }
+      else if (p.cat) {                                              // Marshmallow's face fills the screen
+        ctx.fillStyle = "#f6f3ee"; ctx.beginPath(); ctx.arc(cx, cy + 2, r * 1.6, 0, 7); ctx.fill();
+        ctx.fillStyle = "#4b4642"; ctx.fillRect(cx - r * 1.4, cy - r * 1.3, r * 2.8, r * 0.9);
+        ctx.beginPath(); ctx.moveTo(cx - r * 1.4, cy - r * 0.9); ctx.lineTo(cx - r * 1.1, cy - r * 2.2); ctx.lineTo(cx - r * 0.5, cy - r * 1.2); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(cx + r * 1.4, cy - r * 0.9); ctx.lineTo(cx + r * 1.1, cy - r * 2.2); ctx.lineTo(cx + r * 0.5, cy - r * 1.2); ctx.fill();
+        ctx.fillStyle = "#b9c44c"; ctx.fillRect(cx - r * 0.8, cy, r * 0.5, r * 0.25); ctx.fillRect(cx + r * 0.3, cy, r * 0.5, r * 0.25);
+      } else {
+        ctx.fillStyle = "#1a1a20"; ctx.fillRect(cx - r * 1.4, cy + r * 1.1, r * 2.8, th);           // shoulders
+        if (p.long) { ctx.fillStyle = p.hair; ctx.fillRect(cx - r * 1.2, cy - r * 0.9, r * 2.4, r * 2.4); }
+        ctx.fillStyle = p.skin; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fill();
+        if (!p.bald) { ctx.fillStyle = p.hair; ctx.fillRect(cx - r, cy - r, r * 2, r * 0.6); }
+        ctx.fillStyle = "#2a2a2a"; ctx.fillRect(cx - r * 0.45, cy - r * 0.1, 2, 2); ctx.fillRect(cx + r * 0.3, cy - r * 0.1, 2, 2);
+        if (p.glasses) { ctx.strokeStyle = "#2a2a2a"; ctx.lineWidth = 1; ctx.strokeRect(cx - r * 0.65, cy - r * 0.3, r * 0.5, r * 0.4); ctx.strokeRect(cx + r * 0.15, cy - r * 0.3, r * 0.5, r * 0.4); }
+      }
+      ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(x, y + th - u * 0.75, tw, u * 0.75);
+      text(p.n, x + 3, y + th - u * 0.37, Math.min(u * 0.55, tw / (p.n.length * 0.55)), "#ffffff", "left", "normal");
+      if (p.muted) { ctx.fillStyle = "#d8343c"; ctx.fillRect(x + tw - 9, y + 3, 6, 6); }
+      if (i === talker && !p.off) { ctx.strokeStyle = "#5ad06a"; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, tw - 2, th - 2); }
+    });
+    // the shared slide
+    const sy = gy + 2 * (th + 4) + 2, sh = py + ph - sy - 8;
+    ctx.fillStyle = "#f6f6f2"; ctx.fillRect(gx, sy, pw - 16, sh);
+    ctx.fillStyle = "#d8343c"; ctx.fillRect(gx, sy, pw - 16, sh * 0.32);
+    text("IMPORTANT HR STUFF", gx + (pw - 16) / 2, sy + sh * 0.16, Math.min(u * 0.95, sh * 0.22), "#ffffff", "center");
+    const bl = LPK.dialogue.meetingBullets, k = Math.floor(tt / 4);
+    for (let j = 0; j < 2; j++) text("• " + bl[(k * 2 + j) % bl.length], gx + 8, sy + sh * (0.5 + j * 0.25), Math.min(u * 0.7, sh * 0.17), "#2a2e3a", "left", "normal");
+    ctx.restore();
+  }
+  function L_talking() { return G.laura && G.laura.speech; }
 
   // Joe's famous cappuccino, up close (white square mug, chocolate spiderweb foam)
   function drawCupView() {

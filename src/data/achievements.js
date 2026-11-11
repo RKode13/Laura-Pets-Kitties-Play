@@ -73,5 +73,6 @@ LPK.achievements = [
   { id: "laundryDay",      name: "Laundry Day",                desc: "Throw the whole overflowing basket in the washer.", event: "laundry", build: 4 },
   { id: "sinkSnacks",      name: "Num Num Num",                desc: "Catch Orangey eating out of the sink while the dishwasher runs.", event: "popSink", build: 4 },
   { id: "touchdownBears",  name: "Touchdown Bears!",           desc: "Watch a Sunday touchdown with Robert.", event: "bearsTD", build: 4 },
+  { id: "hrStuff",         name: "Important HR Stuff",         desc: "Sit through a whole Zoom meeting at Laura's desk.", event: "zoomMeeting", build: 4 },
   { id: "purrfection",     name: "PURRFECTION!",               desc: "Complete the main story: the Ultimate Kitty Cuddle.", event: "missionComplete", match: { mission: "ultimateCuddle" }, build: 4 },
 ];

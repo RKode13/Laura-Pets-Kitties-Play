@@ -343,6 +343,7 @@ LPK.game = (() => {
         const opts = [
           { label: "Check emails", fn: () => startDesk("email") },
           { label: "Take a quick call", fn: () => startDesk("call") },
+          { label: "Join a Zoom meeting", fn: () => startDesk("meeting") },
         ];
         if (G.desk.coffee !== "full") opts.push({ label: "Get a fresh cup of coffee", fn: () => { G.desk.coffee = "full"; G.laura.sayRandom(D().lauraCoffeeRefill, 2); } });
         opts.push({ label: "Never mind", fn: () => {} });
@@ -920,7 +921,7 @@ LPK.game = (() => {
     L.restFrom = { x: L.x, y: L.y };
     L.x = 3 * 16 + 8; L.y = 4 * 16 + 10; L.state = "work"; L.dir = "up";
     G.desk.screen = kind;
-    G.desk.session = { kind, t: 0, idx: -1, nextT: 0, lines: kind === "email" ? D().lauraEmail : D().lauraCall };
+    G.desk.session = { kind, t: 0, idx: -1, nextT: 0, lines: kind === "email" ? D().lauraEmail : kind === "meeting" ? D().lauraMeeting : D().lauraCall };
   }
   function updateDesk(dt) {
     const s = G.desk && G.desk.session;
@@ -948,6 +949,7 @@ LPK.game = (() => {
         L.state = "idle"; if (L.restFrom) { L.x = L.restFrom.x; L.y = L.restFrom.y; }
         L.sayRandom(D().lauraDeskDone, 2);
         LPK.events.emit("workFromHome", {});
+        if (s.kind === "meeting") LPK.events.emit("zoomMeeting", {});
       }
     }
   }

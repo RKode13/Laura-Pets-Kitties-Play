@@ -162,6 +162,8 @@ LPK.dialogue = {
   robertTD:      ["Another touchdown. Bears are the best team in NFL history. Caleb Williams is the GOAT."],
   robertTD2:     ["TOUCHDOWN! Let's GO!", "Another touchdown. Caleb Williams is the GOAT.", "Did you SEE that throw?!"],
   robertChannel: ["Hey! The Bears game is on!"],
+  lauraMeeting:  ["Okay, joining the meeting...", "Mm-hmm.", "Yes. Very important HR stuff.", "Can everyone see my screen?", "Brenda, you're on mute.", "Sounds great, let's circle back on that.", "Okay, bye everyone! *waves*"],
+  meetingBullets:["New PTO request process", "Mandatory Fun Day is Friday", "Please stop microwaving fish", "Reply-all etiquette (again)", "Updated dress code: pants required", "Who took the good stapler?"],
   zoomieNoises:            ["!!!", "*ZOOM*", "brrrrt!", "*wiggle wiggle*", "!!", "*skrrrt*"],
   afterCatnip:             ["*blinks slowly*", "...what just happened?", "*flops over*"],
   begMeow:                 ["Meow?", "MEOW!", "mrrp?", "Meow meow!", "*more?*", "Mew!"],
