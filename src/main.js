@@ -548,6 +548,11 @@ LPK.game = (() => {
     const L = G.laura, c = A.cat, lines = D().lauraAffirm;
     A.t += dt;
     if (c.room !== G.room && A.i < lines.length - 1) { endAffirm(false); return; }
+    // halfway through, Cookies and Cream sprints right past them: "DORK!"
+    if (A.t > 8.2 && !A.dork) { A.dork = { said: false }; ccDorkRun(A); }
+    if (A.dork && A.dork.cc && !A.dork.said && Math.abs(A.dork.cc.x - (L.x + c.x) / 2) < 26) {
+      A.dork.said = true; A.dork.cc.say("DORK!", 1.6); LPK.audio.sfx.startle && LPK.audio.sfx.startle();
+    }
     if (A.t >= A.next) {
       A.i++;
       if (A.i < lines.length) {
@@ -556,6 +561,24 @@ LPK.game = (() => {
         A.next = A.t + (A.i === lines.length - 1 ? 3.6 : 2.7);
       } else endAffirm(true);
     }
+  }
+  function ccDorkRun(A) {
+    const cc = G.cat("cc"), L = G.laura, w = G.world, T = w.T; if (!cc) return;
+    const cols = w.def.cols, mid = (L.x + A.cat.x) / 2;
+    let best = null;
+    for (const dy of [18, -18, 30, -30]) {                     // a clear lane just in front of (or behind) them
+      const y = L.y + dy, pts = [];
+      for (let x = 1.5 * T; x <= (cols - 1.5) * T; x += 8) if (w.pointOpen(x, y)) pts.push({ x, y }); else if (pts.length && pts[pts.length - 1].x < mid) pts.length = 0; else if (pts.length) break;
+      if (pts.length > 6 && pts[0].x < mid - 30 && pts[pts.length - 1].x > mid + 30 && (!best || pts.length > best.length)) best = pts;
+    }
+    if (!best) return;
+    const fromLeft = cc.room === G.room ? cc.x < mid : Math.random() < 0.5;
+    if (!fromLeft) best.reverse();
+    cc.stopMoving(); cc.tasks = []; cc.stopEating && cc.stopEating();
+    cc.room = G.room; cc.z = 0; cc.x = best[0].x; cc.y = best[0].y; cc.flip = !fromLeft;
+    cc.path = best.slice(1); cc.moveMode = "sprint"; cc.state = "move";
+    cc.tasks = [{ type: "call", fn: () => { const far = cc.def.restingSpots.filter(k => !k.startsWith(G.room + ".")); cc.goTo(far[Math.floor(Math.random() * far.length)] || cc.def.restingSpots[0], "sprint", () => cc.setState("sit", 4)); } }];
+    A.dork.cc = cc;
   }
   function endAffirm(done) {
     const A = G.affirm; if (!A) return;
