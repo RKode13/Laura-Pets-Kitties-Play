@@ -206,7 +206,7 @@ LPK.Evan = class Evan extends LPK.Cat {
     const pose = lie ? "lie" : this.isSitting ? "sit" : walking ? "walk" : "stand";
     const fps = this.moveMode === "run" ? 11 : 6;
     const anim = this.state === "squish" ? Math.floor(this.t * 3) : this.state === "draw" ? Math.floor(this.t * 5) : Math.floor(this.t * fps);
-    const shapes = LPK.sprites.kid(this.id, walking ? this.dir : "down", anim, { pose, outfit: this.outfit(), sleeping: this.state === "sleep", hold: this.holding, swing: this.swinging });
+    const shapes = LPK.sprites.kid(this.id, walking ? this.dir : "down", anim, { pose, outfit: this.outfit(), sleeping: this.state === "sleep", hold: this.holding, swing: this.swinging, handsOnHead: this.handsOnHead });
     if (this.z === 0) LPK.px.rect(g, this.x - 6, this.y - 1, 12, 2, "rgba(0,0,0,0.22)");
     LPK.px.draw(g, shapes, this.x, this.y - this.z, lie ? !!this.spot.headRight : walking && this.dir === "side" && this.flip);
     if (this.state === "sleep") {

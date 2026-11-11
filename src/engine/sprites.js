@@ -585,6 +585,10 @@ LPK.sprites = (() => {
       if (opt.hold) hold(0, st + 7);
       return s;
     }
+    const handsUp = (front) => {                   // "NO!" hands on his head
+      if (front) { r(-B.bw - 2, top - 6, 2, 7, O.sleeve || O.top); r(B.bw, top - 6, 2, 7, O.sleeve || O.top); r(-hw, top - 10, 3, 2, E.skin); r(hw - 3, top - 10, 3, 2, E.skin); }
+      else { r(-1, top - 7, 2, 8, O.sleeve || O.top); r(-1, top - 10, 3, 2, E.skin); }
+    };
     if (dir === "side") {
       const tw = 7 + (B.bw - 5) * 2;
       leg(-2 + sw * 2, legTop, B.leg); leg(-1 - sw * 2, legTop, B.leg);
@@ -593,9 +597,10 @@ LPK.sprites = (() => {
       r(-3, top, tw, B.torso, O.top);
       dots.forEach((c, i) => r(-1 + i, top + 3 + i * 3, 1, 1, c, 1));
       if (O.suspenders) r(0, top, 1, 10, "#6a6a72", 1);
-      arm(-1 + sw, top + 1, armLen);
+      if (!opt.handsOnHead) arm(-1 + sw, top + 1, armLen);
       r(-1, top - 1, 2, 1, E.skin);
       head(0, top - 1, true);
+      if (opt.handsOnHead) handsUp(false);
       if (opt.hold) hold(opt.hold === "plane" ? 6 : 3, opt.hold === "plane" ? top + 2 : top + 8);
       return s;
     }
@@ -603,10 +608,11 @@ LPK.sprites = (() => {
     leg(lx + sw, legTop, B.leg); leg(rx - sw, legTop, B.leg);
     r(lx + sw, -1, legW, 1, O.feet[0]); r(rx - sw, -1, legW, 1, O.feet[1]);
     r(-B.bw, top, 2 * B.bw, B.torso, O.top);
-    arm(-B.bw - 2, top + 1, armLen); arm(B.bw, top + 1, armLen);
+    if (!opt.handsOnHead) { arm(-B.bw - 2, top + 1, armLen); arm(B.bw, top + 1, armLen); }
     chest(top, dir === "up");
     r(-1, top - 1, 2, 1, E.skin);
     head(0, top - 1, false);
+    if (opt.handsOnHead) handsUp(true);
     if (opt.hold && dir !== "up") hold(0, opt.hold === "plane" ? top - 2 : opt.hold === "bat" ? top + 8 : top + 7);
     return s;
   }

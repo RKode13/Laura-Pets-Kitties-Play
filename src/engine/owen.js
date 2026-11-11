@@ -20,6 +20,8 @@ LPK.Owen = class Owen extends LPK.Evan {
   }
 
   sync() {
+    if (this.ten) { const R = this.game.robert; if (R) { R.wallet = null; R.fighting = false; } this.ten = null; }
+    this.fighting = false; this.handsOnHead = false;
     this.stopMoving(); this.tasks = []; this.holding = null; this.gear = null; this.ball = null; this.tucked = false;
     if (this.bedtime()) { this.placeAt("masterBedroom.owenSleep"); this.setState("sleep", 1e9); this.mode = "night"; return; }
     this.placeAt("livingRoom.owenCouch"); this.setState("sit", 3); this.mode = "day";
@@ -125,6 +127,43 @@ LPK.Owen = class Owen extends LPK.Evan {
     }
     this.holding = null; this.gear = null; this.setState("stand", 2);
   }
+  // ---- "Hey, can I have $10?" — Robert reaches for his wallet... and
+  // gives him the (censored) finger instead. "NO!" and Owen runs off.
+  canAskTen() {
+    const G = this.game, R = G.robert;
+    return this.mode === "day" && !this.fighting && !this.moving && this.z === 0 && !["streaks", "throw", "watchBall", "catch", "swing"].includes(this.state)
+      && R.present && R.mode === "home" && !R.moving && !R.fighting && R.room === this.room && this.room === G.room && ["sit", "stand"].includes(R.state)
+      && !G.hungry && !(G.joe && G.joe.sc) && !LPK.catFight.active && !G.laura.busy;
+  }
+  startTen() {
+    const G = this.game, R = G.robert;
+    this.fighting = true; R.fighting = true; this.holding = null; this.gear = null;
+    this.ten = { t: 0, step: "walk" };
+    const side = this.x < R.x ? -1 : 1;
+    const ok = this.goTo({ room: R.room, tx: Math.floor((R.x + side * 18) / 16), ty: Math.floor((R.y + 4) / 16) }, "walk", () => { this.ten.step = "ask"; this.ten.t = 0; });
+    if (!ok) this.ten.step = "ask";
+  }
+  updateTen(dt) {
+    const T = this.ten; if (!T) return;
+    const G = this.game, R = G.robert, D = this.D;
+    T.t += dt;
+    if (T.step === "walk") { if (T.t > 12) { this.stopMoving(); T.step = "ask"; T.t = 0; } return; }
+    const beat = (at, fn) => { if (T.t >= at && !T[at]) { T[at] = true; fn(); } };
+    if (T.step === "ask") {
+      beat(0, () => { this.setState("stand", 99); this.flip = R.x < this.x; R.walletSide = this.x < R.x ? -1 : 1; this.say(D.owenTenAsk[0], 2.2); });
+      beat(2.4, () => { R.say(D.robertWallet[0], 2.4); });
+      beat(3.6, () => { R.wallet = "out"; });                 // reaches back... pulls out the wallet...
+      beat(5.0, () => { R.wallet = "up"; LPK.audio.sfx.bleep(); });   // ...and up comes the (censored) finger
+      beat(6.8, () => {
+        this.say(D.owenTenNo[0], 1.6); this.handsOnHead = true; LPK.audio.sfx.startle();
+        const away = ["kitchen.joeSeat", "backRoom.field", "owensRoom.owenFloor", "livingRoom.owenCouch"].filter(k => !k.startsWith(this.room + "."));
+        this.goTo(away[Math.floor(Math.random() * away.length)], "run", () => { this.handsOnHead = false; this.setState("stand", 2); });
+        if (this.sameRoomAsLaura()) LPK.events.emit("tenBucks", {});
+      });
+      beat(7.6, () => { R.wallet = null; R.fighting = false; R.setState(R.state === "sit" ? "sit" : "stand", 4); this.fighting = false; this.ten = null; this.tenCool = 360 + Math.random() * 240; });
+    }
+  }
+
   // Laura: "Owen, do your streaks!"
   doStreaks() {
     this.streakDay = this.today;
@@ -135,6 +174,8 @@ LPK.Owen = class Owen extends LPK.Evan {
 
   update(dt) {
     super.update(dt);
+    if (this.ten) this.updateTen(dt);
+    else if ((this.tenCool = (this.tenCool ?? 90) - dt) <= 0 && this.canAskTen() && Math.random() < dt / 40) this.startTen();
     if (this.ball) this.ball.t = Math.min(1, this.ball.t + dt / this.ball.dur);
   }
   drawExtra(g) {

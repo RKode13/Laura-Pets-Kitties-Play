@@ -279,7 +279,7 @@ LPK.characters = {
     role: "Visiting character (not playable)",
     relationship: "Laura's mom · Joe's wife",
     gender: "Female",
-    description: "Joe's wife. Comes over with Joe, and the first thing she does is try to pet the kitties... and somehow it's mayhem every time. Never accepts a diet root beer from the boys. She's driving. And she's going bowling.",
+    description: "Joe's wife. Comes over with Joe, and the first thing she does is try to pet the kitties... and somehow it's mayhem every time. Never accepts a diet root beer from the boys: she's driving, and she's going bowling.",
     // (stats are a first guess; edit freely)
     attributes: { kindness: 10, catLuck: 1, bowling: 8, smile: 10 },
     favorites: ["The kitties (they're not so sure)", "Bowling", "Her grandsons"],

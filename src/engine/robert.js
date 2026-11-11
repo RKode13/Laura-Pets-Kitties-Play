@@ -245,6 +245,15 @@ LPK.Robert = class Robert extends LPK.Cat {
     });
     if (this.z === 0) LPK.px.rect(g, this.x - 8, this.y - 1, 16, 2, "rgba(0,0,0,0.22)");
     LPK.px.draw(g, shapes, this.x, this.y - this.z, walking && this.dir === "side" && this.flip);
+    if (this.wallet) {                                        // his wallet...
+      const s = this.walletSide || 1, wx = this.x + s * 8, wy = this.y - this.z - (this.wallet === "up" ? 30 : 17);
+      if (this.wallet === "up") {
+        // ...and the hand that comes up instead. Censored.
+        const t = Math.floor(LPK.game.time * 10);
+        for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) LPK.px.rect(g, wx - 4 + i * 2, wy - 6 + j * 2, 2, 2, ["#e2b08e", "#c8946e", "#f0c8a8", "#b88262", "#9a6a52"][(i * 3 + j * 7 + t) % 5]);
+        LPK.px.rect(g, wx - 5, wy - 7, 10, 1, "rgba(0,0,0,0.35)"); LPK.px.rect(g, wx - 5, wy + 2, 10, 1, "rgba(0,0,0,0.35)");
+      } else { LPK.px.rect(g, wx - 2, wy - 1, 5, 4, "#4a2e1e"); LPK.px.rect(g, wx - 2, wy, 5, 1, "#6a442c"); }
+    }
     if (this.cup > 0 && this.state !== "sleep") {             // his cappuccino from Joe
       const cx = this.x + 8, cy = this.y - this.z - 18;
       LPK.px.rect(g, cx - 2, cy - 3, 5, 4, "#fbfbf8"); LPK.px.rect(g, cx - 2, cy - 4, 5, 2, "#e8d8b8"); LPK.px.rect(g, cx - 1, cy - 4, 3, 1, "#6a3a22");

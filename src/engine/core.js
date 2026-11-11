@@ -139,6 +139,7 @@ LPK.audio = (() => {
     sing: () => [392, 330, 392, 440, 392].forEach((f, i) => tone(f, 0.17, 0.05, "triangle", 1.0, i * 0.19)),
     steam: () => { for (let i = 0; i < 6; i++) tone(2400 + Math.random() * 1600, 0.09, 0.012, "sawtooth", 0.9, i * 0.06); },
     tension: () => { tone(65, 4, 0.06, "sawtooth", 0.97); tone(98, 4, 0.03, "sine", 1.0); for (let i = 0; i < 5; i++) tone(55, 0.14, 0.12, "sine", 0.7, i * 0.8); },
+    bleep: () => tone(1000, 0.5, 0.06, "sine", 1.0),
     hiss: () => { for (let i = 0; i < 4; i++) tone(1400 + Math.random() * 900, 0.05, 0.025, "sawtooth", 0.7, i * 0.04); },
     slam: () => { tone(90, 0.35, 0.14, "square", 0.5); tone(140, 0.2, 0.08, "sawtooth", 0.4, 0.02); },
     bell: () => { tone(1568, 0.5, 0.07, "triangle", 1.0); tone(2350, 0.4, 0.03, "sine", 1.0); },

@@ -62,5 +62,6 @@ LPK.achievements = [
   { id: "bestCappuccino",  name: "Best Cappuccino on the Planet", desc: "Get your own cappuccino from Joe Pino.", event: "joeCappuccino", build: 4 },
   { id: "kittyMayhem",     name: "Kitty Mayhem",               desc: "Watch Ro try to pet the kitties.", event: "roMayhem", build: 4 },
   { id: "designatedDriver",name: "Designated Driver",          desc: "Hear Ro turn down a diet root beer.", event: "rootBeer", build: 4 },
+  { id: "tenBucks",        name: "Ten Bucks",                  desc: "Watch Owen ask Robert for $10.", event: "tenBucks", build: 4 },
   { id: "purrfection",     name: "PURRFECTION!",               desc: "Complete the main story: the Ultimate Kitty Cuddle.", event: "missionComplete", match: { mission: "ultimateCuddle" }, build: 4 },
 ];
