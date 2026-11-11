@@ -234,8 +234,8 @@ LPK.Robert = class Robert extends LPK.Cat {
     const play = Math.floor(G.tv.t / 9), p = G.tv.t % 9;
     if (p > 4.7 && this.lastTD !== play) {
       this.lastTD = play;
-      this.say(play % 3 === 0 ? LPK.dialogue.robertTD[0] : this.pick(LPK.dialogue.robertTD2), 4);
-      if (G.room === "livingRoom") { LPK.audio.sfx.cheer(); G.tv.zoomUntil = G.time + 3; LPK.events.emit("bearsTD", {}); }
+      this.say(play % 3 === 0 ? LPK.dialogue.robertTD[0] : this.pick(LPK.dialogue.robertTD2), 8);   // stays up long enough to read
+      if (G.room === "livingRoom") { LPK.audio.sfx.cheer(); LPK.events.emit("bearsTD", {}); }
     }
     return true;
   }

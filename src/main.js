@@ -1015,7 +1015,7 @@ LPK.game = (() => {
     const fightCam = so ? { x: (so.a.x + so.b.x) / 2, y: (so.a.y + so.b.y) / 2 - 22 }
       : tb ? { x: (tb.x + G.robert.x) / 2, y: (tb.y + G.robert.y) / 2 - 22 } : !stareCat && !clownCam && (LPK.catFight.focus(G) || LPK.sneak.focus(G));
     // zoom in on the TV for a moment after turning it on / changing the channel
-    const tvDec = G.tv && G.tv.room === G.room && (G.tv.t < 2.6 || (G.tv.zoomUntil || 0) > G.time) && !stareCat && !fightCam ? G.world.def.wallDecor.find(d => d.kind === "tv" || d.kind === "tvSmall") : null;
+    const tvDec = G.tv && G.tv.room === G.room && G.tv.ch !== "bears" && G.tv.t < 2.6 && !stareCat && !fightCam ? G.world.def.wallDecor.find(d => d.kind === "tv" || d.kind === "tvSmall") : null;
     const tvCam = tvDec ? { x: (tvDec.x + tvDec.w / 2) * 16, y: 52 } : null;
     const yardCam = !stareCat && !fightCam && !tvCam && G.yard && G.room === "kitchen" && G.yard.t < 2.0 ? { x: 17.25 * 16, y: 3 * 16 + 4 } : null;
     computeView(faceCam ? 3 : fightCam || tvCam ? 2 : yardCam || stareCat || clownCam ? 1 : 0);
