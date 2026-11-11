@@ -273,11 +273,11 @@ LPK.ui = (() => {
     list.slice(G.ui.page * perPage, (G.ui.page + 1) * perPage).forEach((a, i) => {
       const y = top + i * (rowH + 6), done = !!got[a.id];
       rr(x, y, w, rowH, 10, done ? "rgba(255,209,102,0.18)" : C.panel, done ? C.gold : "#5a4a7a", 2);
-      text(done ? "★" : a.build > 1 ? "…" : "☆", x + 22, y + rowH / 2, u * 1.4, done ? C.gold : C.dim, "center");
+      text(done ? "★" : a.build > LPK.config.build ? "…" : "☆", x + 22, y + rowH / 2, u * 1.4, done ? C.gold : C.dim, "center");
       const name = LPK.save.data.settings.familyFriendly && a.familyName ? a.familyName : a.name;
       text(name, x + 44, y + rowH * 0.34, u * 0.95, done ? C.gold : C.text);
       text(a.desc, x + 44, y + rowH * 0.72, u * 0.75, C.dim, "left", "normal");
-      text(done ? "Unlocked" : a.build > 1 ? `Coming in Build ${a.build}` : "Locked", x + w - 12, y + rowH / 2, u * 0.75, done ? C.green : C.dim, "right");
+      text(done ? "Unlocked" : a.build > LPK.config.build ? `Coming in Build ${a.build}` : "Locked", x + w - 12, y + rowH / 2, u * 0.75, done ? C.green : C.dim, "right");
     });
     G.ui.keyLeftRight = (d) => { G.ui.page = (G.ui.page + d + pages) % pages; };
     const bh = Math.min(44, H / 11);
