@@ -811,7 +811,8 @@ LPK.game = (() => {
     // once the mask opens, push in close on the clown's face (even past the room edge)
     const faceCam = clownCam && !stareCat && ce > LPK.CLOWN.split && ce < LPK.CLOWN.shut;
     const so = G.stareOff && G.room === "kitchen" ? G.stareOff : null;
-    const tb = G.owen && G.owen.ten && G.owen.ten.step === "ask" && G.owen.room === G.room ? G.owen : null;
+    const tb = G.owen && G.owen.ten && G.owen.ten.step === "ask" && G.owen.room === G.room ? G.owen
+      : G.evan && G.evan.bonk && ["aim", "fly", "bonk"].includes(G.evan.bonk.step) && G.evan.bonk.t < 6 && G.evan.room === G.room ? G.evan : null;
     const fightCam = so ? { x: (so.a.x + so.b.x) / 2, y: (so.a.y + so.b.y) / 2 - 22 }
       : tb ? { x: (tb.x + G.robert.x) / 2, y: (tb.y + G.robert.y) / 2 - 22 } : !stareCat && !clownCam && LPK.catFight.focus(G);
     const yardCam = !stareCat && !fightCam && G.yard && G.room === "kitchen" && G.yard.t < 2.0 ? { x: 17.25 * 16, y: 3 * 16 + 4 } : null;
@@ -835,6 +836,7 @@ LPK.game = (() => {
     G.cats.filter(c => c.room === G.room).forEach(c => items.push({ sortY: c.sortY, draw: (g) => c.draw(g) }));
     if (G.robert.present && G.robert.room === G.room) items.push({ sortY: G.robert.sortY, draw: (g) => G.robert.draw(g) });
     if (G.evan && G.evan.room === G.room) items.push({ sortY: G.evan.sortY, draw: (g) => G.evan.draw(g) });
+    if (G.evan && G.evan.bonk && G.evan.room === G.room) items.push({ sortY: 9998, draw: (g) => G.evan.drawOverlay(g) });
     if (G.owen && G.owen.room === G.room) items.push({ sortY: G.owen.sortY, draw: (g) => G.owen.draw(g) });
     if (G.joe && G.joe.present && G.joe.room === G.room) items.push({ sortY: G.joe.sortY, draw: (g) => G.joe.draw(g) });
     if (G.ro && G.ro.present && G.ro.room === G.room) items.push({ sortY: G.ro.sortY, draw: (g) => G.ro.draw(g) });

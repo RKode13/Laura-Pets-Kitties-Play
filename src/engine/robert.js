@@ -241,10 +241,14 @@ LPK.Robert = class Robert extends LPK.Cat {
     const walking = this.state === "move";
     const pose = this.state === "sleep" ? "sleep" : this.state === "sit" ? "sit" : walking ? "walk" : "stand";
     const shapes = LPK.sprites.robert(walking ? this.dir : "down", Math.floor(this.t * 5), {
-      pose: this.state === "sleep" && this.spot && this.spot.lie ? "lie" : pose, casual: this.casual, shades: this.shadesT > 0 && !this.casual, briefcase: this.briefcase, sleeping: this.state === "sleep", glasses: this.casual,
+      pose: this.state === "sleep" && this.spot && this.spot.lie ? "lie" : pose, casual: this.casual, shades: this.shadesT > 0 && !this.casual, briefcase: this.briefcase, sleeping: this.state === "sleep", glasses: this.casual, rubHead: this.rubHead,
     });
     if (this.z === 0) LPK.px.rect(g, this.x - 8, this.y - 1, 16, 2, "rgba(0,0,0,0.22)");
     LPK.px.draw(g, shapes, this.x, this.y - this.z, walking && this.dir === "side" && this.flip);
+    if (this.rubHead) {                                       // confused little "?"
+      const qx = this.x + 9, qy = this.y - this.z - 54 - Math.floor(this.t * 3) % 2;
+      LPK.px.rect(g, qx, qy, 3, 1, "#ffd166"); LPK.px.rect(g, qx + 2, qy + 1, 1, 2, "#ffd166"); LPK.px.rect(g, qx + 1, qy + 3, 1, 1, "#ffd166"); LPK.px.rect(g, qx + 1, qy + 5, 1, 1, "#ffd166");
+    }
     if (this.wallet) {                                        // his wallet...
       const s = this.walletSide || 1, wx = this.x + s * 8, wy = this.y - this.z - (this.wallet === "up" ? 30 : 17);
       if (this.wallet === "up") {

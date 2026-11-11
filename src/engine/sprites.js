@@ -336,8 +336,9 @@ LPK.sprites = (() => {
     if (pose === "sit" || pose === "sleep") {
       // sitting, facing the room
       r(-6, -12, 5, 10, legs); r(1, -12, 5, 10, legs); r(-6, -3, 5, 3, shoes); r(1, -3, 5, 3, shoes);
-      r(-7, -30, 14, 19, top); r(-9, -28, 2, 13, top); r(7, -28, 2, 13, top);
-      r(-9, -16, 2, 2, R.skin); r(7, -16, 2, 2, R.skin);
+      r(-7, -30, 14, 19, top); r(-9, -28, 2, 13, top);
+      r(-9, -16, 2, 2, R.skin);
+      if (opt.rubHead) { r(7, -36, 2, 9, top); r(3 + frame % 2 * 2, -45, 3, 2, R.skin); } else { r(7, -28, 2, 13, top); r(7, -16, 2, 2, R.skin); }
       chest(0, -30);
       const tilt = pose === "sleep" ? 2 : 0;
       head(tilt, -32 + tilt, false);
@@ -357,8 +358,9 @@ LPK.sprites = (() => {
     r(-5 + sw, -16, 4, 15, legs); r(1 - sw, -16, 4, 15, legs);
     r(-6 + sw, -1, 5, 1, shoes); r(1 - sw, -1, 5, 1, shoes);
     r(-7, -33, 14, 18, top);
-    r(-9, -32, 2, 15, top); r(7, -32, 2, 15, top);
-    r(-9, -17, 2, 2, R.skin); r(7, -17, 2, 2, R.skin);
+    r(-9, -32, 2, 15, top);
+    r(-9, -17, 2, 2, R.skin);
+    if (opt.rubHead) { r(7, -40, 2, 9, top); r(3 + frame % 2 * 2, -48, 3, 2, R.skin); } else { r(7, -32, 2, 15, top); r(7, -17, 2, 2, R.skin); }
     if (opt.briefcase) { r(8, -16, 7, 6, "#6a3a1e"); r(10, -17, 3, 1, "#4a2a12"); }
     if (dir !== "up") chest(0, -33);
     r(-1, -35, 2, 2, R.skin);
