@@ -73,6 +73,7 @@ LPK.roomRenderer = (() => {
       R(g, x, y, w, h, "#1e2028"); R(g, x + w * 0.15, y + 2, w * 0.2, h - 4, "rgba(255,255,255,0.05)");
       g.restore(); return;
     }
+    if (tv.ch === "bears") { drawFootball(g, x, y, w, h, tv.t); g.restore(); return; }
     if (tv.t < 0.35) { for (let i = 0; i < 40; i++) R(g, x + Math.random() * w, y + Math.random() * h, 2, 1, Math.random() < 0.5 ? "#e8e8e8" : "#5a5a62"); g.restore(); return; }   // channel-change static
     const run = (speed, amp) => x + w / 2 + Math.sin(t * speed) * amp;
     if (tv.ch === 1) {
@@ -104,6 +105,44 @@ LPK.roomRenderer = (() => {
     }
     R(g, x, y, w, 1, "rgba(255,255,255,0.08)");
     g.restore();
+  }
+
+  // Sunday football: #18 drops back, throws a long bomb, the receiver
+  // catches it... TOUCHDOWN BEARS! (team colors, no logo). A play every 9s.
+  function drawFootball(g, x, y, w, h, tt) {
+    const p = tt % 9;
+    R(g, x, y, w, h, "#2e7a34");
+    for (let i = 0; i < 6; i++) R(g, x + 2 + i * (w - 4) / 5, y + 3, 1, h - 6, "rgba(255,255,255,0.45)");     // yard lines
+    R(g, x + w - 5, y + 2, 4, h - 4, "#e8641a");                                                            // end zone
+    R(g, x, y, w, 2, "#1a1e2e");                                                                            // crowd
+    for (let i = 0; i < w; i += 3) R(g, x + i, y, 1, 1, ["#e8641a", "#f2f2f2", "#0b162a"][(i / 3 | 0) % 3]);
+    const qbX0 = x + w * 0.28, qbY = y + h * 0.55;
+    const qbX = p < 1.5 ? qbX0 - p * 3 : qbX0 - 4.5;                                                        // drop back
+    const rx = x + w * 0.4 + Math.min(1, p / 4.2) * (w * 0.5), ry = y + h * 0.35;                           // receiver goes deep
+    const player = (px, py, num) => {
+      R(g, px - 2, py - 5, 4, 5, "#0b162a"); R(g, px - 1, py - 4, 2, 2, num ? "#e8641a" : "#0b162a");      // navy jersey, orange number
+      R(g, px - 2, py - 7, 4, 2, "#0b162a"); R(g, px - 1, py - 6, 2, 1, "#e8641a");                         // helmet stripe
+      R(g, px - 2, py, 1, 2, "#f2f2f2"); R(g, px + 1, py, 1, 2, "#f2f2f2");
+    };
+    for (let i = 0; i < 3; i++) R(g, x + w * 0.42 + i * 4, y + h * (0.45 + i * 0.12), 3, 5, "#f2f2f2");      // defenders (white)
+    player(qbX, qbY, true);
+    player(rx, ry, false);
+    if (p >= 1.6 && p < 4.2) {                                                                              // the long bomb
+      const k = (p - 1.6) / 2.6, bx = qbX + (rx - qbX) * k, by = qbY - 4 + (ry - 3 - (qbY - 4)) * k - Math.sin(k * Math.PI) * h * 0.4;
+      R(g, bx, by, 2, 1, "#8a4a26");
+    } else if (p >= 4.2 && p < 9) R(g, rx + 1, ry - 4, 2, 1, "#8a4a26");                                  // caught it
+    if (p >= 4.6) {
+      const flash = Math.floor(tt * 6) % 2;
+      R(g, x, y + h / 2 - 9, w, 18, flash ? "#e8641a" : "#0b162a");
+      g.fillStyle = flash ? "#0b162a" : "#e8641a"; g.textAlign = "center"; g.textBaseline = "middle";
+      let fs = Math.floor(h / 3.6); g.font = `bold ${fs}px sans-serif`;
+      while (fs > 4 && g.measureText("TOUCHDOWN").width > w - 3) { fs--; g.font = `bold ${fs}px sans-serif`; }
+      g.fillText("TOUCHDOWN", x + w / 2, y + h / 2 - fs * 0.55);
+      g.fillText("BEARS!", x + w / 2, y + h / 2 + fs * 0.55);
+    } else {
+      g.fillStyle = "#f2f2f2"; g.font = `bold ${Math.max(4, Math.floor(h / 6))}px sans-serif`; g.textAlign = "left"; g.textBaseline = "top";
+      g.fillText("#18", x + 2, y + h - 7);
+    }
   }
 
   function drawWalls(g, w, t) {

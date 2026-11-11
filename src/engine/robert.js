@@ -80,12 +80,15 @@ LPK.Robert = class Robert extends LPK.Cat {
     if (want !== this.mode) return this.transition(want);
     if (this.mode === "away" || this.mode === "sleep") return;
     if (this.mode === "dinner") return this.guard();
+    if (this.thinkGame(this.game.dt || 1 / 60)) return;
     if (this.mode === "chicken") return this.thinkChicken(this.game.dt || 1 / 60);
+    if (!this.watching && this.sundayGame() && !this.moving && this.state !== "sleep") return this.watchGame();
     if (this.timer <= 0 && !this.moving) this.activity();
   }
 
   transition(want) {
     const prev = this.mode;
+    if (this.watching) { this.watching = false; if (this.game.tv && this.game.tv.ch === "bears") this.game.tv = null; }
     this.mode = want;
     const G = this.game;
     if (want === "away") {
@@ -196,8 +199,50 @@ LPK.Robert = class Robert extends LPK.Cat {
     this.chicken = null; this.mode = "home"; this.setState("stand", 3);
   }
 
+  // Sundays, noon to 4: Bears game on the living-room TV
+  sundayGame() {
+    const c = this.game.clock, m = c.minutes;
+    return c.day === 0 && this.mode === "home" && m >= 12 * 60 && m < 16 * 60;
+  }
+  watchGame() {
+    const G = this.game;
+    this.say(LPK.dialogue.robertGameOn[0], 2.4);
+    this.goTo("livingRoom.sofa", "walk", () => {
+      this.watching = true; this.setState("sit", 1e9);
+      G.tv = { room: "livingRoom", ch: "bears", t: 0, seen: new Set(), scared: true, robert: true };
+    });
+  }
+  thinkGame(dt) {
+    const G = this.game;
+    if (!this.watching) return false;
+    if (!this.sundayGame() || this.room !== "livingRoom") {          // game's over
+      this.watching = false;
+      if (G.tv && G.tv.ch === "bears") G.tv = null;
+      this.setState("stand", 2);
+      return true;
+    }
+    if (!G.tv || G.tv.ch !== "bears") {                            // somebody changed the channel!
+      if (this.changedAt == null) { this.changedAt = G.time; this.say(LPK.dialogue.robertChannel[0], 2.4); }
+      if (G.time - this.changedAt > 8) {                            // ...and a few seconds later, it's back on the game
+        this.changedAt = null;
+        G.tv = { room: "livingRoom", ch: "bears", t: 0, seen: new Set(), scared: true, robert: true };
+      }
+      return true;
+    }
+    this.changedAt = null;
+    // every touchdown
+    const play = Math.floor(G.tv.t / 9), p = G.tv.t % 9;
+    if (p > 4.7 && this.lastTD !== play) {
+      this.lastTD = play;
+      this.say(play % 3 === 0 ? LPK.dialogue.robertTD[0] : this.pick(LPK.dialogue.robertTD2), 4);
+      if (G.room === "livingRoom") { LPK.audio.sfx.cheer(); G.tv.zoomUntil = G.time + 3; LPK.events.emit("bearsTD", {}); }
+    }
+    return true;
+  }
+
   activity() {
     const G = this.game;
+    if (this.sundayGame() && !this.watching) return this.watchGame();
     if (this.napping) { this.napping = false; this.say(this.pick(LPK.dialogue.robertNapUp), 2.2); }
     // weekend afternoons: sometimes a quick nap on the basement couch
     const m = G.clock.minutes;

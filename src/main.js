@@ -265,7 +265,7 @@ LPK.game = (() => {
     if (o.kind === "dishwasher") return { kind: "dishwasher", obj: o, label: G.dishwasher ? "(the dishwasher is running...)" : "Start the dishwasher", ok: !G.dishwasher };
     if (o.kind === "laundry") { const empty = G.laundry && G.laundry.emptyDay === G.clock.day; return { kind: "laundry", obj: o, label: G.laundry && G.laundry.running > 0 ? "(the washer is running...)" : empty ? "(the basket's empty... for now)" : "Do the laundry", ok: !(G.laundry && (G.laundry.running > 0 || empty)) }; }
     if (o.kind === "moodLamp") return { kind: "moodLamp", obj: o, label: "Change the lamp", ok: true };
-    if (o.kind === "tv") { const on = G.tv && G.tv.room === G.room; return { kind: "tv", obj: o, label: !on ? "Turn on the TV" : G.tv.ch < 3 ? "Change the channel" : "Turn off the TV", ok: true }; }
+    if (o.kind === "tv") { const on = G.tv && G.tv.room === G.room; return { kind: "tv", obj: o, label: !on ? "Turn on the TV" : G.tv.ch === "bears" || G.tv.ch < 3 ? "Change the channel" : "Turn off the TV", ok: true }; }
     if (o.kind === "backyard") return { kind: "backyard", obj: o, label: G.yard ? "(admiring the yard...)" : "Look out at the backyard", ok: !G.yard };
     return { kind: "hide", obj: o, label: o.label, ok: true };
   }
@@ -557,6 +557,7 @@ LPK.game = (() => {
       return;
     }
     if (!on) G.tv = { room: G.room, ch: 1, t: 0, seen: new Set([1]), scared: false };
+    else if (G.tv.ch === "bears") G.tv = { room: G.room, ch: 1, t: 0, seen: new Set([1]), scared: false };   // Robert won't like this
     else { G.tv.ch++; G.tv.t = 0; G.tv.seen.add(G.tv.ch); }
     LPK.audio.sfx.sting();
     G.notify(`Channel ${G.tv.ch}: ${Dl.tvShows[G.tv.ch]}`, Dl.tvBlurbs[G.tv.ch]);
@@ -1014,7 +1015,7 @@ LPK.game = (() => {
     const fightCam = so ? { x: (so.a.x + so.b.x) / 2, y: (so.a.y + so.b.y) / 2 - 22 }
       : tb ? { x: (tb.x + G.robert.x) / 2, y: (tb.y + G.robert.y) / 2 - 22 } : !stareCat && !clownCam && (LPK.catFight.focus(G) || LPK.sneak.focus(G));
     // zoom in on the TV for a moment after turning it on / changing the channel
-    const tvDec = G.tv && G.tv.room === G.room && G.tv.t < 2.6 && !stareCat && !fightCam ? G.world.def.wallDecor.find(d => d.kind === "tv" || d.kind === "tvSmall") : null;
+    const tvDec = G.tv && G.tv.room === G.room && (G.tv.t < 2.6 || (G.tv.zoomUntil || 0) > G.time) && !stareCat && !fightCam ? G.world.def.wallDecor.find(d => d.kind === "tv" || d.kind === "tvSmall") : null;
     const tvCam = tvDec ? { x: (tvDec.x + tvDec.w / 2) * 16, y: 52 } : null;
     const yardCam = !stareCat && !fightCam && !tvCam && G.yard && G.room === "kitchen" && G.yard.t < 2.0 ? { x: 17.25 * 16, y: 3 * 16 + 4 } : null;
     computeView(faceCam ? 3 : fightCam || tvCam ? 2 : yardCam || stareCat || clownCam ? 1 : 0);
