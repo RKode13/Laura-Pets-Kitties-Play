@@ -198,6 +198,14 @@ LPK.Robert = class Robert extends LPK.Cat {
 
   activity() {
     const G = this.game;
+    if (this.napping) { this.napping = false; this.say(this.pick(LPK.dialogue.robertNapUp), 2.2); }
+    // weekend afternoons: sometimes a quick nap on the basement couch
+    const m = G.clock.minutes;
+    if (G.clock.isWeekend && this.mode === "home" && m >= 12 * 60 && m < 18 * 60 && Math.random() < 0.25) {
+      this.say(this.pick(LPK.dialogue.robertNap), 2.2);
+      this.goTo("basement.couchNap", "walk", () => { this.napping = true; this.setState("sleep", this.rand([60, 120])); });
+      return;
+    }
     const morning = this.mode === "morning";
     const spots = morning ? ["kitchen.counter", "livingRoom.sofa", "kitchen.counter"] : ["livingRoom.sofa", "backRoom.chair", "kitchen.counter", "livingRoom.sofa"];
     const key = spots[Math.floor(Math.random() * spots.length)];

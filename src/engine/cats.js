@@ -533,6 +533,11 @@ LPK.Popsicle = class Popsicle extends LPK.Cat {
         this.witness("trashSpotted");
         if (this.timer <= 0) { this.game.trashOpen = false; this.setState("sit", 2); }
         return;
+      case "sinkEat":                                          // on the counter, eating out of the sink
+        if (!this.bubble && Math.random() < 0.05) this.say(this.pick(D().popSink), 1.4);
+        this.witness("popSink");
+        if (this.timer <= 0) { this.goTo(this.def.restingSpots[0], "walk", () => this.setState("sit", 3)); }
+        return;
       case "box":
         if (Math.random() < 0.03) this.say(this.pick(D().popChomp), 1.2);
         // chomp chomp... flicking little pieces of cardboard everywhere
@@ -646,6 +651,7 @@ LPK.Popsicle = class Popsicle extends LPK.Cat {
     switch (this.state) {
       case "trash": return { pose: "trash", frame: Math.floor(t * 4) };
       case "box":   return { pose: "sit", eyes: "closed", chew: Math.floor(t * 5) % 2 === 0, blep: Math.floor(t * 5) % 2 === 1 };
+      case "sinkEat": return { pose: "eat", frame: Math.floor(t * 8), eyes: "closed" };
       case "confused": return { pose: "sit", eyes: "open" };
       case "beg":   return { pose: "sit", eyes: "open", sway: Math.floor(t * 6) % 2 };
       case "yawn":  return { pose: "sit", eyes: "closed", yawn: true };

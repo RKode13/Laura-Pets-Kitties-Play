@@ -48,7 +48,7 @@ LPK.game = (() => {
     G.joe.sync(); G.cupView = null;
     G.ro = new LPK.Ro(G);
     G.ro.sync();
-    LPK.catFight.end(G); LPK.sneak.end(); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.tv = null; G.tvScare = null; G.debris = [];
+    LPK.catFight.end(G); LPK.sneak.end(); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.tv = null; G.tvScare = null; G.debris = []; G.dishwasher = null; G.laundry = null;
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -215,6 +215,8 @@ LPK.game = (() => {
     if (ow && ow.room === G.room && ow.distTo(L) < 36 && ow.state !== "sleep" && ow.state !== "streaks" && ow.streakWindow()) return { kind: "owenStreak", label: "Owen, do your streaks!", ok: true };
     const mess = (G.debris || []).filter(p => p.room === G.room && p.z === 0 && Math.hypot(p.x - L.x, p.y - L.y) < 30).length;
     if (mess >= 4) return { kind: "sweep", label: "Sweep up the cardboard", ok: true };
+    const popc = G.cat("popsicle");
+    if (popc.state === "sinkEat" && popc.room === G.room && Math.hypot(popc.x - L.x, popc.y - L.y) < 40) return { kind: "shoo", label: "Get Orangey off the counter!", ok: true };
     const Rb = G.robert;
     if (G.smoochOwed && Rb.present && Rb.room === G.room && Rb.state !== "sleep" && Rb.distTo(L) < 36 && !G.smooches) return { kind: "smooch", label: "Give Robert 10 smoochies", ok: true };
     // standing right at the sliding door: the backyard view wins over nearby cats
@@ -260,6 +262,8 @@ LPK.game = (() => {
     if (o.kind === "rest") return { kind: "rest", obj: o, label: G.clock.phase === "night" ? "Rest on the couch (time flies)" : "Rest on the couch", ok: true };
     if (o.kind === "bowl") return { kind: "bowl", obj: o, label: G.holding ? `Fill ${o.label} with ${LPK.foods[G.holding].name}` : `${o.label} (empty-handed)`, ok: true };
     if (o.kind === "trash") return { kind: "trash", obj: o, label: "Check the trash can", ok: true };
+    if (o.kind === "dishwasher") return { kind: "dishwasher", obj: o, label: G.dishwasher ? "(the dishwasher is running...)" : "Start the dishwasher", ok: !G.dishwasher };
+    if (o.kind === "laundry") { const empty = G.laundry && G.laundry.emptyDay === G.clock.day; return { kind: "laundry", obj: o, label: G.laundry && G.laundry.running > 0 ? "(the washer is running...)" : empty ? "(the basket's empty... for now)" : "Do the laundry", ok: !(G.laundry && (G.laundry.running > 0 || empty)) }; }
     if (o.kind === "moodLamp") return { kind: "moodLamp", obj: o, label: "Change the lamp", ok: true };
     if (o.kind === "tv") { const on = G.tv && G.tv.room === G.room; return { kind: "tv", obj: o, label: !on ? "Turn on the TV" : G.tv.ch < 3 ? "Change the channel" : "Turn off the TV", ok: true }; }
     if (o.kind === "backyard") return { kind: "backyard", obj: o, label: G.yard ? "(admiring the yard...)" : "Look out at the backyard", ok: !G.yard };
@@ -272,8 +276,17 @@ LPK.game = (() => {
       case "evanBed": L.say(D().lauraBedtime[0], 1.6); G.evan.tuckIn(); break;
       case "backyard": G.admireYard(); break;
       case "tv": G.pressTV(); break;
+      case "dishwasher":
+        G.dishwasher = { t: 0, run: 90, popDone: false }; L.sayRandom(D().lauraDishes, 2); LPK.audio.sfx.click(); LPK.audio.sfx.hum();
+        break;
+      case "laundry": G.startLaundry(); break;
+      case "shoo": {
+        const pc = G.cat("popsicle"); L.sayRandom(D().lauraShoo, 1.8); pc.say("!", 0.8);
+        pc.setState("sit", 1); pc.goTo(pc.def.restingSpots[0], "run", () => pc.setState("sit", 3));
+        break;
+      }
       case "moodLamp": {
-        const set = (mode, line) => () => { LPK.save.data.lampMode = mode; LPK.save.write(); LPK.audio.sfx.click(); if (line) L.say(line, 2); if (["christmas", "halloween", "unicorn"].includes(mode)) LPK.events.emit("lampMode", { mode }); };
+        const set = (mode, line) => () => { const sv = LPK.save.data; sv.lampModes = sv.lampModes || {}; sv.lampModes[G.room] = mode; LPK.save.write(); LPK.audio.sfx.click(); if (line) L.say(line, 2); if (["christmas", "halloween", "unicorn"].includes(mode)) LPK.events.emit("lampMode", { mode }); };
         G.choiceMenu = { title: "The Lamp", sub: "Set the mood", sel: 0, options: [
           { label: "Christmas (red and green fade)", fn: set("christmas", "Ooh, festive!") },
           { label: "Halloween (candle flicker)", fn: set("halloween", "Spooky...") },
@@ -610,6 +623,61 @@ LPK.game = (() => {
     if (n >= 5) { G.progression.addPoints(2); LPK.events.emit("sweep", { n }); }
   };
 
+  // The dishwasher runs ~90 seconds; partway through, Orangey sometimes hops
+  // up on the counter and eats out of the sink. num num num num.
+  function updateDishwasher(dt) {
+    const W = G.dishwasher; if (!W) return;
+    W.t += dt;
+    if ((W.hum = (W.hum || 0) - dt) <= 0 && G.room === "kitchen") { W.hum = 2.5; LPK.audio.sfx.hum(); }
+    const pop = G.cat("popsicle");
+    if (!W.popDone && W.t > 6 && Math.random() < dt / 8 && !pop.scripted && !pop.fighting && !pop.concealed && !pop.begging && !pop.zoomies && !pop.moving
+        && ["sit", "sleep", "confused", "beg", "box"].includes(pop.state)) {
+      W.popDone = true;
+      pop.say("!", 0.8);
+      pop.goTo("kitchen.counterTop", "run", () => { pop.flip = true; pop.setState("sinkEat", 10 + Math.random() * 6); pop.say(pop.pick(D().popSink), 1.6); });
+    }
+    if (W.t > W.run) G.dishwasher = null;
+  }
+  // Laundry: "Whites... darks... eh!" — everything goes in, the washer
+  // starts, and Laura strolls off whistling.
+  G.startLaundry = () => {
+    const L = G.laura;
+    G.laundry = { t: 0, step: "talk", running: 0, emptyDay: (G.laundry && G.laundry.emptyDay) };
+    L.dir = "side"; L.flip = false;
+    L.sayRandom(D().lauraLaundry, 2.4);
+  };
+  function updateLaundry(dt) {
+    const Ld = G.laundry; if (!Ld) return;
+    const L = G.laura;
+    if (Ld.running > 0) Ld.running -= dt;
+    if (Ld.step === "done") return;
+    Ld.t += dt;
+    if (Ld.step === "talk" && Ld.t > 2.4) {                  // throw everything in
+      Ld.step = "throw"; Ld.t = 0; Ld.emptyDay = G.clock.day;
+      const T = G.world.T, bx = 14.5 * T, by = 11 * T - 8, wx = 15.5 * T, wy = 10.5 * T;
+      Ld.bits = Array.from({ length: 12 }, (_, i) => ({ d: i * 0.08, c: ["#e84a5a", "#4a8ae8", "#f2f2f0", "#2a2a30", "#f2b43a", "#7ac04a", "#c77dff", "#ff8ab0"][i % 8], bx, by, wx, wy }));
+    }
+    if (Ld.step === "throw" && Ld.t > 1.4) {                 // start it, and stroll away whistling
+      Ld.step = "whistle"; Ld.t = 0; Ld.running = 120; Ld.bits = null;
+      LPK.audio.sfx.click(); LPK.audio.sfx.whistle();
+      L.state = "whistle"; L.dir = "side"; L.flip = true; L.say("*whistles*", 2);
+      if (G.room === "basement") LPK.events.emit("laundry", {});
+    }
+    if (Ld.step === "whistle") {
+      const nx = L.x - 22 * dt;
+      if (G.world.boxFree(nx - 4, L.y - 3, 8, 4)) { L.x = nx; L.dist += 22 * dt; }
+      if (Ld.t > 2.2) { L.state = "idle"; Ld.step = "done"; }
+    }
+  }
+  G.drawLaundryBits = (g) => {
+    const Ld = G.laundry; if (!Ld || !Ld.bits || G.room !== "basement") return;
+    for (const b of Ld.bits) {
+      const p = Math.max(0, Math.min(1, (Ld.t - b.d) / 0.5)); if (p <= 0 || p >= 1) continue;
+      const x = b.bx + (b.wx - b.bx) * p, y = b.by + (b.wy - b.by) * p - Math.sin(p * Math.PI) * 16;
+      LPK.px.rect(g, Math.round(x), Math.round(y), 4, 3, b.c);
+    }
+  };
+
   G.pickFood = (food) => {
     G.foodMenu = null;
     if (!food) { G.holding = null; G.laura.say("Put it away.", 1.2); return; }
@@ -689,6 +757,8 @@ LPK.game = (() => {
     updateHungry(dt);
     updateTV(dt);
     updateDebris(dt);
+    updateDishwasher(dt);
+    updateLaundry(dt);
     updateSmooches(dt);
     LPK.catFight.update(G, dt);
     LPK.sneak.update(G, dt);
@@ -979,6 +1049,7 @@ LPK.game = (() => {
     } });
     LPK.catFight.drawItems(items, G);
     LPK.sneak.drawItems(items, G);
+    if (G.laundry && G.laundry.bits) items.push({ sortY: 9990, draw: (g) => G.drawLaundryBits(g) });
     for (const p of (G.debris || [])) if (p.room === G.room) items.push({ sortY: p.z > 0 ? p.y + 20 : p.y - 6, draw: (g) => LPK.px.rect(g, Math.round(p.x), Math.round(p.y - p.z), p.w, p.h, p.c) });
     if (G.smooches && G.smooches.room === G.room) {
       const S = G.smooches;

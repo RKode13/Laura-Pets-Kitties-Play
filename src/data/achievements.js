@@ -70,5 +70,7 @@ LPK.achievements = [
   { id: "setTheMood",      name: "Set the Mood",               desc: "Switch the living-room lamp to Christmas, Halloween or Unicorn Farts in a Bottle.", event: "lampMode", build: 4 },
   { id: "unicornFarts",    name: "Unicorn Farts in a Bottle",  desc: "Light up the living room with unicorn farts.", event: "lampMode", match: { mode: "unicorn" }, build: 4 },
   { id: "whatUp",          name: "That's What I Thought",      desc: "Watch Orangey try to sneak up on Marshmallow.", event: "slap", build: 4 },
+  { id: "laundryDay",      name: "Laundry Day",                desc: "Throw the whole overflowing basket in the washer.", event: "laundry", build: 4 },
+  { id: "sinkSnacks",      name: "Num Num Num",                desc: "Catch Orangey eating out of the sink while the dishwasher runs.", event: "popSink", build: 4 },
   { id: "purrfection",     name: "PURRFECTION!",               desc: "Complete the main story: the Ultimate Kitty Cuddle.", event: "missionComplete", match: { mission: "ultimateCuddle" }, build: 4 },
 ];

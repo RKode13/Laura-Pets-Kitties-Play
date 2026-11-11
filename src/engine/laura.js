@@ -15,7 +15,7 @@ LPK.Laura = class Laura {
   say(text, secs = 2.6) { this.speech = { text, t: secs }; }
   sayRandom(list, secs) { this.say(list[Math.floor(Math.random() * list.length)], secs); }
 
-  get busy() { return ["kneel", "reach", "celebrate", "rest", "work", "dance", "stare", "smooch"].includes(this.state); }
+  get busy() { return ["kneel", "reach", "celebrate", "rest", "work", "dance", "stare", "smooch", "whistle"].includes(this.state); }
   get sortY() { return this.state === "rest" ? this.y + 14 : this.y; }
 
   update(dt, input) {
@@ -50,6 +50,12 @@ LPK.Laura = class Laura {
 
   draw(g) {
     if (this.state === "rest") { LPK.px.draw(g, LPK.sprites.laura("lie", "side", 0), this.x, this.y, false); return; }
+    if (this.state === "whistle") {                         // strolling away, whistling
+      LPK.px.rect(g, this.x - 6, this.y - 1, 12, 2, "rgba(0,0,0,0.22)");
+      LPK.px.draw(g, LPK.sprites.laura("walk", "side", Math.floor(this.dist / 6)), this.x, this.y, this.flip);
+      for (let i = 0; i < 2; i++) { const p = (this.t * 0.9 + i / 2) % 1, nx = this.x + (this.flip ? -6 : 6) + i * 4, ny = this.y - 30 - p * 14; g.globalAlpha = 1 - p; LPK.px.rect(g, nx, ny, 2, 2, "#ffd166"); LPK.px.rect(g, nx + 1, ny - 4, 1, 4, "#ffd166"); g.globalAlpha = 1; }
+      return;
+    }
     if (this.state === "smooch") {
       LPK.px.rect(g, this.x - 6, this.y - 1, 12, 2, "rgba(0,0,0,0.22)");
       LPK.px.draw(g, LPK.sprites.laura("smooch", "side", Math.floor(this.t * 4)), this.x, this.y, this.flip);

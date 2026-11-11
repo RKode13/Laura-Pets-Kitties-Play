@@ -133,6 +133,7 @@ LPK.rooms = {
       { id: "boysBowls",kind: "bowl",   label: "the boys' bowls", x: 19.5, y: 11.6, owner: "boys" },
       { id: "trash",    kind: "trash",  label: "Trash can", x: 9.5, y: 8.3 },
       { id: "backyard", kind: "backyard", label: "Look out at the backyard", x: 17.25, y: 3.4 },
+      { id: "dishwasher", kind: "dishwasher", label: "Dishwasher", x: 8, y: 4.4 },
     ],
     restingSpots: {
       kitchenMat:       { label: "the kitchen mat",      x: 10.8, y: 4.7,  z: 0,  approach: [11, 5] },
@@ -189,7 +190,7 @@ LPK.rooms = {
       { id: "tvCabinet",  kind: "tvCabinet",     x: 3,  y: 3, w: 3, h: 1, solid: true },
       { id: "fireplace",  kind: "brickFireplace",x: 7,  y: 3, w: 6, h: 1, solid: true },
       { id: "pinkChair",  kind: "pinkChair",     x: 14, y: 3, w: 2, h: 2, solid: true },
-      { id: "lamp2",      kind: "floorLamp",     x: 13, y: 3, w: 1, h: 1, solid: true, light: true },
+      { id: "lamp2",      kind: "moodLamp",      x: 13, y: 3, w: 1, h: 1, solid: true, light: "mood" },
       { id: "fatCatMat",  kind: "fatCatMat",     x: 16, y: 3, w: 2, h: 1, solid: false },
       { id: "clownSwitch",kind: "clownSwitch",   x: 2,  y: 5, w: 1, h: 1, solid: true },
       { id: "tower2",     kind: "darkCatTower",  x: 18, y: 11, w: 1, h: 2, solid: true },
@@ -210,6 +211,7 @@ LPK.rooms = {
     interactables: [
       { id: "clownSwitch", kind: "clownSwitch", label: "Flip the clown's switch", x: 2.5, y: 6.4 },
       { id: "tv",          kind: "tv",          label: "TV", x: 4.5, y: 4.3 },
+      { id: "moodLamp",    kind: "moodLamp",    label: "Lamp", x: 13.4, y: 4.4 },
     ],
     toys: [
       { id: "springRainbow", kind: "spring", x: 16.5, y: 11, colors: ["#e8436f", "#ffd166", "#4ac06a", "#4a8ae8"], favorite: true },
@@ -286,7 +288,10 @@ LPK.rooms = {
     furniture: [
       { id: "hBoxes",    kind: "storageBoxes",  x: 10, y: 3, w: 4, h: 1, solid: true, halloween: true },
       { id: "shelf",     kind: "metalShelves",  x: 15, y: 3, w: 2, h: 1, solid: true },
-      { id: "oldCouch",  kind: "oldCouch",      x: 6,  y: 9, w: 4, h: 2, solid: true },
+      { id: "oldCouch",  kind: "oldCouch",      x: 5,  y: 3, w: 4, h: 2, solid: true },          // against the back wall
+      { id: "basket",    kind: "laundryBasket", x: 14, y: 11, w: 1, h: 1, solid: true },
+      { id: "washer",    kind: "washer",        x: 15, y: 10, w: 1, h: 2, solid: true },
+      { id: "dryer",     kind: "dryer",         x: 16, y: 10, w: 1, h: 2, solid: true },
       { id: "bulb",      kind: "hangingBulb",   x: 8,  y: 6, w: 1, h: 1, solid: false, light: true },
       { id: "bRug",      kind: "rug",           x: 5,  y: 5, w: 7, h: 3, solid: false },
     ],
@@ -295,10 +300,17 @@ LPK.rooms = {
       { id: "toBackRoom", label: "Back Room", side: "left", y: 4, h: 2, to: "backRoom", toExit: "toBasement", style: "stairsUp" },
     ],
     restingSpots: {
-      oldCouch:   { label: "the old basement couch", x: 8, y: 10.2, z: 6, approach: [8, 11] },
+      oldCouch:   { label: "the old basement couch", x: 8.2, y: 4.2, z: 6, approach: [8, 5] },
       behindBoxes:{ label: "behind the Halloween boxes", x: 12, y: 4.4, z: 0, approach: [12, 5], hidden: true },
     },
-    pointsOfInterest: [[3, 6], [12, 6], [15, 10], [8, 8]],
+    interactables: [
+      { id: "restCouchB", kind: "rest", label: "Lie down on the couch", x: 6.5, y: 5.4, seat: { x: 6.5, y: 4.4 } },
+      { id: "laundry",    kind: "laundry", label: "Do the laundry", x: 14.4, y: 10.2 },
+    ],
+    robertSpots: {
+      couchNap:   { x: 6.2, y: 4.8, z: 6, approach: [6, 5], sit: true },       // a quick weekend nap
+    },
+    pointsOfInterest: [[3, 6], [12, 6], [12, 10], [8, 8]],
     lauraStart: { x: 2.5, y: 5 },
   },
 

@@ -419,13 +419,33 @@ LPK.roomRenderer = (() => {
       } };
       case "moodLamp": return { sortY: y + fh, draw: (g) => {
         // the lamp at the end of the sectional: its shade glows in the chosen mode
-        const c = moodColor(t);
+        const c = moodColor(t, w.id);
         R(g, x + 3, y + fh - 2, 2, 2, "#3a3330"); R(g, x + 11, y + fh - 2, 2, 2, "#3a3330"); R(g, x + 7, y + fh - 1, 2, 1, "#3a3330");
         R(g, x + 7, y - 26, 2, 40, "#8a8580");
         const k = c ? 0.35 + 0.55 * c[3] : 0;                         // how strongly the shade takes the light's color
         R(g, x + 1, y - 34, 14, 10, c ? `rgb(${Math.round(232 * (1 - k) + c[0] * k)},${Math.round(226 * (1 - k) + c[1] * k)},${Math.round(214 * (1 - k) + c[2] * k)})` : "#e8e2d6");
         R(g, x + 1, y - 26, 14, 2, c ? `rgba(${c[0]},${c[1]},${c[2]},0.9)` : "#d0c9ba");
         if (c) R(g, x + 5, y - 24, 6, 2, `rgba(${c[0]},${c[1]},${c[2]},${0.5 + 0.5 * c[3]})`);       // the bulb peeking out
+      } };
+      case "washer": case "dryer": return { sortY: y + fh, draw: (g) => {
+        const G = LPK.game, on = f.kind === "washer" && G && G.laundry && G.laundry.running > 0;
+        const sh = on ? (Math.floor(t * 14) % 2 ? 1 : -1) : 0;               // shaking while it runs
+        R(g, x + 1 + sh, y - 6, fw - 2, fh + 4, "#f2f2f0"); R(g, x + 1 + sh, y - 6, fw - 2, 4, "#d8d8d6");
+        R(g, x + 3 + sh, y - 5, 4, 2, "#a8acb4");                                                // dial
+        R(g, x + fw - 5 + sh, y - 5, 2, 2, on ? (Math.floor(t * 3) % 2 ? "#5ad06a" : "#2a8a3a") : "#8a8a8a");   // status light
+        E(g, x + fw / 2 + sh, y + 9, 5, 5, "#9aa4b4"); E(g, x + fw / 2 + sh, y + 9, 4, 4, on ? "#7ab0d8" : "#5a6474");   // door window
+        if (on) for (let i = 0; i < 3; i++) { const a = t * 8 + i * 2.1; R(g, x + fw / 2 + sh + Math.cos(a) * 2.5, y + 9 + Math.sin(a) * 2.5, 1, 1, ["#e84a5a", "#ffffff", "#4a8ae8"][i]); }
+        if (on && Math.floor(t * 2) % 3 === 0) R(g, x + fw / 2 - 1 + sh, y + 7, 2, 1, "#eef8ff");   // suds
+      } };
+      case "laundryBasket": return { sortY: y + fh, draw: (g) => {
+        const G = LPK.game, empty = G && G.laundry && G.laundry.emptyDay === (G.clock && G.clock.day);
+        if (!empty) {                                                    // WAY full: overflowing
+          const cl = ["#e84a5a", "#4a8ae8", "#f2f2f0", "#2a2a30", "#f2b43a", "#7ac04a", "#c77dff", "#ff8ab0"];
+          for (let i = 0; i < 14; i++) R(g, x - 1 + (i * 5) % 14, y - 10 + Math.floor(i / 3) * 2 - (i % 2), 5, 3, cl[i % cl.length]);
+          R(g, x + 12, y - 4, 3, 8, "#4a8ae8"); R(g, x - 2, y - 2, 3, 7, "#f2f2f0");            // sleeves hanging over the side
+        }
+        R(g, x, y - 2, fw, fh - 2, "#c8a46a"); for (let i = 0; i < 4; i++) R(g, x + 1, y + i * 3, fw - 2, 1, "#a8844a");
+        R(g, x - 1, y - 3, fw + 2, 2, "#b8945a");
       } };
       case "sideTable": return { sortY: y + fh, draw: (g) => {
         R(g, x + 1, y - 6, 14, 18, "#2a2628"); R(g, x + 1, y - 6, 14, 3, "#3b3638");
@@ -473,6 +493,11 @@ LPK.roomRenderer = (() => {
         R(g, x + 3 * T, y - 12, 2 * T, fh + 12, "#f4f4f2"); R(g, x + 3 * T + 3, y - 2, 2 * T - 6, 12, "#2a2a30");   // white stove
         for (let i = 0; i < 4; i++) E(g, x + 3 * T + 7 + (i % 2) * 18, y - 11 + Math.floor(i / 2) * 2, 4, 1, "#3a3a40");
         R(g, x + 6 * T, y - 8, 2 * T, fh + 8, "#f2f2f0"); R(g, x + 6 * T + 3, y - 5, 2 * T - 6, 2, "#c8c8c8");      // dishwasher
+        const dw = LPK.game && LPK.game.dishwasher;
+        if (dw) {                                                        // running: blinking light, a little steam
+          R(g, x + 7 * T + 8, y - 7, 3, 2, Math.floor(t * 2) % 2 ? "#5ad06a" : "#2a8a3a");
+          for (let i = 0; i < 2; i++) { const p = (t * 0.7 + i / 2) % 1; R(g, x + 6 * T + 10 + i * 8 + Math.sin(p * 6) * 2, y - 10 - p * 10, 2, 2, `rgba(240,248,255,${0.6 * (1 - p)})`); }
+        }
         R(g, x + 9 * T + 2, y - 12, 2 * T - 4, 4, "#9aa4ad"); R(g, x + 10 * T - 1, y - 18, 2, 6, "#c8ccd0");     // sink + faucet
         R(g, x + 2, y - 18, 6, 6, "#e86a4a"); R(g, x + 11 * T, y - 17, 8, 5, "#c8a46a");                       // canisters
         R(g, x + 4, y - 4, 22, 6, "#b8823e"); R(g, x + 6, y - 2, 18, 1, "#ffd166");                             // treat cabinet label
@@ -794,8 +819,12 @@ LPK.roomRenderer = (() => {
 
   // The mood lamp: warm, Christmas (slow fade red <-> green), Halloween
   // (flickering candle), or off. Returns [r, g, b, brightness] or null.
-  function moodColor(t) {
-    let mode = (LPK.save && LPK.save.data.lampMode) || "bright";
+  function lampModeFor(roomId) {
+    const sv = LPK.save && LPK.save.data; if (!sv) return "bright";
+    return (sv.lampModes && sv.lampModes[roomId]) || (roomId === "livingRoom" && sv.lampMode) || "bright";
+  }
+  function moodColor(t, roomId) {
+    let mode = lampModeFor(roomId);
     if (mode === "warm") mode = "bright";
     if (mode === "off") return null;
     if (mode === "dim") return [255, 185, 110, 0.38];
@@ -817,8 +846,8 @@ LPK.roomRenderer = (() => {
   // its glow shows day and night (stronger at night) and tints the room a little
   function drawMoodLamps(g, w, darkness, t) {
     const lamp = w.def.furniture.find(f => f.light === "mood"); if (!lamp) return;
-    const c = moodColor(t); if (!c) return;
-    const mode = LPK.save.data.lampMode || "bright";
+    const c = moodColor(t, w.id); if (!c) return;
+    const mode = lampModeFor(w.id);
     const rad = mode === "bright" || mode === "warm" ? 125 : mode === "dim" ? 60 : mode === "unicorn" ? 130 : 95;
     const T = w.T, x = lamp.x * T + 8, y = lamp.y * T - 22, a = (0.3 + darkness * 0.8) * c[3];
     g.globalCompositeOperation = "lighter";
