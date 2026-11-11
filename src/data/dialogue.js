@@ -141,7 +141,7 @@ LPK.dialogue = {
   owenTenAsk:    ["Hey, can I have $10?"],
   robertWallet:  ["Sure, let me just get my wallet out."],
   owenTenNo:     ["NOOOOOOOO!!!!!"],
-  robertBonk:    ["What a web. What a web."],
+  robertBonk:    ["What a web."],
   evanScream:    ["AAAAAAAHHHHHHHHHHHHHHHHHH!"],
   zoomieNoises:            ["!!!", "*ZOOM*", "brrrrt!", "*wiggle wiggle*", "!!", "*skrrrt*"],
   afterCatnip:             ["*blinks slowly*", "...what just happened?", "*flops over*"],
