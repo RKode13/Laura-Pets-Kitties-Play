@@ -389,6 +389,12 @@ LPK.roomRenderer = (() => {
         E(g, x + 32, 26, 4, 3, "#c83a3a"); R(g, x + 30, 24, 3, 2, "#2a3a8a");                          // cap
       } else if (dec.kind === "evanSign") {
         R(g, x, 3, dw, 6, "#5a9aa8"); R(g, x + 2, 5, dw - 4, 2, "#f2f0e0");
+      } else if (dec.kind === "blueCurtains" && LPK.game && LPK.game.peek && LPK.game.peek.which === "evan" && w.id === "evansRoom") {
+        const op = LPK.game.peek.open, cw = (dw / 2) * (1 - op * 0.8);
+        R(g, x, 12, dw, wallH - 12, LPK.game.peek.patrick ? "#9ad0f0" : "#141a34");             // the window, curtains open
+        if (LPK.game.peek.patrick && op > 0.5) { R(g, x + dw / 2 - 4, 22, 8, 8, "#f0c8a8"); R(g, x + dw / 2 - 5, 30, 10, wallH - 30, "#d8c070"); R(g, x + dw / 2 - 9 + (Math.floor(LPK.game.peek.t * 14) % 2) * 2, 14, 3, 6, "#f0c8a8"); }   // ...Patrick, waving
+        R(g, x - 4, 10, dw + 8, 2, "#1a1a20");
+        R(g, x, 12, cw, wallH - 12, "#2e4a8a"); R(g, x + dw - cw, 12, cw, wallH - 12, "#2e4a8a");
       } else if (dec.kind === "blueCurtains") {
         R(g, x - 4, 10, dw + 8, 2, "#1a1a20");                                       // rod
         R(g, x, 12, dw, wallH - 12, "#2e4a8a");

@@ -380,6 +380,9 @@ LPK.rooms = {
     exits: [
       { id: "toHallway", label: "Hallway", side: "right", y: 8, h: 2, to: "hallway", toExit: "toEvan", style: "hallDoor" },
     ],
+    interactables: [
+      { id: "window", kind: "peekWindow", which: "evan", label: "Window", x: 7.5, y: 4.3 },
+    ],
     toys: [
       { id: "slinky", kind: "spring", x: 10.5, y: 4.4, colors: ["#e8436f", "#ffd166", "#4ac06a", "#4a8ae8", "#c77dff"] },
     ],
@@ -432,6 +435,9 @@ LPK.rooms = {
     sideDecor: [],
     exits: [
       { id: "toHallway", label: "Hallway", side: "right", y: 7, h: 2, to: "hallway", toExit: "toOwen", style: "hallDoor" },
+    ],
+    interactables: [
+      { id: "window", kind: "peekWindow", which: "owen", label: "Window", x: 7.3, y: 4.5 },
     ],
     restingSpots: {
       owenBed:    { label: "Owen's bed", x: 4.5, y: 6.3, z: 8, approach: [5, 7] },

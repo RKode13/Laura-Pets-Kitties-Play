@@ -300,6 +300,21 @@ LPK.characters = {
       gray:    { name: "Gray striped tee",       top: "#a8acb8", topDark: "#8e92a0", stripes: "#ffffff", pants: "#1e1e24", shoes: "#3a3a40" },
     },
   },
+  // PATRICK — the next-door neighbor. Tall, skinny, 40-50, a little gut, bald on
+  // top with short trimmed dirty-blond sides, round un-cool glasses, head poking
+  // forward. Faded mustard pocket tee (pen in the pocket) tucked into very light
+  // jeans hiked way too high, white tennis shoes. Lives next door with his mom.
+  // (Look "B" from the sketches; swap colors here to try A or C.)
+  patrick: {
+    name: "Patrick",
+    title: "The Next-Door Neighbor",
+    look: {
+      skin: "#f0c8a8", skinShade: "#d8a888", hair: "#b8a070", hairDark: "#8a7650",
+      shirt: "#d8c070", shirtDark: "#b8a050", jeans: "#9cc0e0", jeansDark: "#86aed2", belt: "#5a3a22",
+      glassesFrame: "#6a5a4a", lens: "#dfe8ee", glassesStyle: "round", gut: 4, pen: true,
+      stains: [[-3, -35], [2, -32]],
+    },
+  },
 };
 
 // Friendly display names for attributes (used by Character Profiles).

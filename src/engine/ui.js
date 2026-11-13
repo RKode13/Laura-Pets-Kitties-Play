@@ -449,6 +449,7 @@ LPK.ui = (() => {
       ctx.restore();
     }
     if (G.cupView) drawCupView();
+    if (G.peek && G.peek.open > 0) drawPeek();
     if (G.desk && G.desk.session && G.desk.session.kind === "meeting" && G.room === "masterBedroom") drawMeeting();
     if (G.stareOff) {                                          // the stare-down: the world holds its breath
       const k = Math.min(1, G.stareOff.t / 0.6) * 0.45;
@@ -580,6 +581,86 @@ LPK.ui = (() => {
     ctx.restore();
   }
   function L_talking() { return G.laura && G.laura.speech; }
+
+  // What Laura sees out the window (Evan's room by day / Owen's room by night)
+  const peekLow = document.createElement("canvas"), pg = peekLow.getContext("2d");
+  function drawPeek() {
+    const P = G.peek, evan = P.which === "evan", PX = LPK.px;
+    const lw = evan ? 90 : 160, lh = evan ? 60 : 100;
+    peekLow.width = lw; peekLow.height = lh; pg.imageSmoothingEnabled = false;
+    const R = (x, y, w, h, c) => PX.rect(pg, x, y, w, h, c), E = (x, y, rx, ry, c) => PX.ellipse(pg, x, y, rx, ry, c);
+    const night = evan ? !P.patrick : true;
+    if (evan) {
+      R(0, 0, lw, lh, night ? "#141a34" : "#9ad0f0");
+      R(0, 10, lw, 40, night ? "#2a3a34" : "#c8dcb8"); for (let y = 12; y < 50; y += 4) R(0, y, lw, 1, night ? "#24322e" : "#b4c8a4");   // his house's siding
+      R(58, 16, 18, 14, night ? "#1a2028" : "#e8eef4"); R(66, 16, 1, 14, "#8a9aa8");                                                     // his window
+      R(0, 50, lw, 10, night ? "#1a3020" : "#6aa84a");
+      if (P.patrick) PX.draw(pg, LPK.sprites.patrick("down", Math.floor(P.t * 14), { pose: P.t > 0.9 ? "wave" : "stand" }), 40, 76, false);
+    } else {
+      // night sky, stars, moon
+      R(0, 0, lw, lh, "#121830"); for (let i = 0; i < 22; i++) R((i * 37) % lw, (i * 13) % 34, 1, 1, i % 3 ? "#d8dcf0" : "#8890b8");
+      E(lw - 22, 12, 5, 5, "#f4f0d8"); E(lw - 20, 11, 4, 4, "#121830");
+      if (P.look === "straight") {
+        for (let i = 0; i < 9; i++) E(8 + i * 19, 40 - (i % 3) * 4, 12, 16, i % 2 ? "#13261a" : "#18301f");       // trees behind the fence
+        R(0, 52, lw, lh - 52, "#16301c");
+        R(0, 58, lw, 2, "#a8acb8"); R(0, 66, lw, 2, "#a8acb8");                                                     // white picket fence
+        for (let x = 2; x < lw; x += 6) { R(x, 52, 4, 20, "#c8ccd8"); R(x + 1, 51, 2, 1, "#c8ccd8"); }
+        R(0, 72, lw, lh - 72, "#10261a");
+      } else {
+        R(0, 30, 46, 40, "#2a2a34"); R(-4, 24, 54, 7, "#1e1e26");                                                 // Patrick & his mom's house
+        R(10, 40, 12, 10, "#f2d878"); R(16, 40, 1, 10, "#a89848"); R(10, 45, 12, 1, "#a89848");                       // a lit window (Mom's up)
+        R(30, 46, 8, 24, "#3a2a22"); R(36, 58, 1, 2, "#c8a84a");
+        R(0, 70, lw, lh - 70, "#152a18");
+        R(88, 38, 26, 26, "#3a3028"); R(86, 34, 30, 5, "#2a221c"); R(98, 50, 6, 14, "#24201a");                     // shed
+        E(146, 56, 9, 7, "#1c3a20"); R(122, 50, 7, 12, "#4a4e58"); R(130, 51, 7, 11, "#3e6a48"); R(121, 49, 9, 2, "#5a5e68");   // bush, trash cans
+        for (let i = 0; i < 3; i++) E(64 + i * 18, 18 + (i % 2) * 4, 10, 12, "#14281a");                                          // trees in his yard                     // bush, trash cans
+        // Patrick and his flashlight
+        if (P.patrick) {
+          const pat = P.pat, fx = pat.x + (pat.flip ? -12 : 12), fy = 80 - 37;
+          if (pat.aim) {
+            pg.fillStyle = "rgba(255,240,170,0.28)"; pg.beginPath(); pg.moveTo(fx, fy);
+            const dx = pat.aim.x - fx, dy = pat.aim.y - fy, n = Math.hypot(dx, dy) || 1, px2 = -dy / n * 7, py2 = dx / n * 7;
+            pg.lineTo(pat.aim.x + px2, pat.aim.y + py2); pg.lineTo(pat.aim.x - px2, pat.aim.y - py2); pg.fill();
+            E(pat.aim.x, pat.aim.y, 6, 4, "rgba(255,244,190,0.35)");
+          }
+          PX.draw(pg, LPK.sprites.patrick("side", Math.floor((pat.walkT || 0) * 6), { pose: "flashlight", walk: pat.walking }), pat.x, 80, pat.flip);
+        }
+        // the wooden fence between the yards (in front of him)
+        R(0, 64, lw, 30, "#4a3424"); for (let x = 0; x < lw; x += 5) { R(x, 62, 4, 32, "#5a4030"); R(x + 4, 62, 1, 32, "#3a281c"); }
+        R(0, 70, lw, 2, "#3a281c"); R(0, 84, lw, 2, "#3a281c");
+        R(0, 94, lw, lh - 94, "#10241a");
+      }
+    }
+    // draw it big, framed like a window, with the curtains
+    let pw = Math.min(W * 0.42, 420), ph = pw * lh / lw;                       // off to the right, so Laura stays in view
+    if (ph > H * 0.5) { ph = H * 0.5; pw = ph * lw / lh; }
+    const px = W - pw - 28, py = Math.max(90, H * 0.16);
+    ctx.save(); ctx.globalAlpha = Math.min(1, P.open * 3);
+    rr(px - 12, py - 12, pw + 24, ph + 24, 10, "#f4f2ee", "#2b2529", 3);
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(peekLow, 0, 0, lw, lh, px, py, pw, ph);
+    ctx.fillStyle = "#f4f2ee"; ctx.fillRect(px + pw / 2 - 3, py, 6, ph); ctx.fillRect(px, py + ph / 2 - 3, pw, 6);   // window panes
+    if (!evan && P.patrick && P.look === "left" && P.pat.say) {                                                  // what Patrick's muttering
+      const sx = px + (P.pat.x / lw) * pw, sy = py + (8 / lh) * ph;
+      const tw = Math.min(pw * 0.7, P.pat.say.length * u * 0.36 + 24);
+      rr(Math.max(px + 4, Math.min(px + pw - tw - 4, sx - tw / 2)), sy, tw, u * 1.4, 8, "#ffffff", "#2b2529", 2);
+      text(P.pat.say, Math.max(px + 4, Math.min(px + pw - tw - 4, sx - tw / 2)) + tw / 2, sy + u * 0.72, u * 0.62, "#2b2529", "center");
+    }
+    // curtains part from the middle
+    const cw = (pw / 2) * (1 - P.open * 0.82), col = evan ? "#2e4a8a" : "#d8d8dc", col2 = evan ? "#24407a" : "#c4c4ca";
+    ctx.fillStyle = col; ctx.fillRect(px - 12, py - 12, cw + 12, ph + 24); ctx.fillRect(px + pw - cw, py - 12, cw + 12, ph + 24);
+    ctx.fillStyle = col2; for (let i = 0; i < cw; i += 14) { ctx.fillRect(px - 6 + i, py - 12, 3, ph + 24); ctx.fillRect(px + pw - cw + i + 4, py - 12, 3, ph + 24); }
+    if (!evan) {
+      text(P.look === "left" ? "Looking left: Patrick's yard" : "Looking straight back", px + pw / 2, py + ph + 30, u * 0.85, C.gold, "center");
+      text(LPK.input.lastType === "keyboard" ? "◀ look left · ▶ look straight · SPACE close" : "", px + pw / 2, py + ph + 30 + u * 1.2, u * 0.65, C.dim, "center", "normal");
+      if (LPK.input.lastType !== "keyboard") {
+        const bw = Math.min(150, (pw - 20) / 3), bh = u * 1.8, by = py + ph + 30 + u * 0.8, cx = px + pw / 2;
+        button("◀ Left", cx - bw * 1.5 - 10, by, bw, bh, () => { P.look = "left"; }, { nav: false });
+        button("Straight ▶", cx - bw / 2, by, bw, bh, () => { P.look = "straight"; }, { nav: false });
+        button("Close", cx + bw / 2 + 10, by, bw, bh, () => { if (P.closing == null) P.closing = 0; }, { nav: false });
+      }
+    }
+    ctx.restore();
+  }
 
   // Joe's famous cappuccino, up close (white square mug, chocolate spiderweb foam)
   function drawCupView() {

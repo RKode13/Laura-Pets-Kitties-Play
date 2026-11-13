@@ -112,6 +112,11 @@ LPK.sprites = (() => {
     if (L.inner && dir !== "up") r(-2, -15, 4, 9, L.inner, 1);                         // open hoodie over a tee
     if (L.stripes) for (let i = 0; i < 4; i++) r(-4, -14 + i * 2, 8, 1, L.stripes, 1);
     if (celebrate) { r(-7, -23, 2, 8, L.top); r(5, -23, 2, 8, L.top); r(-7, -25, 2, 2, L.skin); r(5, -25, 2, 2, L.skin); }
+    else if (opt.raise) {                                  // one hand slowly coming up (an awkward little wave)
+      const k = Math.round(opt.raise * 12);
+      r(-6, -15, 2, 8, L.top); r(-6, -7, 2, 2, L.skin);
+      r(4, -15 - k, 2, 8, L.top); r(4, -17 - k, 2, 2, L.skin);
+    }
     else { r(-6, -15, 2, 8, L.top); r(4, -15, 2, 8, L.top); r(-6, -7, 2, 2, L.skin); r(4, -7, 2, 2, L.skin); }
     r(-3, -6 + 0, 3, 5 - lift[0], L.pants); r(0, -6, 3, 5 - lift[1], L.pants);
     r(-3, -1 - lift[0], 3, 1, L.shoes); r(0, -1 - lift[1], 3, 1, L.shoes);
@@ -120,6 +125,7 @@ LPK.sprites = (() => {
       r(-6, -24, 12, 12 - hl, L.hair);
       r(-3, -27, 2, 12, L.hairLight, 1); r(2, -25, 1, 10, L.hairLight, 1);
       r(-5, -14, 1, 3, L.hairDark, 1); r(4, -13, 1, 3, L.hairDark, 1);
+      if (opt.raise) { const k = Math.round(opt.raise * 12); r(6, -15 - k, 2, 9, L.top); r(6, -18 - k, 2, 3, L.skin); }   // raised hand, clear of her hair
       return s;
     }
     r(-1, -17, 2, 2, L.skin);                             // neck
@@ -708,5 +714,62 @@ LPK.sprites = (() => {
     return s;
   }
 
-  return { laura, cat, robert, clown, evan, owen, kid, joe };
+  // PATRICK (the neighbor). opt.pose: "stand" | "walk" | "wave" (frantic nerd wave) | "flashlight"
+  function patrick(dir = "down", frame = 0, opt = {}) {
+    const P = LPK.characters.patrick.look, s = [];
+    const r = (x, y, w, h, c, n) => s.push(["r", x, y, w, h, c, n]);
+    const pose = opt.pose || "stand";
+    const step = pose === "walk" || opt.walk ? frame % 4 : 0, sw = step === 1 ? 1 : step === 3 ? -1 : 0;
+    const glasses = (x, y, side) => {
+      const f = P.glassesFrame;
+      if (side) { r(x, y, 3, 2, P.lens, 1); r(x, y - 1, 3, 1, f, 1); r(x, y + 1, 3, 1, f, 1); r(x - 4, y, 4, 1, f, 1); r(x + 1, y, 1, 1, "#2a2a2a", 1); return; }
+      r(x - 4, y, 3, 2, P.lens, 1); r(x + 1, y, 3, 2, P.lens, 1); r(x - 4, y - 1, 3, 1, f, 1); r(x + 1, y - 1, 3, 1, f, 1); r(x - 1, y, 2, 1, f, 1);
+      r(x - 3, y + 1, 1, 1, "#2a2a2a", 1); r(x + 2, y + 1, 1, 1, "#2a2a2a", 1);
+    };
+    if (dir === "side") {
+      r(-3 + sw * 2, -24, 4, 22, P.jeans); r(0 - sw * 2, -24, 3, 22, P.jeansDark);
+      r(-4 + sw * 2, -2, 8, 2, "#f4f4f2"); r(-4 - sw * 2, -2, 8, 2, "#f4f4f2"); r(-4, -1, 8, 1, "#c8c8c8", 1);
+      r(-4, -41, 8, 16, P.shirt);
+      r(3, -34, P.gut, 7, P.shirt); r(3 + P.gut, -32, 1, 4, P.shirt);                 // the little gut
+      r(-4, -28, 8 + P.gut, 4, P.jeans); r(-4, -29, 8 + P.gut, 1, P.belt, 1);           // jeans hiked up over it
+      P.stains.forEach(([x, y]) => r(x, y, 2, 1, P.shirtDark, 1));
+      if (pose === "flashlight") {                                                      // arm out, flashlight forward
+        r(-1, -40, 3, 5, P.shirtDark); r(1, -37, 7, 2, P.skin); r(7, -38, 5, 3, "#3a3a42"); r(11, -38, 1, 3, "#fff6c0", 1);
+      } else { r(-1 - sw, -40, 3, 13, P.shirtDark); r(-1 - sw, -27, 3, 3, P.skin); }
+      r(1, -44, 3, 4, P.skin); r(3, -45, 2, 2, P.skin);                                 // neck juts forward
+      const hx = 5, hy = -43;
+      r(hx - 4, hy - 9, 8, 10, P.skin);
+      r(hx - 4, hy - 10, 7, 2, P.skin); r(hx - 2, hy - 10, 2, 1, "#fff2e6", 1);         // shiny bald top
+      r(hx - 4, hy - 7, 3, 5, P.hair, 1); r(hx - 4, hy - 8, 1, 6, P.hairDark, 1);
+      glasses(hx + 1, hy - 6, true);
+      r(hx + 3, hy - 4, 2, 2, P.skinShade, 1); r(hx + 1, hy - 1, 2, 1, "#8a4a3a", 1);
+      return s;
+    }
+    const bob = pose === "wave" ? (frame % 2) : 0;                                      // bouncing with excitement
+    r(-5, -24, 4, 22, P.jeans); r(1, -24, 4, 22, P.jeans); r(-1, -24, 2, 6, P.jeansDark, 1);
+    r(-6, -2, 5, 2, "#f4f4f2"); r(1, -2, 5, 2, "#f4f4f2"); r(-6, -1, 5, 1, "#c8c8c8", 1); r(1, -1, 5, 1, "#c8c8c8", 1);
+    const t = (y) => y - bob;
+    r(-5, t(-41), 10, 14, P.shirt); r(-6, t(-34), 12, 6, P.shirt);
+    r(-5, t(-28), 10, 5, P.jeans); r(-5, t(-29), 10, 1, P.belt, 1); r(-1, t(-29), 2, 1, "#c8c4b8", 1);
+    r(1, t(-39), 3, 3, P.shirtDark, 1); if (P.pen) r(2, t(-41), 1, 3, "#3a5ab8", 1);
+    P.stains.forEach(([x, y]) => r(x - 2, t(y), 2, 1, P.shirtDark, 1));
+    r(5, t(-40), 2, 14, P.shirt); r(5, t(-36), 2, 10, P.skin);                          // his left arm, down
+    if (pose === "wave") {                                                              // right arm straight up, hand flapping like crazy
+      const k = frame % 2 ? 2 : -2;
+      r(-7, t(-40), 2, 3, P.shirt); r(-9, t(-52), 2, 12, P.skin); r(-10 + k, t(-56), 4, 4, P.skin); r(-10 + k, t(-57), 1, 2, P.skin);
+    } else { r(-7, t(-40), 2, 14, P.shirt); r(-7, t(-36), 2, 10, P.skin); }
+    r(-1, t(-43), 2, 2, P.skin);
+    const hx = 0, hy = t(-42);
+    r(hx - 4, hy - 9, 8, 10, P.skin);
+    r(hx - 3, hy - 10, 6, 1, P.skin); r(hx - 1, hy - 10, 2, 1, "#fff2e6", 1);
+    r(hx - 4, hy - 7, 1, 5, P.hair, 1); r(hx + 3, hy - 7, 1, 5, P.hair, 1);
+    r(hx - 5, hy - 5, 1, 2, P.skin); r(hx + 4, hy - 5, 1, 2, P.skin);
+    glasses(hx, hy - 6, false);
+    r(hx - 1, hy - 3, 2, 1, P.skinShade, 1);
+    if (pose === "wave") { r(hx - 2, hy - 2, 4, 2, "#5a2a2a", 1); r(hx - 1, hy - 2, 2, 1, "#ffffff", 1); }   // big open-mouth grin
+    else r(hx - 1, hy - 1, 3, 1, "#8a4a3a", 1);
+    return s;
+  }
+
+  return { laura, cat, robert, clown, evan, owen, kid, joe, patrick };
 })();

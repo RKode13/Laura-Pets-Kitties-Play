@@ -48,7 +48,7 @@ LPK.game = (() => {
     G.joe.sync(); G.cupView = null;
     G.ro = new LPK.Ro(G);
     G.ro.sync();
-    LPK.catFight.end(G); LPK.sneak.end(); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.affirm = null; G.affirmDay = null; G.affirmNoteDay = null; G.tv = null; G.tvScare = null; G.debris = []; G.dishwasher = null; G.laundry = null;
+    LPK.catFight.end(G); LPK.sneak.end(); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.affirm = null; G.affirmDay = null; G.affirmNoteDay = null; G.peek = null; G.tv = null; G.tvScare = null; G.debris = []; G.dishwasher = null; G.laundry = null;
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -266,6 +266,7 @@ LPK.game = (() => {
     if (o.kind === "trash") return { kind: "trash", obj: o, label: "Check the trash can", ok: true };
     if (o.kind === "dishwasher") return { kind: "dishwasher", obj: o, label: G.dishwasher ? "(the dishwasher is running...)" : "Start the dishwasher", ok: !G.dishwasher };
     if (o.kind === "laundry") { const empty = G.laundry && G.laundry.emptyDay === G.clock.day; return { kind: "laundry", obj: o, label: G.laundry && G.laundry.running > 0 ? "(the washer is running...)" : empty ? "(the basket's empty... for now)" : "Do the laundry", ok: !(G.laundry && (G.laundry.running > 0 || empty)) }; }
+    if (o.kind === "peekWindow") return { kind: "peekWindow", obj: o, label: o.which === "evan" ? "Open the curtains" : "Open the window", ok: !G.peek };
     if (o.kind === "moodLamp") return { kind: "moodLamp", obj: o, label: "Change the lamp", ok: true };
     if (o.kind === "tv") { const on = G.tv && G.tv.room === G.room; return { kind: "tv", obj: o, label: !on ? "Turn on the TV" : G.tv.ch === "bears" || G.tv.ch < 3 ? "Change the channel" : "Turn off the TV", ok: true }; }
     if (o.kind === "backyard") return { kind: "backyard", obj: o, label: G.yard ? "(admiring the yard...)" : "Look out at the backyard", ok: !G.yard };
@@ -314,6 +315,7 @@ LPK.game = (() => {
         break;
       }
       case "affirm": G.startAffirm(tg.cat); break;
+      case "peekWindow": G.startPeek(tg.obj); break;
       case "pet": tg.cat.available ? G.petting.start(tg.cat) : G.petting.start(tg.cat); break;
       case "feed": {
         const c = tg.cat;
@@ -580,6 +582,80 @@ LPK.game = (() => {
     cc.tasks = [{ type: "call", fn: () => { const far = cc.def.restingSpots.filter(k => !k.startsWith(G.room + ".")); cc.goTo(far[Math.floor(Math.random() * far.length)] || cc.def.restingSpots[0], "sprint", () => cc.setState("sit", 4)); } }];
     A.dork.cc = cc;
   }
+  // ---------------------------------------------------------- PATRICK at the windows
+  // Evan's room (daytime): open the curtains and Patrick is RIGHT there, waving
+  // like a maniac. Laura slooowly raises a hand, slooowly closes the curtains,
+  // says something awkward and backs away.
+  // Owen's room: open the window and look straight back (picket fence, trees)
+  // or to the left (wooden fence, Patrick & his mom's yard). At night Patrick
+  // is out there with a flashlight, checking things.
+  G.peekDark = () => G.clock.darkness() > 0.3;
+  G.startPeek = (o) => {
+    const L = G.laura, T = G.world.T;
+    L.restFrom = { x: L.x, y: L.y };
+    L.x = o.x * T; L.y = Math.max(L.y, (G.world.def.wallRows + 0.9) * T); L.dir = "up"; L.state = "peek"; L.raise = 0;
+    G.holding = null; G.holdingToy = null;
+    G.peek = { which: o.which, t: 0, open: 0, look: "straight", patrick: o.which === "evan" ? !G.peekDark() : G.peekDark(), lines: 0,
+      pat: { x: 60, i: 0, wait: 1.5, flip: false, aim: null, say: null, sayT: 0, nextSay: 2.5 } };
+    LPK.audio.sfx.click();
+  };
+  function updatePeek(dt) {
+    const P = G.peek; if (!P) return;
+    const L = G.laura, D0 = D();
+    P.t += dt;
+    if (P.which === "evan") {
+      const beat = (at, fn) => { if (P.t >= at && !P[at]) { P[at] = true; fn(); } };
+      P.open = P.t < 0.9 ? P.t / 0.9 : P.t < 5 ? 1 : Math.max(0, 1 - (P.t - 5) / 1.8);   // ...and sloooowly closed
+      if (!P.patrick) {                                                    // nighttime: nobody there
+        beat(1.2, () => L.say("Just the dark side yard.", 1.8));
+        if (P.t > 1.6 && P.t < 5) P.t = 5;
+        if (P.t > 6.9) endPeek();
+        return;
+      }
+      beat(0.9, () => LPK.audio.sfx.startle && LPK.audio.sfx.startle());
+      if (P.t > 2.2 && P.t < 4.4) L.raise = Math.min(1, (P.t - 2.2) / 2.0);  // one slow, limp little wave back
+      beat(7.0, () => { L.raise = 0; L.say(D0.lauraPatrickWave[Math.floor(Math.random() * D0.lauraPatrickWave.length)], 2.8); });
+      if (P.t > 7.4 && P.t < 9.0) {                                         // ...backing away from the window
+        P.back = true; L.dir = "up";
+        const ny = L.y + 14 * dt; if (G.world.boxFree(L.x - 4, ny - 3, 8, 4)) L.y = ny;
+        L.dist += 14 * dt;
+      }
+      if (P.t > 9.1) { endPeek(); LPK.events.emit("patrickWave", {}); }
+      return;
+    }
+    // Owen's window: look around until you close it
+    const input = LPK.input;
+    if (P.closing != null) { P.closing += dt; P.open = Math.max(0, 1 - P.closing / 0.5); if (P.closing > 0.55) endPeek(); return; }
+    P.open = Math.min(1, P.t / 0.6);
+    if (input.pressed("left")) P.look = "left";
+    else if (input.pressed("right")) P.look = "straight";
+    else if (P.t > 0.4 && (input.pressed("act") || input.pressed("stop"))) { P.closing = 0; LPK.audio.sfx.click(); return; }
+    if (P.patrick) {
+      const pat = P.pat, spots = [{ x: 56, ax: 34, ay: 52 }, { x: 70, ax: 72, ay: 14 }, { x: 84, ax: 101, ay: 54 }, { x: 110, ax: 128, ay: 52 }, { x: 128, ax: 148, ay: 54 }, { x: 60, ax: 16, ay: 44 }];
+      if (pat.wait > 0) { pat.wait -= dt; pat.walking = false; }
+      else {
+        const s = spots[pat.i % spots.length], d = s.x - pat.x;
+        if (Math.abs(d) < 1) { pat.wait = 2 + Math.random() * 1.5; pat.aim = { x: s.ax, y: s.ay }; pat.flip = s.ax < pat.x; pat.i++; }
+        else { pat.walking = true; pat.flip = d < 0; pat.x += Math.sign(d) * Math.min(Math.abs(d), 16 * dt); pat.aim = { x: pat.x + (pat.flip ? -26 : 26), y: 58 }; }
+      }
+      pat.walkT = (pat.walkT || 0) + (pat.walking ? dt : 0);
+      if ((pat.sayT -= dt) <= 0) pat.say = null;
+      if (P.look === "left" && (pat.nextSay -= dt) <= 0) { pat.nextSay = 4.5 + Math.random() * 3; pat.say = D0.patrickNight[Math.floor(Math.random() * D0.patrickNight.length)]; pat.sayT = 2.2; }
+      if (P.look === "left") {
+        P.leftT = (P.leftT || 0) + dt;
+        if (P.leftT > 0.8 && P.lines === 0) { P.lines = 1; L.say(D0.lauraPatrickNight[0], 2.8); }
+        if (P.leftT > 3 && !P.seen) { P.seen = true; LPK.events.emit("patrickNight", {}); }
+        if (P.leftT > 9 * P.lines + 2) { L.say(D0.lauraPatrickNight[1 + (P.lines - 1) % (D0.lauraPatrickNight.length - 1)], 2.6); P.lines++; }
+      }
+    }
+  }
+  function endPeek() {
+    const L = G.laura;
+    G.peek = null; L.raise = 0;
+    if (L.state === "peek") L.state = "idle";
+  }
+  G.endPeek = endPeek;
+
   function endAffirm(done) {
     const A = G.affirm; if (!A) return;
     const L = G.laura, c = A.cat;
@@ -850,6 +926,7 @@ LPK.game = (() => {
     updateLaundry(dt);
     updateSmooches(dt);
     updateAffirm(dt);
+    updatePeek(dt);
     if (G.clock.minutes >= 600 && G.clock.minutes < 660 && G.affirmNoteDay !== G.clock.day && G.affirmDay !== G.clock.day) {
       G.affirmNoteDay = G.clock.day; G.notify("10 AM: Daily affirmations!", "Find Orangey and remind him how handsome he is.");
     }
