@@ -21,7 +21,8 @@ LPK.Owen = class Owen extends LPK.Evan {
 
   sync() {
     if (this.ten) { const R = this.game.robert; if (R) { R.wallet = null; R.fighting = false; } this.ten = null; }
-    this.fighting = false; this.handsOnHead = false;
+    this.fighting = false; this.handsOnHead = false; this.blanketWait = false;
+    if (this.game.blanketP && !this.game.blanketP.done) this.game.blanketP = null;
     this.stopMoving(); this.tasks = []; this.holding = null; this.gear = null; this.ball = null; this.tucked = false;
     if (this.bedtime()) { this.placeAt("masterBedroom.owenSleep"); this.setState("sleep", 1e9); this.mode = "night"; return; }
     this.placeAt("livingRoom.owenCouch"); this.setState("sit", 3); this.mode = "day";

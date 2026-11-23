@@ -597,6 +597,7 @@ LPK.sprites = (() => {
         r(cx - 4, cy - 2, 8, 6, "#1a1a20"); r(cx - 3, cy - 1, 6, 4, f ? "#5ac06a" : "#7ad08a", 1);
         r(cx - 2, cy, 2, 2, "#c88a4a", 1); r(cx + 1, cy + 1 - f, 1, 1, "#fbfaf2", 1);            // a little fort + a builder
       }
+      if (k === "blanket") { const c = opt.blanketColor || "#c83a3a"; r(cx - 6, cy - 4, 12, 9, c); r(cx - 6, cy - 1, 12, 1, "rgba(255,255,255,0.35)", 1); r(cx - 6, cy + 2, 12, 1, "rgba(0,0,0,0.2)", 1); r(cx - 7, cy + 4, 3, 3, c); r(cx + 4, cy + 4, 3, 4, c); }   // a big bundle of blanket
       if (k === "phone") { r(cx - 2, cy - 3, 5, 8, "#1a1a20"); r(cx - 1, cy - 2, 3, 6, f ? "#f6d040" : "#ffe46a", 1); r(cx, cy, 1, 2, "#e8643a", 1); }
     };
     if (pose === "lie") {

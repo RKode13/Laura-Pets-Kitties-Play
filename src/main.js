@@ -48,7 +48,7 @@ LPK.game = (() => {
     G.joe.sync(); G.cupView = null;
     G.ro = new LPK.Ro(G);
     G.ro.sync();
-    LPK.catFight.end(G); LPK.sneak.end(); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.affirm = null; G.affirmDay = null; G.affirmNoteDay = null; G.peek = null; G.tv = null; G.tvScare = null; G.debris = []; G.dishwasher = null; G.laundry = null;
+    LPK.catFight.end(G); LPK.sneak.end(); G.fightText = null; G.shake = 0; G.hungry = null; G.hungryCool = 60; G.smoochOwed = false; G.smooches = null; G.affirm = null; G.affirmDay = null; G.affirmNoteDay = null; G.peek = null; G.blanketP = null; G.blanketDay = null; G.blanketN = 0; G.tv = null; G.tvScare = null; G.debris = []; G.dishwasher = null; G.laundry = null;
     G.petting = new LPK.Petting(G);
     G.floaters = []; G.celebration = null; G.notices = {};
     G.cam.x = G.laura.x - 100; G.cam.y = G.laura.y - 100;
@@ -202,7 +202,9 @@ LPK.game = (() => {
   // Everything Laura can press Pet/Use on, nearest first.
   function findTarget() {
     const L = G.laura, ip = L.interactPoint(), T = G.world.T;
-    if (L.state === "rest") return { kind: "getUp", label: "Get up", ok: true };
+    if (L.state === "rest" || L.state === "blanketRest") return { kind: "getUp", label: G.blanketP && !G.blanketP.done ? "(blanket party in progress...)" : "Get up", ok: !(G.blanketP && !G.blanketP.done) };
+    const owB = G.owen;
+    if (owB && owB.blanketWait && !G.blanketP && owB.room === G.room && owB.distTo(L) < 40 && !owB.moving) return { kind: "blanketParty", label: "Is it time for a blanket party?", ok: true };
     const ev = G.evan;
     if (ev && ev.room === G.room && ev.distTo(L) < 34 && ev.state !== "sleep") {
       if (ev.inBedtimeWindow()) return { kind: "evanBed", label: "It's bedtime, Evan!", ok: true };
@@ -333,6 +335,7 @@ LPK.game = (() => {
         break;
       }
       case "affirm": G.startAffirm(tg.cat); break;
+      case "blanketParty": startBlanketParty(); break;
       case "peekWindow": G.startPeek(tg.obj); break;
       case "pet": tg.cat.available ? G.petting.start(tg.cat) : G.petting.start(tg.cat); break;
       case "feed": {
@@ -600,6 +603,96 @@ LPK.game = (() => {
     cc.tasks = [{ type: "call", fn: () => { const far = cc.def.restingSpots.filter(k => !k.startsWith(G.room + ".")); cc.goTo(far[Math.floor(Math.random() * far.length)] || cc.def.restingSpots[0], "sprint", () => cc.setState("sit", 4)); } }];
     A.dork.cc = cc;
   }
+  // ---------------------------------------------------------- SUNDAY BLANKET PARTY
+  // Sundays 5-8 PM (night game on), Owen waits in the living room. Laura asks,
+  // "Is it time for a blanket party?" -> "IT'S TIME FOR A BLANKET PARTY!!!"
+  // He hauls in blanket after blanket, piling them over Robert and Laura on the
+  // sectional, then crawls under too.
+  const BLANKETS = ["#c83a3a", "#a8aab4", "#1e2a4a", "#f2b8d0", "#4a8a5a"];
+  function blanketTime() { const c = G.clock; return c.day === 0 && c.minutes >= 17 * 60 && c.minutes < 20 * 60; }
+  function updateBlanket(dt) {
+    const O = G.owen, L = G.laura, P = G.blanketP;
+    if (!O) return;
+    // Owen goes and waits in the living room
+    if (blanketTime() && G.blanketDay !== G.clock.day && !O.blanketWait && !P && O.present !== false && O.mode === "day" && !O.fighting && !O.moving) {
+      O.stopMoving(); O.tasks = []; O.holding = null; O.fighting = true; O.blanketWait = true;
+      O.goTo({ room: "livingRoom", tx: 13, ty: 7 }, "walk", () => { O.setState("stand", 1e9); O.dir = "down"; });
+      G.notify("Sunday night game!", "Owen's waiting for you in the living room...");
+    }
+    if (O.blanketWait && !P && !blanketTime()) { O.blanketWait = false; O.fighting = false; O.setState("stand", 2); }
+    // blankets come off at 8 PM
+    if (G.blanketDay != null && !blanketTime()) {
+      G.blanketDay = null; G.blanketN = 0; G.blanketP = null;
+      if (O.underBlanket) { O.underBlanket = false; O.fighting = false; O.setState("stand", 2); }
+      if (L.state === "blanketRest") { L.x = L.restFrom.x; L.y = L.restFrom.y; L.state = "idle"; }
+    }
+    if (!P || P.done) return;
+    P.t += dt;
+    const beat = (at, fn) => { if (P.t >= at && !P[at]) { P[at] = true; fn(); } };
+    beat(2.2, () => { O.say(D().owenBlanket[0], 2.8); LPK.audio.sfx.cheer && LPK.audio.sfx.cheer(); });
+    beat(3.4, () => {                                                       // Laura gets comfy on the sectional
+      L.restFrom = { x: L.x, y: L.y }; L.x = 15.5 * 16; L.y = 4.4 * 16; L.state = "blanketRest";
+      P.step = "toDoor";
+    });
+    if (P.t < 3.4) return;
+    switch (P.step) {
+      case "toDoor":
+        P.step = "walking";
+        O.holding = null;
+        O.goTo({ room: "livingRoom", tx: 5, ty: 3 }, "run", () => { P.step = "away"; P.wait = 1.1; O.state = "transit"; });
+        break;
+      case "away":
+        if ((P.wait -= dt) > 0) break;
+        O.state = "stand"; O.holding = "blanket"; O.blanketColor = BLANKETS[G.blanketN % BLANKETS.length];
+        P.step = "walking";
+        O.goTo({ room: "livingRoom", tx: 14, ty: 6 }, "run", () => {
+          G.blanketN++; LPK.audio.sfx.click(); O.holding = null;
+          O.say(D().owenBlanketMore[(G.blanketN - 1) % D().owenBlanketMore.length], 1.4);
+          P.step = G.blanketN >= 4 ? "getIn" : "toDoor";
+          if (P.step === "toDoor") { P.step = "pause"; P.wait = 0.6; }
+        });
+        break;
+      case "pause": if ((P.wait -= dt) <= 0) P.step = "toDoor"; break;
+      case "getIn":
+        P.step = "walking";
+        O.goTo("livingRoom.owenCouch", "walk", () => {
+          O.setState("sit", 1e9); O.underBlanket = true; G.blanketN = 5; P.step = "line"; P.lt = P.t;
+        });
+        break;
+      case "line":
+        if (P.t - P.lt > 0.8 && !P.said) {
+          P.said = true;
+          const ln = D().owenBlanketEnd; O.say(LPK.save.data.settings.familyFriendly ? ln.family : ln.normal, 5.5);
+        }
+        if (P.t - P.lt > 6.5) { P.done = true; O.blanketWait = false; LPK.events.emit("blanketParty", {}); }
+        break;
+    }
+  }
+  function startBlanketParty() {
+    const O = G.owen, L = G.laura;
+    G.blanketP = { t: 0, step: null }; G.blanketDay = G.clock.day; G.blanketN = 0;
+    L.say(D().lauraBlanket[0], 2.2);
+    O.flip = L.x < O.x; O.dir = "side";
+  }
+  // the pile of blankets over the sectional (drawn on top of whoever's on it)
+  function drawBlankets(items) {
+    if (G.room !== "livingRoom" || !G.blanketN) return;
+    const spans = [[15.2, 18.4], [15.6, 19.4], [15.3, 17.6], [16.4, 19.8], [11.1, 13.4]];   // heads stay out
+    items.push({ sortY: 5.6 * 16, draw: (g) => {
+      for (let i = 0; i < Math.min(G.blanketN, 5); i++) {
+        const [a, b] = spans[i], x0 = Math.round(a * 16), x1 = Math.round(b * 16), c = BLANKETS[i], top = 60 + (i % 2) * 2;
+        for (let x = x0; x < x1; x++) {
+          const wob = Math.round(Math.sin(x * 0.45 + i) * 1.5), bot = 86 + Math.round(Math.sin(x * 0.3 + i * 2) * 2);
+          LPK.px.rect(g, x, top + wob, 1, bot - top - wob, c);
+        }
+        LPK.px.rect(g, x0, top + 1, x1 - x0, 1, "rgba(255,255,255,0.25)");
+        if (i === 0) for (let x = x0 + 2; x < x1; x += 6) LPK.px.rect(g, x, top + 2, 1, 22, "rgba(255,220,220,0.35)");   // plaid
+        if (i === 2) LPK.px.rect(g, x0, top + 9, x1 - x0, 2, "#e8743a");                                                  // navy & orange stripe
+        LPK.px.rect(g, x0, 85, x1 - x0, 2, "rgba(0,0,0,0.25)");
+      }
+    } });
+  }
+
   // ---------------------------------------------------------- PATRICK at the windows
   // Evan's room (daytime): open the curtains and Patrick is RIGHT there, waving
   // like a maniac. Laura slooowly raises a hand, slooowly closes the curtains,
@@ -945,6 +1038,7 @@ LPK.game = (() => {
     updateSmooches(dt);
     updateAffirm(dt);
     updatePeek(dt);
+    updateBlanket(dt);
     if (G.clock.minutes >= 600 && G.clock.minutes < 660 && G.affirmNoteDay !== G.clock.day && G.affirmDay !== G.clock.day) {
       G.affirmNoteDay = G.clock.day; G.notify("10 AM: Daily affirmations!", "Find Orangey and remind him how handsome he is.");
     }
@@ -1017,7 +1111,7 @@ LPK.game = (() => {
     // What can Laura do right here?
     G.prompt = null;
     const cheering = G.olympics && G.olympics.phase === "cheer";
-    if (!G.petting.active && !cheering && (!L.busy || L.state === "rest")) {
+    if (!G.petting.active && !cheering && (!L.busy || L.state === "rest" || L.state === "blanketRest")) {
       if (L.state === "rest" && !G.choiceMenu) {
         if (input.pressed("left")) G.shiftHour(-1);
         else if (input.pressed("right")) G.shiftHour(1);
@@ -1259,6 +1353,7 @@ LPK.game = (() => {
         g.fillText(`x${n}`, S.x + 12, S.y - 6);
       } });
     }
+    drawBlankets(items);
     for (const toy of G.toys) if (toy.room === G.room) items.push({ sortY: toy.held ? G.laura.sortY + 1 : toy.y, draw: (g) => R.drawSpring(g, toy.x, toy.y, toy.colors, t, toy.bounce) });
     items.sort((a, b) => a.sortY - b.sortY).forEach(i => i.draw(g));
     if (w.def.ambient) { g.fillStyle = w.def.ambient; g.fillRect(0, 0, w.width, w.height); }   // fairy-light / LED room glow

@@ -34,7 +34,8 @@ LPK.Robert = class Robert extends LPK.Cat {
       want = m < this.T2(day.wake) || m >= this.T2(day.sleep) ? "sleep" : "home";
     }
     const dinner = this.T2(day.dinner), key = `${c.day}`;
-    if (want === "home" && m >= dinner && m < dinner + 40 && !this.didDinner[key]) want = "dinner";
+    const sundayNight = c.day === 0 && m >= 17 * 60 && m < 20 * 60;               // Sunday dinner happens in front of the night game
+    if (want === "home" && m >= dinner && m < dinner + 40 && !this.didDinner[key] && !sundayNight) want = "dinner";
     if (want === "home" && this.mode === "dinner") want = "dinner";     // stays on guard until she's done
     if (this.mode === "chicken" && want !== "sleep") want = "chicken";  // finishes sharing his chicken first
     return want;
@@ -199,10 +200,10 @@ LPK.Robert = class Robert extends LPK.Cat {
     this.chicken = null; this.mode = "home"; this.setState("stand", 3);
   }
 
-  // Sundays, noon to 4: Bears game on the living-room TV
+  // Sundays: Bears game on the living-room TV, noon to 4, and the night game 5 to 8
   sundayGame() {
     const c = this.game.clock, m = c.minutes;
-    return c.day === 0 && this.mode === "home" && m >= 12 * 60 && m < 16 * 60;
+    return c.day === 0 && this.mode === "home" && ((m >= 12 * 60 && m < 16 * 60) || (m >= 17 * 60 && m < 20 * 60));
   }
   watchGame() {
     const G = this.game;

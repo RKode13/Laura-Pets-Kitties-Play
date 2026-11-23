@@ -15,8 +15,8 @@ LPK.Laura = class Laura {
   say(text, secs = 2.6) { this.speech = { text, t: secs }; }
   sayRandom(list, secs) { this.say(list[Math.floor(Math.random() * list.length)], secs); }
 
-  get busy() { return ["kneel", "reach", "celebrate", "rest", "work", "dance", "stare", "smooch", "whistle", "affirm", "peek"].includes(this.state); }
-  get sortY() { return this.state === "rest" ? this.y + 14 : this.y; }
+  get busy() { return ["kneel", "reach", "celebrate", "rest", "work", "dance", "stare", "smooch", "whistle", "affirm", "peek", "blanketRest"].includes(this.state); }
+  get sortY() { return this.state === "rest" || this.state === "blanketRest" ? this.y + 14 : this.y; }
 
   update(dt, input) {
     this.t += dt;
@@ -49,7 +49,7 @@ LPK.Laura = class Laura {
   }
 
   draw(g) {
-    if (this.state === "rest") { LPK.px.draw(g, LPK.sprites.laura("lie", "side", 0), this.x, this.y, false); return; }
+    if (this.state === "rest" || this.state === "blanketRest") { LPK.px.draw(g, LPK.sprites.laura("lie", "side", 0), this.x, this.y, false); return; }
     if (this.state === "whistle") {                         // strolling away, whistling
       LPK.px.rect(g, this.x - 6, this.y - 1, 12, 2, "rgba(0,0,0,0.22)");
       LPK.px.draw(g, LPK.sprites.laura("walk", "side", Math.floor(this.dist / 6)), this.x, this.y, this.flip);
