@@ -52,6 +52,17 @@ LPK.sprites = (() => {
       r(10, -21 - b, 1, 1, L.eyes, 1); r(10, -18 - b, 2, 1 + b, L.lips, 1);   // singing
       return s;
     }
+    if (pose === "sit") {                         // side view, sitting on the couch, hands in her lap
+      r(-4, -22, 6, 13 - hl, L.hairDark);
+      r(-3, -10, 6, 8, L.top);
+      r(-2, -4, 8, 3, L.pants); r(5, -2, 2, 3, L.pants); r(5, 0, 3, 1, L.shoes);
+      r(-1, -20, 6, 8, L.skin);
+      r(-4, -23, 8, 4, L.hair); r(-5, -21, 4, 14 - hl, L.hair); r(2, -21, 3, 2, L.hair);
+      r(0, -9, 2, 5, L.topDark); r(1, -5, 3, 2, L.skin);
+      r(3, -16, 1, 2, L.eyes, 1); r(4, -13, 1, 1, L.lips, 1); r(5, -17, 1, 1, L.skinShade, 1);
+      r(-5, -17, 1, 5, L.hairLight, 1);
+      return s;
+    }
     if (pose === "affirm") {                      // kneeling, one hand cupping his face, the other petting, looking right at him
       const pat = frame % 2;
       r(-6, -2, 4, 2, L.shoes); r(-5, -6, 8, 4, L.pants);

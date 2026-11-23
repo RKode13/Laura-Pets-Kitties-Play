@@ -205,9 +205,11 @@ LPK.Robert = class Robert extends LPK.Cat {
     const c = this.game.clock, m = c.minutes;
     return c.day === 0 && this.mode === "home" && ((m >= 12 * 60 && m < 16 * 60) || (m >= 17 * 60 && m < 20 * 60));
   }
+  nightGame() { return this.game.clock.minutes >= 17 * 60; }
   watchGame() {
     const G = this.game;
-    this.say(LPK.dialogue.robertGameOn[0], 2.4);
+    if (this.nightGame()) { const T = LPK.dialogue.nflTeams; G.nightOpp = T[Math.floor(Math.random() * T.length)]; }
+    this.say(this.nightGame() ? LPK.dialogue.robertNightOn[0] : LPK.dialogue.robertGameOn[0], 2.4);
     this.goTo("livingRoom.sofa", "walk", () => {
       this.watching = true; this.setState("sit", 1e9);
       G.tv = { room: "livingRoom", ch: "bears", t: 0, seen: new Set(), scared: true, robert: true };
@@ -235,7 +237,8 @@ LPK.Robert = class Robert extends LPK.Cat {
     const play = Math.floor(G.tv.t / 9), p = G.tv.t % 9;
     if (p > 4.7 && this.lastTD !== play) {
       this.lastTD = play;
-      this.say(play % 3 === 0 ? LPK.dialogue.robertTD[0] : this.pick(LPK.dialogue.robertTD2), 8);   // stays up long enough to read
+      if (this.nightGame()) this.say(LPK.dialogue.robertNightTD[play % LPK.dialogue.robertNightTD.length], 8);
+      else this.say(play % 3 === 0 ? LPK.dialogue.robertTD[0] : this.pick(LPK.dialogue.robertTD2), 8);   // stays up long enough to read
       if (G.room === "livingRoom") { LPK.audio.sfx.cheer(); LPK.events.emit("bearsTD", {}); }
     }
     return true;

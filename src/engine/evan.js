@@ -14,7 +14,7 @@ LPK.Evan = class Evan extends LPK.Cat {
   }
   get pettable() { return []; }
   get available() { return false; }
-  get sortY() { return this.y + (this.z > 0 ? 8 : 0); }
+  get sortY() { return this.sortOverride || this.y + (this.z > 0 ? 8 : 0); }
   get D() { return LPK.dialogue; }
   headPos() { return { x: this.x, y: this.y - this.z - (this.state === "sleep" ? 14 : this.isSitting ? 26 : 34) }; }
   get sitStates() { return ["sit", "draw", "squish", "ipad", "snack"]; }

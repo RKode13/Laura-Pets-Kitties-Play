@@ -623,7 +623,7 @@ LPK.game = (() => {
     // blankets come off at 8 PM
     if (G.blanketDay != null && !blanketTime()) {
       G.blanketDay = null; G.blanketN = 0; G.blanketP = null;
-      if (O.underBlanket) { O.underBlanket = false; O.fighting = false; O.setState("stand", 2); }
+      if (O.underBlanket) { O.underBlanket = false; O.fighting = false; O.sortOverride = null; O.z = 0; O.x = 18 * 16 + 8; O.y = 8 * 16 + 8; O.setState("stand", 2); }
       if (L.state === "blanketRest") { L.x = L.restFrom.x; L.y = L.restFrom.y; L.state = "idle"; }
     }
     if (!P || P.done) return;
@@ -631,7 +631,7 @@ LPK.game = (() => {
     const beat = (at, fn) => { if (P.t >= at && !P[at]) { P[at] = true; fn(); } };
     beat(2.2, () => { O.say(D().owenBlanket[0], 2.8); LPK.audio.sfx.cheer && LPK.audio.sfx.cheer(); });
     beat(3.4, () => {                                                       // Laura gets comfy on the sectional
-      L.restFrom = { x: L.x, y: L.y }; L.x = 15.5 * 16; L.y = 4.4 * 16; L.state = "blanketRest";
+      L.restFrom = { x: L.x, y: L.y }; L.x = 19.8 * 16; L.y = 6.7 * 16; L.state = "blanketRest";
       P.step = "toDoor";
     });
     if (P.t < 3.4) return;
@@ -655,7 +655,8 @@ LPK.game = (() => {
       case "pause": if ((P.wait -= dt) <= 0) P.step = "toDoor"; break;
       case "getIn":
         P.step = "walking";
-        O.goTo("livingRoom.owenCouch", "walk", () => {
+        O.goTo({ room: "livingRoom", tx: 18, ty: 8 }, "walk", () => {                // crawls in next to Laura
+          O.x = 19.8 * 16; O.y = 9.0 * 16; O.z = 6; O.sortOverride = 162;
           O.setState("sit", 1e9); O.underBlanket = true; G.blanketN = 5; P.step = "line"; P.lt = P.t;
         });
         break;
@@ -677,18 +678,27 @@ LPK.game = (() => {
   // the pile of blankets over the sectional (drawn on top of whoever's on it)
   function drawBlankets(items) {
     if (G.room !== "livingRoom" || !G.blanketN) return;
-    const spans = [[15.2, 18.4], [15.6, 19.4], [15.3, 17.6], [16.4, 19.8], [11.1, 13.4]];   // heads stay out
+    const n = Math.min(G.blanketN, 5);
+    // 1-2: over Robert on the long piece
     items.push({ sortY: 5.6 * 16, draw: (g) => {
-      for (let i = 0; i < Math.min(G.blanketN, 5); i++) {
-        const [a, b] = spans[i], x0 = Math.round(a * 16), x1 = Math.round(b * 16), c = BLANKETS[i], top = 60 + (i % 2) * 2;
-        for (let x = x0; x < x1; x++) {
-          const wob = Math.round(Math.sin(x * 0.45 + i) * 1.5), bot = 86 + Math.round(Math.sin(x * 0.3 + i * 2) * 2);
-          LPK.px.rect(g, x, top + wob, 1, bot - top - wob, c);
-        }
+      for (let i = 0; i < Math.min(n, 2); i++) {
+        const [a, b] = [[15.6, 18.2], [16.0, 18.9]][i], x0 = Math.round(a * 16), x1 = Math.round(b * 16), c = BLANKETS[i], top = 60 + i * 2;
+        for (let x = x0; x < x1; x++) { const wob = Math.round(Math.sin(x * 0.45 + i) * 1.5), bot = 86 + Math.round(Math.sin(x * 0.3 + i * 2) * 2); LPK.px.rect(g, x, top + wob, 1, bot - top - wob, c); }
         LPK.px.rect(g, x0, top + 1, x1 - x0, 1, "rgba(255,255,255,0.25)");
         if (i === 0) for (let x = x0 + 2; x < x1; x += 6) LPK.px.rect(g, x, top + 2, 1, 22, "rgba(255,220,220,0.35)");   // plaid
-        if (i === 2) LPK.px.rect(g, x0, top + 9, x1 - x0, 2, "#e8743a");                                                  // navy & orange stripe
         LPK.px.rect(g, x0, 85, x1 - x0, 2, "rgba(0,0,0,0.25)");
+      }
+    } });
+    // 3-5: over Laura (and then Owen) on the other piece of the sectional
+    items.push({ sortY: 170, draw: (g) => {
+      const x0 = Math.round(18.6 * 16), x1 = Math.round(20.7 * 16);
+      const pieces = [[92, 106], [93, 107], [124, 150]];
+      for (let k = 0; k < n - 2; k++) {
+        const [top, bot] = pieces[k], c = BLANKETS[k + 2];
+        for (let x = x0; x < x1; x++) { const wob = Math.round(Math.sin(x * 0.5 + k) * 1.5); LPK.px.rect(g, x, top + wob, 1, bot - top - wob + Math.round(Math.sin(x * 0.35 + k) * 1.5), c); }
+        LPK.px.rect(g, x0, top + 1, x1 - x0, 1, "rgba(255,255,255,0.25)");
+        if (k === 0) LPK.px.rect(g, x0, top + 8, x1 - x0, 2, "#e8743a");                                                  // navy & orange stripe
+        LPK.px.rect(g, x0, bot - 1, x1 - x0, 2, "rgba(0,0,0,0.22)");
       }
     } });
   }

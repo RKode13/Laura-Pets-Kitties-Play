@@ -110,6 +110,8 @@ LPK.roomRenderer = (() => {
   // Sunday football: #18 drops back, throws a long bomb, the receiver
   // catches it... TOUCHDOWN BEARS! (team colors, no logo). A play every 9s.
   function drawFootball(g, x, y, w, h, tt) {
+    const G0 = LPK.game;
+    if (G0 && G0.clock && G0.clock.minutes >= 17 * 60) return drawNightGame(g, x, y, w, h, tt, G0.nightOpp || "LIONS");
     const p = tt % 9;
     R(g, x, y, w, h, "#2e7a34");
     for (let i = 0; i < 6; i++) R(g, x + 2 + i * (w - 4) / 5, y + 3, 1, h - 6, "rgba(255,255,255,0.45)");     // yard lines
@@ -142,6 +144,35 @@ LPK.roomRenderer = (() => {
     } else {
       g.fillStyle = "#f2f2f2"; g.font = `bold ${Math.max(4, Math.floor(h / 6))}px sans-serif`; g.textAlign = "left"; g.textBaseline = "top";
       g.fillText("#18", x + 2, y + h - 7);
+    }
+  }
+
+  // Sunday night: some random team is beating the Packers 54-0, and it keeps getting worse
+  function drawNightGame(g, x, y, w, h, tt, opp) {
+    const p = tt % 9, play = Math.floor(tt / 9);
+    R(g, x, y, w, h, "#2e7a34");
+    for (let i = 0; i < 6; i++) R(g, x + 2 + i * (w - 4) / 5, y + 3, 1, h - 6, "rgba(255,255,255,0.45)");
+    R(g, x + 1, y + 2, 4, h - 4, "#1e4a2e");                                                                // Packers' end zone (getting a lot of use)
+    R(g, x, y, w, 2, "#1a1e2e"); for (let i = 0; i < w; i += 3) R(g, x + i, y, 1, 1, ["#c8c8d0", "#f2f2f2", "#5a5a68"][(i / 3 | 0) % 3]);
+    const qbX = x + w * 0.72 + (p < 1.5 ? p * 3 : 4.5), qbY = y + h * 0.55;
+    const rx = x + w * 0.6 - Math.min(1, p / 4.2) * (w * 0.5), ry = y + h * 0.4;
+    const opp1 = (px, py) => { R(g, px - 2, py - 5, 4, 5, "#c8ccd8"); R(g, px - 2, py - 7, 4, 2, "#8a8e9a"); R(g, px - 2, py, 1, 2, "#2a2a30"); R(g, px + 1, py, 1, 2, "#2a2a30"); };
+    for (let i = 0; i < 3; i++) { const dx = x + w * 0.5 - i * 4 + (p > 2 ? (p - 2) * 0.6 : 0), dy = y + h * (0.42 + i * 0.14); R(g, dx, dy - 5, 3, 5, "#1e4a2e"); R(g, dx, dy - 7, 3, 2, "#f2c020"); }   // Packers, a step behind
+    opp1(qbX, qbY); opp1(rx, ry);
+    if (p >= 1.6 && p < 4.2) { const k = (p - 1.6) / 2.6; R(g, qbX + (rx - qbX) * k, qbY - 4 + (ry - qbY) * k - Math.sin(k * Math.PI) * h * 0.4, 2, 1, "#8a4a26"); }
+    // score bug
+    g.fillStyle = "rgba(10,12,20,0.85)"; g.fillRect(x, y + h - 7, w, 7);
+    g.font = `bold ${Math.max(4, Math.floor(h / 6))}px sans-serif`; g.textBaseline = "middle"; g.textAlign = "left"; g.fillStyle = "#f2f2f2";
+    g.fillText(`${opp} 54   GB 0`, x + 2, y + h - 3.5);
+    if (p >= 4.6) {
+      const flash = Math.floor(tt * 6) % 2, kind = play % 3;
+      const lines = kind === 0 ? ["TOUCHDOWN", opp + "!"] : kind === 1 ? ["PACKERS", "SCORED ON AGAIN"] : [opp + " 54", "GREEN BAY PACKERS 0"];
+      const bg = kind === 2 ? "#1e4a2e" : flash ? "#f2f2f2" : "#1a1e2e", fg = kind === 2 ? "#f2c020" : flash ? "#1a1e2e" : "#f2f2f2";
+      R(g, x, y + h / 2 - 10, w, 20, bg);
+      g.fillStyle = fg; g.textAlign = "center"; g.textBaseline = "middle";
+      let fs = Math.floor(h / 3.6); g.font = `bold ${fs}px sans-serif`;
+      while (fs > 4 && Math.max(g.measureText(lines[0]).width, g.measureText(lines[1]).width) > w - 3) { fs--; g.font = `bold ${fs}px sans-serif`; }
+      g.fillText(lines[0], x + w / 2, y + h / 2 - fs * 0.55); g.fillText(lines[1], x + w / 2, y + h / 2 + fs * 0.55);
     }
   }
 
