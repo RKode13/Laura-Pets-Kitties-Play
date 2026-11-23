@@ -457,6 +457,44 @@ LPK.roomRenderer = (() => {
         R(g, x + 3, y, 8, 1, "#7d7872"); R(g, x + fw - 11, y, 8, 1, "#7d7872");
         R(g, x + 5, y - 5, 4, 4, "#5fa34a"); R(g, x + fw - 9, y - 5, 4, 4, "#e9e1d4");
       } };
+      case "christmasTree": return { sortY: y + fh, draw: (g) => {
+        // tall, a little sparse and lopsided up top (tinsel where the sections meet), lights + family ornaments
+        const cx = Math.round(x + fw / 2), by = y + fh - 2, mode = (LPK.save && LPK.save.data.treeLights) || "white";
+        E(g, cx, by + 1, 15, 4, "#c8243a"); E(g, cx - 3, by + 2, 6, 2, "#f4f0ec"); E(g, cx + 8, by, 4, 2, "#f4f0ec");       // red & white skirt
+        R(g, cx - 18, by - 4, 6, 5, "#9ad0f0"); R(g, cx - 16, by - 4, 2, 5, "#f4f0ec"); E(g, cx - 15, by - 5, 2, 1, "#f2a2c8");   // little present with a pink bow
+        R(g, cx - 1, by - 8, 3, 7, "#3a2a1e");
+        const tier = (bottom, half, h, col, dx = 0) => { for (let i = 0; i < h; i++) { const hw = Math.round(half * (1 - i / h) + 1); R(g, cx - hw + dx, bottom - i, hw * 2, 1, col); } };
+        tier(by - 3, 13, 18, "#1e4a2e"); tier(by - 3, 11, 16, "#245536", 1);
+        tier(by - 15, 12, 16, "#1e4a2e"); tier(by - 15, 10, 14, "#2a5a38", -1);
+        tier(by - 27, 10, 13, "#1e4a2e"); tier(by - 27, 8, 11, "#2a5a38");
+        R(g, cx - 3, by - 40, 6, 2, "#c8ccd8"); R(g, cx - 2, by - 40, 1, 2, "#eef0f6");                                           // tinsel at the gap
+        tier(by - 40, 8, 11, "#1e4a2e", 2); tier(by - 46, 5, 12, "#245536", 1); R(g, cx + 6, by - 46, 4, 2, "#1e4a2e");            // the crooked top
+        for (let i = 0; i < 10; i++) R(g, cx - 12 + (i * 7) % 24, by - 6 - ((i * 13) % 34), 2, 1, "#163a24");                       // needle shadows
+        // ornaments: snowflakes, white star, gingerbread man, Owen's 2021 snowman, the train, a baseball
+        const orn = (ox, oy, k) => {
+          const X = cx + ox, Y = by + oy;
+          if (k === "flake") { R(g, X - 1, Y, 3, 1, "#f4f6fa"); R(g, X, Y - 1, 1, 3, "#f4f6fa"); R(g, X - 1, Y - 1, 1, 1, "#d8dce8"); R(g, X + 1, Y + 1, 1, 1, "#d8dce8"); }
+          if (k === "star") { R(g, X - 1, Y, 3, 2, "#ffffff"); R(g, X, Y - 1, 1, 1, "#ffffff"); }
+          if (k === "ginger") { R(g, X - 1, Y - 1, 2, 2, "#a8642e"); R(g, X - 1, Y + 1, 2, 2, "#a8642e"); R(g, X - 2, Y + 1, 1, 1, "#a8642e"); R(g, X + 1, Y + 1, 1, 1, "#a8642e"); R(g, X - 1, Y + 1, 2, 1, "#d83a3a"); }
+          if (k === "owen") { E(g, X, Y, 2, 2, "#c8a878"); E(g, X, Y + 3, 3, 2, "#c8a878"); R(g, X - 1, Y + 3, 2, 1, "#5a3a22"); }
+          if (k === "train") { R(g, X - 2, Y, 3, 2, "#9ae0d0"); R(g, X + 1, Y - 1, 2, 3, "#f2a2c8"); R(g, X - 2, Y + 2, 5, 1, "#3a3a42"); }
+          if (k === "ball") { E(g, X, Y, 2, 2, "#f4f2ea"); R(g, X - 1, Y, 1, 1, "#d83a3a"); }
+          R(g, X, Y - 3, 1, 2, "#c83a3a");                                                                                       // red ribbon
+        };
+        orn(7, -36, "flake"); orn(-4, -31, "flake"); orn(1, -31, "star"); orn(-8, -22, "ginger"); orn(-3, -24, "owen"); orn(-6, -27, "train"); orn(-1, -15, "ball"); orn(6, -21, "star");
+        // the light strings: heavier near the top and the bottom (like the real tree), twinkling
+        const pal = mode === "multi" ? ["#ff4646", "#4aa0ff", "#46e070", "#ffd040", "#c66aff", "#ff7ac8"] : ["#fff2b0", "#ffe89a", "#fff8d8"];
+        for (let i = 0; i < 84; i++) {
+          const band = i < 30 ? [-50, -34] : i < 42 ? [-32, -18] : [-17, -4];
+          const yy = band[0] + ((i * 37) % (band[1] - band[0])), wid = Math.max(2, Math.round(13 * (-yy / 50 < 0.25 ? 1 : 1 - (-yy - 4) / 56)));
+          const xx = ((i * 53) % (wid * 2 + 1)) - wid;
+          if (mode === "off") { R(g, cx + xx, by + yy, 1, 1, "#3a4a3a"); continue; }
+          const tw = 0.55 + 0.45 * Math.sin(t * (mode === "multi" ? 2.2 : 1.4) + i * 1.7);
+          const c = pal[i % pal.length];
+          g.globalAlpha = tw * 0.35; R(g, cx + xx - 1, by + yy - 1, 3, 3, c);                  // soft halo
+          g.globalAlpha = Math.min(1, tw + 0.25); R(g, cx + xx, by + yy, i % 3 ? 1 : 2, 1, c); g.globalAlpha = 1;
+        }
+      } };
       case "floorLamp": return { sortY: y + fh, draw: (g) => {
         R(g, x + 3, y + fh - 2, 2, 2, "#3a3330"); R(g, x + 11, y + fh - 2, 2, 2, "#3a3330"); R(g, x + 7, y + fh - 1, 2, 1, "#3a3330");
         R(g, x + 7, y - 26, 2, 40, "#8a8580");
@@ -913,6 +951,22 @@ LPK.roomRenderer = (() => {
     if (tint) { g.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${tint * c[3]})`; g.fillRect(0, 0, w.width, w.height); }
   }
 
+  // The Christmas tree's glow (warm white, or a colorful purple-ish wash)
+  function drawTreeGlow(g, w, darkness, t) {
+    const tree = w.def.furniture.find(f => f.kind === "christmasTree"); if (!tree) return;
+    const mode = (LPK.save && LPK.save.data.treeLights) || "white"; if (mode === "off") return;
+    const T = w.T, x = tree.x * T + tree.w * 8, y = tree.y * T - 14, a = 0.05 + darkness * 0.2;
+    g.globalCompositeOperation = "lighter";
+    const cols = mode === "multi" ? [[200, 90, 255], [255, 70, 90], [70, 160, 255]] : [[255, 220, 150]];
+    cols.forEach((c, i) => {
+      const ox = mode === "multi" ? Math.sin(t * 0.7 + i * 2.1) * 10 : 0, rad = mode === "multi" ? 70 : 64;
+      const grd = g.createRadialGradient(x + ox, y, 0, x + ox, y, rad);
+      grd.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${a / cols.length * (mode === "multi" ? 1.6 : 1)})`); grd.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
+      g.fillStyle = grd; g.fillRect(x + ox - rad, y - rad, rad * 2, rad * 2);
+    });
+    g.globalCompositeOperation = "source-over";
+  }
+
   // Night lighting overlay + lamp glows.
   function drawLighting(g, w, darkness, t) {
     if (darkness <= 0.01) return;
@@ -950,5 +1004,5 @@ LPK.roomRenderer = (() => {
     R(g, x - 4, by - 1, 9, 1, "rgba(0,0,0,0.2)");
   }
 
-  return { drawFloor, drawWalls, furnitureDraw, drawLighting, drawMoodLamps, drawSpring };
+  return { drawFloor, drawWalls, furnitureDraw, drawLighting, drawMoodLamps, drawTreeGlow, drawSpring };
 })();

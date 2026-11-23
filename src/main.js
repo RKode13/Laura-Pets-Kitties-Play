@@ -266,6 +266,7 @@ LPK.game = (() => {
     if (o.kind === "trash") return { kind: "trash", obj: o, label: "Check the trash can", ok: true };
     if (o.kind === "dishwasher") return { kind: "dishwasher", obj: o, label: G.dishwasher ? "(the dishwasher is running...)" : "Start the dishwasher", ok: !G.dishwasher };
     if (o.kind === "laundry") { const empty = G.laundry && G.laundry.emptyDay === G.clock.day; return { kind: "laundry", obj: o, label: G.laundry && G.laundry.running > 0 ? "(the washer is running...)" : empty ? "(the basket's empty... for now)" : "Do the laundry", ok: !(G.laundry && (G.laundry.running > 0 || empty)) }; }
+    if (o.kind === "xmasTree") return { kind: "xmasTree", obj: o, label: "Change the tree lights", ok: true };
     if (o.kind === "peekWindow") return { kind: "peekWindow", obj: o, label: o.which === "evan" ? "Open the curtains" : "Open the window", ok: !G.peek };
     if (o.kind === "moodLamp") return { kind: "moodLamp", obj: o, label: "Change the lamp", ok: true };
     if (o.kind === "tv") { const on = G.tv && G.tv.room === G.room; return { kind: "tv", obj: o, label: !on ? "Turn on the TV" : G.tv.ch === "bears" || G.tv.ch < 3 ? "Change the channel" : "Turn off the TV", ok: true }; }
@@ -286,6 +287,22 @@ LPK.game = (() => {
       case "shoo": {
         const pc = G.cat("popsicle"); L.sayRandom(D().lauraShoo, 1.8); pc.say("!", 0.8);
         pc.setState("sit", 1); pc.goTo(pc.def.restingSpots[0], "run", () => pc.setState("sit", 3));
+        break;
+      }
+      case "xmasTree": {
+        const set = (mode, line) => () => {
+          const sv = LPK.save.data, was = sv.treeLights || "white";
+          sv.treeLights = mode; LPK.save.write(); LPK.audio.sfx.click(); L.say(line, 2);
+          sv.treeModesSeen = Object.assign({}, sv.treeModesSeen, { [was]: true, [mode]: true });
+          if (sv.treeModesSeen.white && sv.treeModesSeen.multi && was !== mode) LPK.events.emit("treeLights", { mode });
+        };
+        G.choiceMenu = { title: "The Christmas Tree", sub: "Pick the lights", sel: 0, options: [
+          { label: "Warm white lights", fn: set("white", "Ahh. Classic and cozy.") },
+          { label: "Multicolor lights", fn: set("multi", "Ooh, so colorful!") },
+          { label: "Lights off", fn: set("off", "Goodnight, tree.") },
+          { label: "Never mind", fn: () => {} },
+        ] };
+        LPK.audio.sfx.click();
         break;
       }
       case "moodLamp": {
@@ -1246,6 +1263,7 @@ LPK.game = (() => {
     if (w.def.ambient) { g.fillStyle = w.def.ambient; g.fillRect(0, 0, w.width, w.height); }   // fairy-light / LED room glow
     R.drawLighting(g, w, Math.max(G.clock.darkness(), w.def.dim || 0), t);
     R.drawMoodLamps(g, w, Math.max(G.clock.darkness(), w.def.dim || 0), t);
+    R.drawTreeGlow(g, w, Math.max(G.clock.darkness(), w.def.dim || 0), t);
     const O = G.olympics;
     if (O && O.event === "cc" && G.room === "livingRoom") O.rings.forEach((r, i) => {
       const done = i < O.ring, next = i === O.ring, pulse = next ? Math.round(Math.sin(t * 6)) : 0;

@@ -73,6 +73,7 @@ LPK.achievements = [
   { id: "laundryDay",      name: "Laundry Day",                desc: "Throw the whole overflowing basket in the washer.", event: "laundry", build: 4 },
   { id: "sinkSnacks",      name: "Num Num Num",                desc: "Catch Orangey eating out of the sink while the dishwasher runs.", event: "popSink", build: 4 },
   { id: "touchdownBears",  name: "Touchdown Bears!",           desc: "Watch a Sunday touchdown with Robert.", event: "bearsTD", build: 4 },
+  { id: "deckTheHalls",    name: "Deck the Halls",              desc: "Switch the Christmas tree lights between warm white and multicolor.", event: "treeLights", build: 4 },
   { id: "patrickWave",     name: "Hi, Neighbor",                desc: "Open the curtains in Evan's room... and regret it.", event: "patrickWave", build: 4 },
   { id: "patrickNight",    name: "Neighborhood Watch",          desc: "At night, look left out Owen's window and spot Patrick with his flashlight.", event: "patrickNight", build: 4 },
   { id: "affirmations",    name: "Daily Affirmations",         desc: "Between 10 and 11 AM, remind Orangey how orange, handsome and silky he is.", event: "dailyAffirmations", build: 4 },
