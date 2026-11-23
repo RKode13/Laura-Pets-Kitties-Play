@@ -296,9 +296,10 @@ LPK.game = (() => {
           sv.treeModesSeen = Object.assign({}, sv.treeModesSeen, { [was]: true, [mode]: true });
           if (sv.treeModesSeen.white && sv.treeModesSeen.multi && was !== mode) LPK.events.emit("treeLights", { mode });
         };
-        G.choiceMenu = { title: "The Christmas Tree", sub: "Pick the lights", sel: 0, options: [
+        G.choiceMenu = { title: "The Christmas Tree", sub: "Only the top and bottom strings work. It's fine.", sel: 0, options: [
           { label: "Warm white lights", fn: set("white", "Ahh. Classic and cozy.") },
           { label: "Multicolor lights", fn: set("multi", "Ooh, so colorful!") },
+          { label: "Flashing (white, then color, back and forth)", fn: set("flash", "It's... trying its best.") },
           { label: "Lights off", fn: set("off", "Goodnight, tree.") },
           { label: "Never mind", fn: () => {} },
         ] };
