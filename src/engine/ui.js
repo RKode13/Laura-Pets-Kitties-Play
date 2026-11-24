@@ -504,21 +504,30 @@ LPK.ui = (() => {
 
   // Evan's drawing pops off the fridge, full size
   function drawArtView() {
-    const list = LPK.save.data.evanDrawings || [], A = G.artView;
+    const list = G.fridgeList(), A = G.artView;
     if (!list.length) { G.artView = null; return; }
-    const d = list[A.i];
+    A.i = Math.min(A.i, list.length - 1);
+    const d = list[A.i], ph0 = d.photo;
     overlay(0.72);
     const pop = Math.min(1, A.t / 0.3), ease = 1 - Math.pow(1 - pop, 3);
-    const maxW = Math.min(W * 0.62, (H - 120) * 4 / 3), pw = maxW, ph = pw * 0.75;
+    let pw = Math.min(W * 0.62, (H - 120) * 4 / 3), ph = pw * 0.75;
+    if (ph0 && ph0.img.naturalWidth) {                                   // a real drawing: keep its shape
+      const ar = ph0.img.naturalWidth / ph0.img.naturalHeight, maxH = H - 130, maxW = W * 0.7;
+      ph = Math.min(maxH, maxW / ar); pw = ph * ar;
+    }
     const cx = W / 2, cy = H / 2 - 16;
     ctx.save();
     ctx.translate(cx, cy); ctx.rotate((1 - ease) * 0.5 - 0.02 + (A.i % 2 ? 0.035 : 0)); ctx.scale(0.15 + 0.85 * ease, 0.15 + 0.85 * ease);
     ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(-pw / 2 + 8, -ph / 2 + 10, pw, ph);
-    LPK.kidArt.draw(ctx, -pw / 2, -ph / 2, pw, ph, d, A.i);
+    if (ph0) {
+      ctx.fillStyle = "#fbfaf2"; ctx.fillRect(-pw / 2 - 6, -ph / 2 - 6, pw + 12, ph + 12);
+      if (ph0.img.complete && ph0.img.naturalWidth) ctx.drawImage(ph0.img, -pw / 2, -ph / 2, pw, ph);
+    } else LPK.kidArt.draw(ctx, -pw / 2, -ph / 2, pw, ph, d, A.i);
     ctx.fillStyle = "rgba(240,230,170,0.75)"; ctx.fillRect(-28, -ph / 2 - 10, 56, 20);   // tape
     ctx.fillStyle = "#d84a4a"; ctx.beginPath(); ctx.arc(pw / 2 - 18, -ph / 2 + 14, 7, 0, 7); ctx.fill();   // fridge magnet
     ctx.restore();
-    text(`"${d.what[0].toUpperCase() + d.what.slice(1)}" by Evan  ·  ${A.i + 1} of ${list.length}`, W / 2, cy + ph / 2 + u * 1.4, u * 0.95, C.gold, "center");
+    const ttl = ph0 ? ph0.title : d.what[0].toUpperCase() + d.what.slice(1);
+    text(`"${ttl}" by Evan  ·  ${A.i + 1} of ${list.length}`, W / 2, cy + ph / 2 + u * 1.4, u * 0.95, C.gold, "center");
     const bh = Math.min(44, H / 11), bw = Math.min(64, W * 0.1);
     if (list.length > 1) {
       button("◀", 16, cy - bh / 2, bw, bh, () => G.artStep(-1), { nav: false });

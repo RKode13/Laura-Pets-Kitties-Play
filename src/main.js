@@ -223,8 +223,7 @@ LPK.game = (() => {
     if (G.smoochOwed && Rb.present && Rb.room === G.room && Rb.state !== "sleep" && Rb.distTo(L) < 36 && !G.smooches) return { kind: "smooch", label: "Give Robert 10 smoochies", ok: true };
     // standing right at the sliding door: the backyard view wins over nearby cats
     if (G.room === "kitchen" && Math.hypot(L.x - 17.25 * T, L.y - 4.2 * T) < 20) return { kind: "backyard", label: G.yard ? "(admiring the yard...)" : "Look out at the backyard", ok: !G.yard };
-    const art = LPK.save.data.evanDrawings || [];
-    if (G.room === "kitchen" && art.length && Math.hypot(L.x - 14 * T, L.y - 5.4 * T) < 22) return { kind: "fridgeArt", label: "Look at Evan's drawings", ok: true };
+    if (G.room === "kitchen" && Math.hypot(L.x - 14 * T, L.y - 5.4 * T) < 22) return { kind: "fridgeArt", label: "Look at Evan's drawings", ok: true };
     const cc = G.cat("cc");
     if (cc.room === G.room && cc.state === "bellyUp" && cc.distTo(L) < 36) return { kind: "belly", cat: cc, label: "Royal Belly Rub!", ok: true };
     const toy = G.toys.find(t => t.room === G.room && !t.held && !t.flight && Math.hypot(t.x - L.x, t.y - L.y) < 24);
@@ -329,8 +328,8 @@ LPK.game = (() => {
       case "evanSnack": G.evan.giveSnack(); break;
       case "owenStreak": L.say(D().owenStreakAsk[0], 1.6); G.owen.doStreaks(); break;
       case "fridgeArt": {
-        const n = (LPK.save.data.evanDrawings || []).length;
-        G.artView = { i: n - 1, t: 0 }; LPK.audio.sfx.click();
+        const n = G.fridgeList().length, nNew = (LPK.save.data.evanDrawings || []).length;
+        G.artView = { i: nNew ? n - 1 : 0, t: 0 }; LPK.audio.sfx.click();          // newest in-game drawing first, if there is one
         LPK.events.emit("artViewed", {});
         break;
       }
@@ -1289,15 +1288,27 @@ LPK.game = (() => {
     else if (input.pressed("pause") || input.pressed("stop")) G.foodMenu = null;
   }
 
+  // What's on the fridge today: a random handful of Evan's real drawings
+  // (reshuffled each new day) + any new drawings he made in the game.
+  G.fridgeList = () => {
+    const F = LPK.fridgeArt, sv = LPK.save.data;
+    if (!sv.fridgeSet || sv.fridgeSetDay !== G.clock.day || sv.fridgeSet.some(id => !F.pictures.find(p => p.id === id))) {
+      const ids = F.pictures.map(p => p.id);
+      for (let i = ids.length - 1; i > 0; i--) { const k = Math.floor(Math.random() * (i + 1)); [ids[i], ids[k]] = [ids[k], ids[i]]; }
+      sv.fridgeSet = ids.slice(0, F.perDay); sv.fridgeSetDay = G.clock.day; LPK.save.write();
+    }
+    return [...sv.fridgeSet.map(id => ({ photo: F.pictures.find(p => p.id === id) })), ...(sv.evanDrawings || [])];
+  };
+
   // Looking at Evan's drawings on the fridge: ← → flip through, Space/Q closes
   function updateArtView(dt) {
-    const A = G.artView, n = (LPK.save.data.evanDrawings || []).length;
+    const A = G.artView, n = G.fridgeList().length;
     A.t += dt;
     if (input.pressed("left")) { A.i = (A.i + n - 1) % n; A.t = 0.15; LPK.audio.sfx.click(); }
     else if (input.pressed("right")) { A.i = (A.i + 1) % n; A.t = 0.15; LPK.audio.sfx.click(); }
     else if (input.pressed("act") || input.pressed("stop") || input.pressed("pause")) G.artView = null;
   }
-  G.artStep = (d) => { const A = G.artView, n = (LPK.save.data.evanDrawings || []).length; if (!A) return; A.i = (A.i + n + d) % n; A.t = 0.15; LPK.audio.sfx.click(); };
+  G.artStep = (d) => { const A = G.artView, n = G.fridgeList().length; if (!A) return; A.i = (A.i + n + d) % n; A.t = 0.15; LPK.audio.sfx.click(); };
 
   // --------------------------------------------------------- render world
   function renderWorld() {
